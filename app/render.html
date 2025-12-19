@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAX Control Panel</title>
+    <style>
+        body { margin: 0; background: #111; color: #eee; font-family: sans-serif; overflow: hidden; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        
+        /* Floating Control Panel */
+        #controls {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(0, 0, 0, 0.8); padding: 20px;
+            border: 1px solid #444; border-radius: 8px;
+            width: 250px;
+        }
+        .row { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;}
+        input[type=range] { width: 120px; }
+        #status { color: #0f0; font-size: 12px; margin-bottom: 10px;}
+    </style>
+</head>
+<body>
+
+<div id="controls">
+    <div id="status">Connecting...</div>
+    
+    <div class="row">
+        <label>Freq</label>
+        <input type="range" id="freq" min="0.1" max="10" step="0.1" value="2.0">
+    </div>
+    
+    <div class="row">
+        <label>Amp</label>
+        <input type="range" id="amp" min="0" max="2" step="0.01" value="1.0">
+    </div>
+    <small>Processed in Python (JAX)<br>Rendered in WebGPU</small>
+</div>
+
+<canvas id="gpuCanvas"></canvas>
+
+<script type="module">
+    // --- WebGPU Config ---
+    const NUM_POINTS = 10000;
+    const DATA_SIZE_BYTES = NUM_POINTS * 4;
+
+    if (!navigator.gpu) throw Error("WebGPU not supported");
+    const adapter = await navigator.gpu.requestAdapter();
+    const device = await adapter.requestDevice();
+    const canvas = document.getElementById('gpuCanvas');
+    const context = canvas.getContext('webgpu');
+    const format = navigator.gpu.getPreferredCanvasFormat();
+
+    context.configure({ device, format, alphaMode: 'premultiplied' });
+
+    // --- Shader (Same as before, reads storage buffer) ---
+    const shaderCode = `
+        struct DataBuffer { values: array<f32> };
+        @group(0) @binding(0) var<storage, read> data: DataBuffer;
+
+        struct VertexOutput { @builtin(position) position: vec4f };
+
+        @vertex
+        fn vs_main(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
+            let count = f32(${NUM_POINTS});
+            let i = f32(vertexIndex);
+            let x = (i / count) * 2.0 - 1.0; 
+            let y = data.values[vertexIndex];
+            return VertexOutput(vec4f(x, y, 0.0, 1.0));
+        }
+
+        @fragment
+        fn fs_main() -> @location(0) vec4f {
+            return vec4f(0.0, 1.0, 0.9, 1.0); // Cyan color
+        }
+    `;
+
+    const module = device.createShaderModule({ code: shaderCode });
+    const pipeline = device.createRenderPipeline({
+        layout: 'auto',
+        vertex: { module, entryPoint: 'vs_main' },
+        fragment: { module, entryPoint: 'fs_main', targets: [{ format }] },
+        primitive: { topology: 'line-strip' },
+    });
+
+    const storageBuffer = device.createBuffer({
+        size: DATA_SIZE_BYTES,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+
+    const bindGroup = device.createBindGroup({
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: storageBuffer } }],
+    });
+
+    // --- WebSocket & Controls ---
+    const status = document.getElementById('status');
+    const freqInput = document.getElementById('freq');
+    const ampInput = document.getElementById('amp');
+    
+    const ws = new WebSocket('ws://localhost:8765');
+    ws.binaryType = 'arraybuffer';
+
+    ws.onopen = () => {
+        status.innerText = "Connected: JAX Active";
+        sendParams(); // Sync initial state
+    };
+    
+    ws.onclose = () => status.innerText = "Disconnected";
+
+    // 1. Send Controls TO Python
+    function sendParams() {
+        if(ws.readyState !== WebSocket.OPEN) return;
+        
+        const payload = {
+            freq: parseFloat(freqInput.value),
+            amp: parseFloat(ampInput.value)
+        };
+        ws.send(JSON.stringify(payload));
+    }
+
+    freqInput.addEventListener('input', sendParams);
+    ampInput.addEventListener('input', sendParams);
+
+    // 2. Receive Data FROM Python
+    ws.onmessage = async (event) => {
+        const arrayBuffer = event.data;
+        if (arrayBuffer.byteLength !== DATA_SIZE_BYTES) return;
+        
+        // Upload to GPU
+        device.queue.writeBuffer(storageBuffer, 0, arrayBuffer);
+        render();
+    };
+
+    function render() {
+        const commandEncoder = device.createCommandEncoder();
+        const textureView = context.getCurrentTexture().createView();
+
+        const pass = commandEncoder.beginRenderPass({
+            colorAttachments: [{
+                view: textureView,
+                clearValue: { r: 0.1, g: 0.1, b: 0.1, a: 1 },
+                loadOp: 'clear', storeOp: 'store',
+            }],
+        });
+
+        pass.setPipeline(pipeline);
+        pass.setBindGroup(0, bindGroup);
+        pass.draw(NUM_POINTS);
+        pass.end();
+
+        device.queue.submit([commandEncoder.finish()]);
+    }
+</script>
+</body>
+</html>
