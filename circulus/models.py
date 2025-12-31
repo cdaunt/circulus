@@ -34,7 +34,7 @@ def voltage_source(vars=jnp.zeros(3), params={'delay':0.0, 'V':0.0}, t=0.0):
     i_src    = vars[2]
     kcl = jnp.array([i_src, -i_src])
     v_output = jnp.array(jnp.where(t > params['delay'], params['V'], 0.0))
-    constraint = v_a - v_b - v_output
+    constraint = v_a - v_b + v_output
     f_contrib = jnp.concatenate([kcl, jnp.array([constraint])])
     return f_contrib, jnp.zeros(3)
 
