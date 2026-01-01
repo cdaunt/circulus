@@ -1,42 +1,72 @@
 import jax
 import jax.numpy as jnp
 import diffrax
-import matplotlib.pyplot as plt
 
 from circulus.models import resistor, capacitor, voltage_source, inductor
-from circulus.compiler import Instance, compile_netlist_vectorized
-from circulus.solvers.sparse import VectorizedSparseSolver as SparseSolver
+from circulus.compiler import compile_netlist, build_net_map
+#from circulus.solvers.sparse import VectorizedSparseSolver as SparseSolver
 from circulus.solvers.dense import VectorizedDenseSolver as DenseSolver
+from circulus.solvers.dc import solve_dc_op_dense
+from circulus.netlist import draw_circuit_graph
+
+import matplotlib.pyplot as plt
 
 
+if __name__ == "__main__":
+    # Enable 64-bit precision (Critical for Circuit Simulation)
+    jax.config.update("jax_enable_x64", True)
 
-# Enable 64-bit precision (Critical for Circuit Simulation)
-jax.config.update("jax_enable_x64", True)
 
+    models_map = {
+            'resistor': resistor,
+            'capacitor': capacitor,
+            'inductor': inductor,
+            'source_voltage': voltage_source,
+            'ground': lambda: 0
+        }
 
-def main():
-    # Circuit: GND -- Vsrc -- N1 -- Res -- N2 -- Ind -- N3 -- Cap -- GND
-    # Nodes: 0 (GND), 1, 2, 3
+    # Complex Netlist
+    net_dict = {
+        "instances": {
+            "GND": {"component":"ground"},
+            "V1": {"component":"source_voltage", "settings":{"V": 5.0, "delay":0.005}},
+            "R1": {"component":"resistor", "settings":{"R": 10.0}},
+            "R2": {"component":"resistor", "settings":{"R": 20.0}}, # Batching test
+            "C1": {"component":"capacitor", "settings":{"C": 1e-4}},
+            "L1": {"component":"inductor", "settings":{"L": 1e-2}},
+        },
+        "connections": {
+            "GND,p1": ("V1,p1", "C1,p2"),
+            "V1,p2": "R1,p1",
+            "R1,p2": ("R2,p1", "L1,p1"),
+            "R2,p2": "GND,p1", # Loop back
+            "L1,p2": "C1,p1",
+        },
+    }
+
+    draw_circuit_graph(net_dict)
+
+    print("Compiling...")
+    groups, sys_size, port_map = compile_netlist(net_dict, models_map)
+
+    print(port_map)
     
-    # Define Netlist
-    instances = [
-        Instance("V1", voltage_source, [1, 0], {"V": 5.0, "delay":0.005}),   # Needs 1 internal (idx 4)
-        Instance("R1", resistor,       [1, 2], {"R": 10.0}),  # Needs 0 internals
-        Instance("L1", inductor,       [2, 3], {"L": 0.01}),  # Needs 1 internal (idx 5)
-        Instance("C1", capacitor,      [3, 0], {"C": 1e-4}),  # Needs 0 internals
-    ]
-    
-    print("1. Compiling Netlist...")
-    # Node count is 4 (0,1,2,3).
-    # Expected System Size: 4 Nodes + 1 (Vsrc current) + 1 (Ind current) = 6 Vars
-    # blocks, sys_size = compile_netlist(instances, num_nodes=4)
-    # print(f"   System Size: {sys_size} variables.")
+    print(f"Total System Size: {sys_size}")
+    for g in groups:
+        print(f"\nGroup: {g.name}")
+        print(f"  Count: {g.var_indices.shape[0]}")
+        print(f"  Var Indices Shape: {g.var_indices.shape}")
+        print(f"  Sample Var Indices:\n{g.var_indices}")
+        print(f"  Jacobian Rows Length: {len(g.jac_rows)}")
 
-    groups, sys_size = compile_netlist_vectorized(instances, num_nodes=4)
-    print(f"   System Size: {sys_size} variables.")
-    
-    # Simulation Config
+        # Simulation Config
     y0 = jnp.zeros(sys_size)
+
+    print("2. Solving DC Operating Point...")
+    # This solves the system at t=0 assuming capacitors are open
+    y_op = solve_dc_op_dense(groups, sys_size, t0=0.0)
+    print(f"   OP Solution: {y_op}")
+    
     solver = DenseSolver()
     term = diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y))
     saveat = diffrax.SaveAt(ts=jnp.linspace(0, 0.02, 500))
@@ -44,14 +74,14 @@ def main():
     print("2. Running Simulation...")
     sol = diffrax.diffeqsolve(
         term, solver, t0=0.0, t1=0.05, dt0=1e-5, 
-        y0=y0, args=(groups, sys_size), 
+        y0=y_op, args=(groups, sys_size), 
         saveat=saveat, max_steps=5000
     )
-    
+
     # Visualization
     ts = sol.ts
-    v_src = sol.ys[:, 1] # Node 1
-    v_cap = sol.ys[:, 3] # Node 3
+    v_src = sol.ys[:, port_map["V1,p2"]]
+    v_cap = sol.ys[:, port_map["C1,p1"]] # Node 3
     i_ind = sol.ys[:, 5] # Internal Variable for Inductor (Index 5)
     
     print("3. Plotting...")
@@ -70,6 +100,3 @@ def main():
     plt.title("Differentiable Simulation with Implicit Internals")
     plt.grid(True)
     plt.show()
-
-if __name__ == "__main__":
-    main()

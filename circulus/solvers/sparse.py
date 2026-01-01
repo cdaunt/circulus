@@ -327,3 +327,4 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
 
     def func(self, terms, t0, y0, args):
         return terms.vf(t0, y0, args)
+    

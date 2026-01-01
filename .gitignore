@@ -2,3 +2,5 @@
 .pixi/*
 !.pixi/config.toml
 *.pyc
+archive/*
+circulus_workspace.code-workspace

@@ -5,6 +5,10 @@ from typing import NamedTuple, Callable, List, Dict, Any
 from collections import defaultdict
 import inspect
 from functools import wraps
+from natsort import natsorted
+import networkx as nx
+
+from circulus.netlist import build_net_map
 
 def ensure_time_signature(model_func):
     """
@@ -22,40 +26,6 @@ def ensure_time_signature(model_func):
         return model_func(vars, params)
         
     return time_aware_wrapper
-
-# Data structure for a generic component in the netlist
-class Instance(NamedTuple):
-    name: str
-    model_func: Callable
-    connections: List[int] # List of Global Node Indices
-    params: Dict[str, float]
-
-# Data structure for the Solver (Compiled Block)
-class CompiledBlock(NamedTuple):
-    physics_func: Callable
-    params: Dict[str, Any]
-    
-    # Map Global Vector -> Local Vector
-    var_indices: jnp.ndarray 
-    eq_indices:  jnp.ndarray
-    
-    # Map Local Jacobian -> Global Sparse Matrix
-    jac_rows: jnp.ndarray
-    jac_cols: jnp.ndarray
-
-def get_model_requirements(func):
-    """
-    Inspects the function signature to find the expected size of 'vars'.
-    """
-    sig = inspect.signature(func)
-    if 'vars' not in sig.parameters:
-        raise ValueError(f"{func.__name__} missing 'vars' argument")
-    
-    default_val = sig.parameters['vars'].default
-    if default_val is inspect.Parameter.empty:
-        raise ValueError(f"{func.__name__} 'vars' must have a default (e.g. jnp.zeros(3))")
-        
-    return len(default_val)
 
 class ComponentGroup(NamedTuple):
     """
@@ -82,95 +52,149 @@ class ComponentGroup(NamedTuple):
     jac_rows: jnp.ndarray    
     jac_cols: jnp.ndarray
 
-def compile_netlist_vectorized(instances: List[Instance], num_nodes: int):
-    """
-    Compiles individual Instances into vectorized ComponentGroups.
-    Groups instances by model_func to enable batch processing.
-    """
-    # 1. BUCKETING: Group instances by their model function
-    # Key: model_func
-    # Value: List of (instance, internal_start_index)
-    groups = defaultdict(list)
-    
-    current_global_idx = num_nodes
-    
-    # --- Pass 1: Assign Internal Indices & Group ---
-    for inst in instances:
 
-    # 1. Normalize the function signature
-        safe_func = ensure_time_signature(inst.model_func)
 
-        total_size = get_model_requirements(safe_func)
-        num_ports = len(inst.connections)
-        num_internals = total_size - num_ports
+def get_model_width(func):
+    """Determines the size of the 'vars' vector expected by the model."""
+    sig = inspect.signature(func)
+    if 'vars' not in sig.parameters:
+        raise ValueError(f"{func.__name__} missing 'vars' argument")
+    default_val = sig.parameters['vars'].default
+    if default_val is inspect.Parameter.empty:
+        raise ValueError(f"{func.__name__} 'vars' must have a default (e.g. jnp.zeros(3))")
+    return len(default_val)
+
+
+# --- Main Compiler ---
+
+def compile_netlist(
+    netlist: dict, 
+    models: Dict[str, Callable]
+) -> tuple[List[ComponentGroup], int, dict[str, int]]:
+    """
+    Directly converts a Dictionary Netlist into Vectorized Component Groups.
+    Avoids intermediate Instance objects for speed.
+    """
+    
+    # 1. Analyze Connectivity
+    port_map, num_nodes = build_net_map(netlist)
+    
+    # 2. Bucket Data by Component Type (Python Lists are fast for appending)
+    # structure: buckets[model_name] = { 'names': [], 'connections': [], 'params': {key: []} }
+    buckets = defaultdict(lambda: {
+        'names': [], 
+        'connections': [], 
+        'params': defaultdict(list)
+    })
+    
+    instances = netlist.get("instances", {})
+    
+    # Single pass through the netlist dictionary
+    for name, data in instances.items():
+        comp_type = data.get('component')
         
-        # Store instance with its calculated internal offset
-        groups[safe_func].append((inst, current_global_idx))
-        current_global_idx += num_internals
+        # Skip ground definition (it's implicit in the net map)
+        if comp_type == 'ground' or name == 'GND':
+            continue
+            
+        if comp_type not in models:
+            raise ValueError(f"Model '{comp_type}' not found in provided models dict.")
+            
+        # Resolve connections to integers immediately
+        # We assume standard pin naming or order implies connection order
+        # If specific pin names are required, sort keys of port_map matching name
+        
+        # Heuristic: Find all ports in port_map that start with "InstanceName,"
+        # and sort them to ensure p1, p2, p3 order.
+        related_ports = [k for k in port_map.keys() if k.startswith(f"{name},")]
+        related_ports = natsorted(related_ports) 
+        
+        if not related_ports:
+            # Handle unconnected components or manual connection lists if needed
+            continue
+            
+        conn_indices = [port_map[p] for p in related_ports]
+        
+        # Append to bucket
+        b = buckets[comp_type]
+        b['names'].append(name)
+        b['connections'].append(conn_indices)
+        
+        # Append params
+        settings = data.get('settings', {})
+        for k, v in settings.items():
+            b['params'][k].append(v)
 
-    # --- Pass 2: Stack Arrays for each Group ---
+    # 3. Vectorize Buckets
     compiled_groups = []
     
-    for func, items in groups.items():
-        # 'items' contains all instances sharing this physics function
-        # We assume all instances of the same function have identical shapes.
+    # Track where internal variables start (after the last physical node)
+    internal_var_offset = num_nodes 
+    
+    for comp_type, data in buckets.items():
+        func = ensure_time_signature(models[comp_type])
+        count = len(data['names'])
         
-        batch_var_indices = []
-        batch_eq_indices = []
-        batch_params = defaultdict(list)
-        batch_jac_rows = []
-        batch_jac_cols = []
+        if count == 0:
+            continue
+
+        # Convert connections to JAX array (N, num_ports)
+        node_indices = jnp.array(data['connections'], dtype=jnp.int32)
         
-        # Get shape info from the first item
-        first_inst = items[0][0]
-        total_size = get_model_requirements(func)
+        # Convert params to JAX arrays
+        # Note: If a param is missing for one instance, this will fail. 
+        # Robust code should fill defaults here.
+        batched_params = {k: jnp.array(v) for k, v in data['params'].items()}
         
-        for inst, internal_start in items:
-            # 1. Resolve Indices
-            node_indices = jnp.array(inst.connections)
-            internal_indices = jnp.arange(internal_start, internal_start + (total_size - len(node_indices)))
-            all_indices = jnp.concatenate([node_indices, internal_indices])
+        # Calculate Dimensions
+        model_width = get_model_width(func)
+        num_ports = node_indices.shape[1]
+        num_internals = model_width - num_ports
+        
+        # -- Generate Internal Indices --
+        if num_internals > 0:
+            # Create a block of new indices: [offset, offset+1, ..., offset + N*internals]
+            total_new_vars = count * num_internals
             
-            # Store for stacking later
-            batch_var_indices.append(all_indices)
-            batch_eq_indices.append(all_indices) # Modify if MNA requires different eq indices
+            # Shape (N, num_internals)
+            internal_indices = jnp.arange(
+                internal_var_offset, 
+                internal_var_offset + total_new_vars
+            ).reshape(count, num_internals)
             
-            # 2. Collect Parameters
-            # Turn list of dicts -> dict of lists
-            for key, val in inst.params.items():
-                batch_params[key].append(val)
-                
-            # 3. Build Jacobian Coordinates (Meshgrid for this instance)
-            # This creates the dense block structure for this specific instance
-            r = jnp.broadcast_to(all_indices[:, None], (total_size, total_size))
-            c = jnp.broadcast_to(all_indices[None, :], (total_size, total_size))
+            # Update global counter
+            internal_var_offset += total_new_vars
             
-            batch_jac_rows.append(r.reshape(-1))
-            batch_jac_cols.append(c.reshape(-1))
-            
-        # --- STACKING & CONCATENATION ---
+            # Combine [Node Indices | Internal Indices]
+            # Shape (N, model_width)
+            var_indices = jnp.concatenate([node_indices, internal_indices], axis=1)
+        else:
+            var_indices = node_indices
+
+        # -- Vectorized Jacobian Index Generation --
+        # We need the Cartesian product of var_indices with itself for every instance
+        # var_indices shape: (N, W)
         
-        # Stack indices for vmap (Shape: N x vars)
-        final_var_indices = jnp.stack(batch_var_indices)
-        final_eq_indices = jnp.stack(batch_eq_indices)
+        # Expand dims for broadcasting
+        # rows: (N, W, 1)
+        # cols: (N, 1, W)
+        rows = var_indices[:, :, None]
+        cols = var_indices[:, None, :]
         
-        # Stack parameters into arrays (Shape: N)
-        final_params = {k: jnp.array(v) for k, v in batch_params.items()}
-        
-        # Concatenate Jacobian indices (Shape: N*vars*vars)
-        # We want one massive 1D array for the sparse matrix constructor
-        final_jac_rows = jnp.concatenate(batch_jac_rows)
-        final_jac_cols = jnp.concatenate(batch_jac_cols)
-        
+        # Broadcast and flatten
+        # Target shape for sparse matrix: (N * W^2, )
+        jac_rows = jnp.broadcast_to(rows, (count, model_width, model_width)).flatten()
+        jac_cols = jnp.broadcast_to(cols, (count, model_width, model_width)).flatten()
+
         group = ComponentGroup(
-            name=func.__name__,
+            name=comp_type,
             physics_func=func,
-            params=final_params,
-            var_indices=final_var_indices,
-            eq_indices=final_eq_indices,
-            jac_rows=final_jac_rows,
-            jac_cols=final_jac_cols
+            params=batched_params,
+            var_indices=var_indices,
+            eq_indices=var_indices, # In this formulation, equations map 1-to-1 with variables
+            jac_rows=jac_rows,
+            jac_cols=jac_cols
         )
         compiled_groups.append(group)
 
-    return compiled_groups, current_global_idx
+    return compiled_groups, internal_var_offset, port_map

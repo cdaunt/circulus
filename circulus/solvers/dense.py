@@ -3,12 +3,7 @@ import jax.numpy as jnp
 from jax.experimental import sparse
 import diffrax
 import optimistix as optx
-
-import jax
-import jax.numpy as jnp
-from jax.experimental import sparse
-import diffrax
-import optimistix as optx
+from functools import partial
 
 class VectorizedDenseSolver(diffrax.AbstractSolver):
     """
@@ -35,8 +30,7 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
             v_locs = y0[group.var_indices]
             
             # Bind t=t0 to the physics function
-            def physics_at_t0(v, p):
-                return group.physics_func(v, p, t=t0)
+            physics_at_t0 = partial(group.physics_func, t=t0)
             
             # Single vmap over all components of this type
             _, q_locs = jax.vmap(physics_at_t0)(v_locs, group.params)
