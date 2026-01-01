@@ -10,9 +10,6 @@ import optimistix as optx
 from circulus.compiler import ComponentGroup
 from circulus.solvers.common import _extract_diagonal, _sparse_matvec
 
-
-
-# --- 2. DC Operating Point Solver ---
 def solve_dc_op_sparse(
     component_groups: list[ComponentGroup], 
     num_vars: int, 
