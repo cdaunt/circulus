@@ -16,6 +16,7 @@ if __name__ == "__main__":
     # Enable 64-bit precision (Critical for Circuit Simulation)
     jax.config.update("jax_enable_x64", True)
 
+    t_max = 1E-8
 
     models_map = {
             'resistor': resistor,
@@ -29,17 +30,15 @@ if __name__ == "__main__":
     net_dict = {
         "instances": {
             "GND": {"component":"ground"},
-            "V1": {"component":"source_voltage", "settings":{"V": 5.0, "delay":0.005}},
+            "V1": {"component":"source_voltage", "settings":{"V": 5.0, "delay":0.2*t_max}},
             "R1": {"component":"resistor", "settings":{"R": 10.0}},
-            "R2": {"component":"resistor", "settings":{"R": 20.0}}, # Batching test
-            "C1": {"component":"capacitor", "settings":{"C": 1e-4}},
-            "L1": {"component":"inductor", "settings":{"L": 1e-2}},
+            "C1": {"component":"capacitor", "settings":{"C": 1e-11}},
+            "L1": {"component":"inductor", "settings":{"L": 5e-9}},
         },
         "connections": {
             "GND,p1": ("V1,p1", "C1,p2"),
             "V1,p2": "R1,p1",
-            "R1,p2": ("R2,p1", "L1,p1"),
-            "R2,p2": "GND,p1", # Loop back
+            "R1,p2": "L1,p1",
             "L1,p2": "C1,p1",
         },
     }
@@ -69,11 +68,12 @@ if __name__ == "__main__":
     
     solver = DenseSolver()
     term = diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y))
-    saveat = diffrax.SaveAt(ts=jnp.linspace(0, 0.02, 500))
+    
+    saveat = diffrax.SaveAt(ts=jnp.linspace(0, t_max, 500))
     
     print("2. Running Simulation...")
     sol = diffrax.diffeqsolve(
-        term, solver, t0=0.0, t1=0.05, dt0=1e-5, 
+        term, solver, t0=0.0, t1=t_max, dt0=1e-3*t_max, 
         y0=y_op, args=(groups, sys_size), 
         saveat=saveat, max_steps=5000
     )
