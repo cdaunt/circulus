@@ -16,11 +16,28 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
     interpolation_cls = diffrax.LocalLinearInterpolation
 
     def init(self, terms, t0, t1, y0, args):
-        return None 
+
+        component_groups, num_vars = args
+
+        # --- 2. Pre-computed Structure (Static) ---
+        # We collect all indices once to avoid concatenation inside the Newton loop
+        all_rows_list = []
+        all_cols_list = []
+        for g in component_groups:
+            all_rows_list.append(g.jac_rows.reshape(-1))
+            all_cols_list.append(g.jac_cols.reshape(-1))
+            
+        static_rows = jnp.concatenate(all_rows_list + [jnp.array([0])])
+        static_cols = jnp.concatenate(all_cols_list + [jnp.array([0])])
+
+
+
+        return (static_rows, static_cols) 
 
     def step(self, terms, t0, t1, y0, args, solver_state, options):
         # Unpack: args is a list of ComponentGroups, not individual blocks
         component_groups, num_vars = args
+        static_rows, static_cols = solver_state
         dt = t1 - t0
         
         # --- 1. Vectorized History Calculation (at t0) ---
@@ -38,16 +55,6 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
             # Scatter add results
             q_prev = q_prev.at[group.eq_indices].add(q_locs)
 
-        # --- 2. Pre-computed Structure (Static) ---
-        # We collect all indices once to avoid concatenation inside the Newton loop
-        all_rows_list = []
-        all_cols_list = []
-        for g in component_groups:
-            all_rows_list.append(g.jac_rows.reshape(-1))
-            all_cols_list.append(g.jac_cols.reshape(-1))
-            
-        static_rows = jnp.concatenate(all_rows_list + [jnp.array([0])])
-        static_cols = jnp.concatenate(all_cols_list + [jnp.array([0])])
 
         # --- 3. The Vectorized Dense Newton Step (at t1) ---
         def dense_newton_step(y_guess, args):
@@ -117,7 +124,7 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
             None
         )
         
-        return sol.value, None, {"y0": y0, "y1": sol.value}, None, result
+        return sol.value, None, {"y0": y0, "y1": sol.value}, solver_state, result
 
     def func(self, terms, t0, y0, args):
         return terms.vf(t0, y0, args)
