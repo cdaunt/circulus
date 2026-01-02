@@ -64,14 +64,14 @@ if __name__ == "__main__":
     print("2. Solving DC Operating Point...")
     # This solves the system at t=0 assuming capacitors are open
     y_op = solve_dc_op_dense(groups, sys_size, t0=0.0)
-    print(f"   OP Solution: {y_op}")
+    #print(f"   OP Solution: {y_op}")
     
     solver = DenseSolver()
     term = diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y))
     
     saveat = diffrax.SaveAt(ts=jnp.linspace(0, t_max, 500))
     
-    print("2. Running Simulation...")
+    print("3. Running Simulation...")
     sol = diffrax.diffeqsolve(
         term, solver, t0=0.0, t1=t_max, dt0=1e-3*t_max, 
         y0=y_op, args=(groups, sys_size), 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     v_cap = sol.ys[:, port_map["C1,p1"]] # Node 3
     i_ind = sol.ys[:, 5] # Internal Variable for Inductor (Index 5)
     
-    print("3. Plotting...")
+    print("4. Plotting...")
     fig, ax1 = plt.subplots(figsize=(8, 5))
     ax1.plot(ts, v_src, 'k--', label='Source V')
     ax1.plot(ts, v_cap, 'b-', label='Capacitor V')
