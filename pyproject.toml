@@ -43,6 +43,7 @@ platforms = ["linux-64", "win-64"]
 #
 [tool.pixi.dependencies]
 python = "==3.12"
+tqdm = ">=4.67.1,<5"
 
 [tool.pixi.environments]
 default = []

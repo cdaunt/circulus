@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import diffrax
 
-from circulus.models import resistor, capacitor, voltage_source, inductor
+from circulus.models import resistor, capacitor, voltage_source, inductor, voltage_source_ac
 from circulus.compiler import compile_netlist, build_net_map
 #from circulus.solvers.sparse import VectorizedSparseSolver as SparseSolver
 from circulus.solvers.dense import VectorizedDenseSolver as DenseSolver
@@ -22,7 +22,7 @@ if __name__ == "__main__":
             'resistor': resistor,
             'capacitor': capacitor,
             'inductor': inductor,
-            'source_voltage': voltage_source,
+            'source_voltage': voltage_source_ac,
             'ground': lambda: 0
         }
 
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     net_dict = {
         "instances": {
             "GND": {"component":"ground"},
-            "V1": {"component":"source_voltage", "settings":{"V": 5.0, "delay":0.2*t_max}},
+            "V1": {"component":"source_voltage", "settings":{"V": 5.0, "delay":0.0, "freq":1e9, "phase":0.0}},
             "R1": {"component":"resistor", "settings":{"R": 10.0}},
             "C1": {"component":"capacitor", "settings":{"C": 1e-11}},
             "L1": {"component":"inductor", "settings":{"L": 5e-9}},
@@ -74,8 +74,10 @@ if __name__ == "__main__":
     print("3. Running Simulation...")
     sol = diffrax.diffeqsolve(
         term, solver, t0=0.0, t1=t_max, dt0=1e-3*t_max, 
-        y0=y_op, args=(groups, sys_size), 
-        saveat=saveat, max_steps=5000
+        y0=y_op, args=(groups, sys_size),
+
+        saveat=saveat, max_steps=100000,
+        progress_meter=diffrax.TqdmProgressMeter(refresh_steps=100)
     )
 
     # Visualization
