@@ -1,106 +1,125 @@
 import jax
 import jax.numpy as jnp
 import jax.scipy.sparse.linalg
-from jax.experimental import sparse # Required for Dense Solver assembly
-from jax import lax
-from functools import partial
 import optimistix as optx
 
-# Import types for type hinting
 from circulus.compiler import ComponentGroup
 from circulus.solvers.common import _extract_diagonal, _sparse_matvec
 
+
 def solve_dc_op_sparse(
-    component_groups: list[ComponentGroup], 
+    component_groups: list, 
     num_vars: int, 
     t0: float = 0.0,
     max_iter: int = 50,
     tol: float = 1e-6
 ):
     """
-    Solves the algebraic system f(x, t0) = 0.
-    Ignores dynamic terms (dq/dt).
+    Optimized Sparse DC OP Solver:
+    - Uses jax.ops.segment_sum for ultra-fast sparse matrix ops.
+    - Implements Soft Damping to handle exponential components from 0V start.
+    - Handles floating nodes via diagonal leakage.
     """
     
-    # Pre-calculate static structure (same as in transient, but useful here too)
-    all_rows = []
-    all_cols = []
+    # --- 1. Pre-calculate Indices (Static) ---
+    all_rows_list = []
+    all_cols_list = []
     for g in component_groups:
-        all_rows.append(g.jac_rows)
-        all_cols.append(g.jac_cols)
+        all_rows_list.append(g.jac_rows.reshape(-1))
+        all_cols_list.append(g.jac_cols.reshape(-1))
+        
+    # Add Ground Stiffener Index (0,0) explicitly to structure
+    static_rows = jnp.concatenate(all_rows_list + [jnp.array([0])])
+    static_cols = jnp.concatenate(all_cols_list + [jnp.array([0])])
     
-    # Add a dummy zero at the end to ensure concatenation works safely
-    static_rows = jnp.concatenate(all_rows + [jnp.array([0])])
-    static_cols = jnp.concatenate(all_cols + [jnp.array([0])])
+    # Pre-calculate Mask for fast diagonal extraction
+    # This allows us to find diagonal elements in one fast vector operation
+    diag_mask = (static_rows == static_cols)
 
     def op_step(y_guess, _):
         total_f = jnp.zeros(num_vars)
         jac_vals_list = []
 
-        # --- Vectorized Assembly (DC Version) ---
+        # --- Vectorized Assembly ---
         for group in component_groups:
-            # 1. Get Local Variables
             v_locs = y_guess[group.var_indices]
             
-            # 2. Physics Evaluation (t is fixed)
-            physics_fn = partial(group.physics_func, t=t0)
+            # Physics at t0 (DC only, ignores time derivatives)
+            def get_f_only(v, p): 
+                return group.physics_func(v, p, t=t0)[0]
             
-            # 3. Compute Value and Jacobian
-            # We explicitly define a wrapper that returns ONLY the resistive part 'f'
-            # because jax.jacfwd needs to know exactly what to differentiate.
-            def get_f_only(v, p):
-                return physics_fn(v, p)[0]
-            
-            # Calculate Value (N, width)
+            # Primal Eval
             f_loc = jax.vmap(get_f_only)(v_locs, group.params)
             
-            # Calculate Jacobian (N, width, width) using Forward Mode AD
-            # jacfwd is required here (not value_and_grad) because output is a vector.
+            # Jacobian Eval (Forward Mode)
+            # Necessary because outputs are vectors
             df_loc = jax.vmap(jax.jacfwd(get_f_only))(v_locs, group.params)
 
-            # 4. Scatter Add
             total_f = total_f.at[group.eq_indices].add(f_loc)
             jac_vals_list.append(df_loc.reshape(-1))
 
-        # --- Linear Solve ---
-        # G_leak to prevent singular matrix if nodes are floating (e.g. between capacitors)
-        G_leak = 1e-9 
+        # --- Linear System Setup ---
+        # 1. Ground Constraint (Node 0) - "Stiff" connection to 0V
+        G_stiff = 1e9
+        total_f = total_f.at[0].add(G_stiff * y_guess[0])
         
-        # Flatten Jacobian values
-        all_vals = jnp.concatenate(jac_vals_list + [jnp.array([G_leak])])
-        
-        # Add leakage to diagonal explicitly in residual and matrix
-        # (This is a simplified Gmin stepping approach)
+        # 2. Global Leakage (G_leak)
+        # Adds 1nS conductance to ground for EVERY node. 
+        # Prevents singular matrix errors on floating nodes (e.g. between capacitors).
+        G_leak = 1e-9
         total_f = total_f + y_guess * G_leak
         
-        # Solve J * delta = -f
+        # Flatten Jacobian Values
+        all_vals = jnp.concatenate(jac_vals_list + [jnp.array([G_stiff])])
+
+        # --- OPTIMIZATION 1: Fast Diagonal Extraction ---
+        # Extract physical diagonal sums using segment_sum
+        diag_vals_physical = jax.ops.segment_sum(
+            all_vals * diag_mask, static_rows, num_segments=num_vars
+        )
+        # Add leakage to diagonal (Effective Jacobian Diagonal)
+        diag_vals_total = diag_vals_physical + G_leak
         
-        # 1. Extract Diagonal for Preconditioner
-        diag_vals = _extract_diagonal(static_rows, static_cols, all_vals, num_vars)
-        # Avoid division by zero
-        safe_diag = jnp.where(jnp.abs(diag_vals) < 1e-12, 1.0, diag_vals)
-        precond_inv = 1.0 / safe_diag
+        # Compute Preconditioner (Inverse Diagonal)
+        inv_diag = jnp.where(jnp.abs(diag_vals_total) < 1e-12, 1.0, 1.0 / diag_vals_total)
 
+        # --- OPTIMIZATION 2: Fast Matvec ---
         def matvec(x):
-            mv = _sparse_matvec(static_rows, static_cols, all_vals, x, num_vars)
-            return mv + x * G_leak # Add the implicit leakage diagonal
+            # 1. Sparse Matrix Multiply (J_physical * x)
+            x_gathered = x[static_cols]
+            products = all_vals * x_gathered
+            Ax = jax.ops.segment_sum(products, static_rows, num_segments=num_vars)
+            
+            # 2. Add Leakage Term implicitly ((J + G_leak*I) * x)
+            return Ax + (x * G_leak)
 
-        delta, info = jax.scipy.sparse.linalg.gmres(
+        # --- GMRES Solve ---
+        # Initial guess: 1-step Jacobi update
+        delta_guess = -total_f * inv_diag
+        
+        delta, _ = jax.scipy.sparse.linalg.gmres(
             matvec,
             -total_f,
-            M=lambda x: precond_inv * x,
+            x0=delta_guess,
+            M=lambda x: inv_diag * x, # Apply Preconditioner
             tol=1e-6,
-            maxiter=100
+            maxiter=100,
+            restart=20
         )
         
-        return y_guess + delta
+        # --- OPTIMIZATION 3: Soft Damping ---
+        # Critical for DC convergence. If the solver wants to change a node 
+        # by 500V (common in first step), scale it down to 2V.
+        max_change = jnp.max(jnp.abs(delta))
+        damping_factor = jnp.minimum(1.0, 2.0 / (max_change + 1e-9))
+        
+        return y_guess + (delta * damping_factor)
 
-    # Run the Fixed Point Solver
+    # Solve
     solver = optx.FixedPointIteration(rtol=tol, atol=tol)
-    sol = optx.fixed_point(op_step, solver, jnp.zeros(num_vars), max_steps=max_iter)
+    sol = optx.fixed_point(op_step, solver, jnp.zeros(num_vars), max_steps=max_iter, throw=False)
     
     return sol.value
-
 
 def solve_dc_op_dense(
     component_groups: list, 
