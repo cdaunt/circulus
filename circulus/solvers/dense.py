@@ -5,6 +5,7 @@ import diffrax
 import optimistix as optx
 from functools import partial
 
+
 class VectorizedDenseSolver(diffrax.AbstractSolver):
     """
     High-Performance Dense Solver:
@@ -56,67 +57,72 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
             q_prev = q_prev.at[group.eq_indices].add(q_locs)
 
 
-        # --- 3. The Vectorized Dense Newton Step (at t1) ---
+# --- 2. The Vectorized Dense Newton Step ---
         def dense_newton_step(y_guess, args):
             total_f = jnp.zeros(num_vars)
             total_q = jnp.zeros(num_vars)
-            jac_vals_list = []
             
+            # Initialize Dense Jacobian
+            J_dense = jnp.zeros((num_vars, num_vars))
+            jac_vals_list = []
+
             # --- Vectorized Assembly ---
             for group in component_groups:
                 v_locs = y_guess[group.var_indices]
                 
-                # Bind t=t1 to the physics function
                 def physics_at_t1(v, p):
                     return group.physics_func(v, p, t=t1)
                 
-                # Massively parallel physics eval
+                # --- CORRECTION HERE ---
+                # 1. Evaluate the Physics (Primal)
                 (f_l, q_l) = jax.vmap(physics_at_t1)(v_locs, group.params)
                 
-                # Massively parallel Jacobian eval
+                # 2. Evaluate the Jacobian (Tangent)
+                # We strictly need the full matrix for Direct Solves
                 (df_l, dq_l) = jax.vmap(jax.jacfwd(physics_at_t1))(v_locs, group.params)
                 
-                # Accumulate
+                # Accumulate Residuals
                 total_f = total_f.at[group.eq_indices].add(f_l)
                 total_q = total_q.at[group.eq_indices].add(q_l)
                 
-                # Jacobian Entries
+                # Calculate Effective Jacobian Values
                 j_eff = df_l + (dq_l / dt)
                 jac_vals_list.append(j_eff.reshape(-1))
-            
+
             # --- Solve Preparation ---
             residual = total_f + (total_q - q_prev) / dt
             
-            # Boundary Condition (Ground Node 0)
-            # 1e9 is safe for Dense solvers (64-bit float limit is much higher)
+            # Ground Constraint
             G_stiff = 1e9
             residual = residual.at[0].add(G_stiff * y_guess[0])
             
+            # --- optimization 2: Direct Dense Scatter (Preserved) ---
             all_vals = jnp.concatenate(jac_vals_list + [jnp.array([G_stiff])])
             
-            # --- Sparse Assembly -> Dense Solve ---
-            # We use BCOO to handle the "Scatter-Add" logic efficiently
-            J_sparse = sparse.BCOO(
-                (all_vals, jnp.stack([static_rows, static_cols], axis=1)),
-                shape=(num_vars, num_vars)
-            )
+            # Scatter values directly into the dense matrix
+            J_dense = J_dense.at[static_rows, static_cols].add(all_vals)
             
-            # Convert to Dense Matrix (The key difference)
-            J_dense = J_sparse.todense()
-            
-            # Dense LU Solve (Robust)
+            # Inside dense_newton_step ...
             delta = jnp.linalg.solve(J_dense, -residual)
-            
-            return y_guess + delta
 
-        # --- 4. Solver Loop (Optimistix) ---
-        # We use FixedPointIteration to drive our custom Newton step
+            # --- Soft Damping (Better than Hard Clipping) ---
+            # Calculate how "aggressive" this step is
+            max_change = jnp.max(jnp.abs(delta))
+
+            damping_limit = 1.0 
+            damping_factor = jnp.minimum(1.0, damping_limit / (max_change + 1e-9))
+
+            # Apply scaling. This preserves the 'direction' of the update, 
+            # which is better for the PID controller than hard clipping.
+            delta_damped = delta * damping_factor
+
+            return y_guess + delta_damped
+
+        # --- 3. Solver Loop ---
         solver = optx.FixedPointIteration(rtol=1e-5, atol=1e-5)
-        
-        # Max steps can be lower for dense solvers as they are exact linear solves
-        sol = optx.fixed_point(dense_newton_step, solver, y0, max_steps=20, throw=False)
-        
-        # --- 5. Result Handling ---
+        sol = optx.fixed_point(dense_newton_step, solver, y0, max_steps=30, throw=False)
+        y_error = sol.value - y0
+
         result = jax.lax.cond(
             sol.result == optx.RESULTS.successful,
             lambda _: diffrax.RESULTS.successful,
@@ -124,8 +130,9 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
             None
         )
         
-        return sol.value, None, {"y0": y0, "y1": sol.value}, solver_state, result
-
+        # We must return the *next* step's value, not the function evaluation
+        return sol.value, y_error, {"y0": y0, "y1": sol.value}, solver_state, result
+    
     def func(self, terms, t0, y0, args):
         return terms.vf(t0, y0, args)
     
