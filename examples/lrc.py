@@ -30,20 +30,20 @@ if __name__ == "__main__":
     net_dict = {
         "instances": {
             "GND": {"component":"ground"},
-            "V1": {"component":"source_voltage", "settings":{"V": 5.0, "delay":0.0, "freq":1e9, "phase":0.0}},
+            "V1": {"component":"source_voltage", "settings":{"V": 1.0,"freq":1e9}},
             "R1": {"component":"resistor", "settings":{"R": 10.0}},
             "C1": {"component":"capacitor", "settings":{"C": 1e-11}},
             "L1": {"component":"inductor", "settings":{"L": 5e-9}},
         },
         "connections": {
-            "GND,p1": ("V1,p1", "C1,p2"),
-            "V1,p2": "R1,p1",
+            "GND,p1": ("V1,p2", "C1,p2"),
+            "V1,p1": "R1,p1",
             "R1,p2": "L1,p1",
             "L1,p2": "C1,p1",
         },
     }
 
-    draw_circuit_graph(net_dict)
+    #draw_circuit_graph(net_dict)
 
     print("Compiling...")
     groups, sys_size, port_map = compile_netlist(net_dict, models_map)
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
     # Visualization
     ts = sol.ts
-    v_src = sol.ys[:, port_map["V1,p2"]]
+    v_src = sol.ys[:, port_map["V1,p1"]]
     v_cap = sol.ys[:, port_map["C1,p1"]] # Node 3
     i_ind = sol.ys[:, 5] # Internal Variable for Inductor (Index 5)
     

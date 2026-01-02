@@ -1,0 +1,109 @@
+import jax
+import jax.numpy as jnp
+import diffrax
+
+from circulus.models import resistor, nmos_level1, voltage_source, current_source
+from circulus.compiler import compile_netlist
+from circulus.solvers.dense import VectorizedDenseSolver
+from circulus.solvers.dc import solve_dc_op_dense
+from circulus.netlist import draw_circuit_graph
+
+import matplotlib.pyplot as plt
+
+if __name__ == "__main__":
+    print("\n--- DEMO 3: Differential Pair (DC Sweep) ---")
+    
+    # Models (Static models are fine for DC)
+    models_map = {
+        'nmos': nmos_level1,
+        'resistor': resistor,
+        'source_dc': voltage_source,
+        'current_src': current_source,
+        'ground': lambda: 0
+    }
+
+    # Netlist: Diff Pair with Current Source Tail
+    net_dict = {
+        "instances": {
+            "GND": {"component":"ground"},
+            "VDD": {"component":"source_dc", "settings":{"V": 5.0}},
+            "Iss": {"component":"current_src", "settings":{"I": 1e-3}}, # 1mA Tail
+            "RD1": {"component":"resistor", "settings":{"R": 2000}},
+            "RD2": {"component":"resistor", "settings":{"R": 2000}},
+            "M1":  {"component":"nmos", "settings":{"W": 50e-6, "L": 1e-6}},
+            "M2":  {"component":"nmos", "settings":{"W": 50e-6, "L": 1e-6}},
+            "Vin1": {"component":"source_dc", "settings":{"V": 2.5}}, # We will override this
+            "Vin2": {"component":"source_dc", "settings":{"V": 2.5}}, # Fixed Reference
+        },
+        "connections": {
+            "GND,p1": ("VDD,p2", "Vin1,p2", "Vin2,p2", "Iss,p2"),
+            # Tail
+            "Iss,p1": ("M1,p3", "M2,p3"),
+            # Drains to Resistors
+            "M1,p1": "RD1,p2",
+            "M2,p1": "RD2,p2",
+            # Resistors to VDD
+            "RD1,p1": "VDD,p1",
+            "RD2,p1": "VDD,p1",
+            # Inputs
+            "Vin1,p1": "M1,p2",
+            "Vin2,p1": "M2,p2",
+        },
+    }
+
+    groups, sys_size, port_map = compile_netlist(net_dict, models_map)
+    
+    # --- The DC Sweep Logic ---
+    # We want to sweep Vin1 from 1.5V to 3.5V
+    sweep_voltages = jnp.linspace(1.5, 3.5, 100)
+    
+    # Identify which index in 'groups' corresponds to Vin1's parameters
+    # This requires knowing how 'compile_netlist' packs parameters. 
+    # Assuming 'groups' stores params as JAX arrays, we can vmap over them.
+    
+    # Strategy: Create a function that updates the params and solves
+    def solve_for_vin(v_in_val):
+        # We manually update the parameter for the specific group containing 'Vin1'
+        # Note: In a real compiler, you'd have a map for this. 
+        # Here we perform a functional update on the specific ComponentGroup.
+        
+        # 1. Find the voltage source group (Assuming it's named 'source_dc')
+        # 2. Update the 'V' param for the 2nd instance (Vin1 is usually later in the list)
+        # This is tricky without a specific API, so we will cheat slightly 
+        # by treating the DC solver as a function of the parameter vector.
+        
+        # Simpler approach for this demo: 
+        # Re-construct the params for the Voltage Source group specifically.
+        
+        new_groups = []
+        for g in groups:
+            if g.name == 'source_dc': # This matches the key in models_map
+                # Find which index is Vin1. Let's assume order: VDD, Vin1, Vin2
+                # We update the 'V' array at index 1
+                new_V = g.params['V'].at[1].set(v_in_val)
+                new_params = {**g.params, 'V': new_V}
+                new_groups.append(g._replace(params=new_params))
+            else:
+                new_groups.append(g)
+                
+        return solve_dc_op_dense(new_groups, sys_size)
+
+    # JAX VMAP allows us to solve 100 circuits in parallel on the GPU
+    print("Sweeping DC Operating Point...")
+    solutions = jax.vmap(solve_for_vin)(sweep_voltages)
+    
+    v_out1 = solutions[:, port_map["RD1,p2"]]
+    v_out2 = solutions[:, port_map["RD2,p2"]]
+    v_diff = v_out1 - v_out2
+
+    plt.figure(figsize=(8, 4))
+    plt.plot(sweep_voltages, v_out1, 'r', label='V_out1 (Inv)')
+    plt.plot(sweep_voltages, v_out2, 'b', label='V_out2 (Non-Inv)')
+    plt.plot(sweep_voltages, v_diff, 'k--', label='V_diff')
+    plt.axvline(2.5, color='gray', linestyle=':', label='Ref (2.5V)')
+    plt.title("Differential Pair Transfer Characteristic")
+    plt.xlabel("Input Voltage Vin1 (V)")
+    plt.ylabel("Output Voltage (V)")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
