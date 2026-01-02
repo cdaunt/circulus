@@ -31,14 +31,15 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
         static_rows = jnp.concatenate(all_rows_list + [jnp.array([0])])
         static_cols = jnp.concatenate(all_cols_list + [jnp.array([0])])
 
+        history = (y0, 1.0)
 
-
-        return (static_rows, static_cols) 
+        return (static_rows, static_cols, history) 
 
     def step(self, terms, t0, t1, y0, args, solver_state, options):
         # Unpack: args is a list of ComponentGroups, not individual blocks
         component_groups, num_vars = args
-        static_rows, static_cols = solver_state
+        static_rows, static_cols, history = solver_state
+        y_prev_step, dt_prev = history
         dt = t1 - t0
         
         # --- 1. Vectorized History Calculation (at t0) ---
@@ -121,7 +122,6 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
         # --- 3. Solver Loop ---
         solver = optx.FixedPointIteration(rtol=1e-5, atol=1e-5)
         sol = optx.fixed_point(dense_newton_step, solver, y0, max_steps=30, throw=False)
-        y_error = sol.value - y0
 
         result = jax.lax.cond(
             sol.result == optx.RESULTS.successful,
@@ -129,9 +129,22 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
             lambda _: diffrax.RESULTS.nonlinear_divergence,
             None
         )
+
+        # Error calculation for PID Controller
+        rate_prev = (y0 - y_prev_step) / dt_prev
+        y_pred = y0 + rate_prev * dt
+        
+        # The error is the difference between the Newton solution and the Linear Prediction
+        # This scales with curvature (d2y/dt2), not slope (dy/dt)
+        y_next = sol.value
+        y_error = y_next - y_pred
+
+        # Update History for next step
+        new_history = (y0, dt)
+        new_state = (static_rows, static_cols,  new_history)
         
         # We must return the *next* step's value, not the function evaluation
-        return sol.value, y_error, {"y0": y0, "y1": sol.value}, solver_state, result
+        return sol.value, y_error, {"y0": y0, "y1": sol.value}, new_state, result
     
     def func(self, terms, t0, y0, args):
         return terms.vf(t0, y0, args)

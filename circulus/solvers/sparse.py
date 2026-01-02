@@ -38,15 +38,18 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
         static_rows = jnp.concatenate(all_rows_list + [jnp.array([0])])
         static_cols = jnp.concatenate(all_cols_list + [jnp.array([0])])
         
+        history = (y0, 1.0)
+
         # --- Pre-calculate Preconditioner Mask ---
         # Used to extract the diagonal quickly using segment_sum
         diag_mask = (static_rows == static_cols)
         
-        return (static_rows, static_cols, diag_mask)
+        return (static_rows, static_cols, diag_mask, history)
 
     def step(self, terms, t0, t1, y0, args, solver_state, options):
         component_groups, num_vars = args
-        static_rows, static_cols, diag_mask = solver_state
+        static_rows, static_cols, diag_mask, history = solver_state
+        y_prev_step, dt_prev = history
         dt = t1 - t0
         
         # --- 1. History (t0) ---
@@ -142,9 +145,20 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
         )
         
         # --- PID Error Estimate ---
-        y_error = sol.value - y0
+        # Error calculation for PID Controller
+        rate_prev = (y0 - y_prev_step) / dt_prev
+        y_pred = y0 + rate_prev * dt
         
-        return sol.value, y_error, {"y0": y0, "y1": sol.value}, solver_state, result
+        # The error is the difference between the Newton solution and the Linear Prediction
+        # This scales with curvature (d2y/dt2), not slope (dy/dt)
+        y_next = sol.value
+        y_error = y_next - y_pred
+
+        # Update History for next step
+        new_history = (y0, dt)
+        new_state = (static_rows, static_cols,  diag_mask, new_history)
+        
+        return sol.value, y_error, {"y0": y0, "y1": sol.value}, new_state, result
     
     def func(self, terms, t0, y0, args):
             return terms.vf(t0, y0, args)

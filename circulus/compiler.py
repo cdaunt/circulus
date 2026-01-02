@@ -4,9 +4,9 @@ import inspect
 from typing import NamedTuple, Callable, List, Dict, Any
 from collections import defaultdict
 import inspect
-from functools import wraps
+from functools import wraps, lru_cache
 from natsort import natsorted
-import networkx as nx
+import inspect
 
 from circulus.netlist import build_net_map
 
@@ -67,6 +67,35 @@ def get_model_width(func):
 
 # --- Main Compiler ---
 
+def merge_dicts(dict_list: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Merges a list of dictionaries into a single dictionary."""
+    merged = {}
+    for d in dict_list:
+        merged.update(d)
+    return merged
+
+@lru_cache(maxsize=None)
+def _get_default_params_cached(func: Callable) -> Dict[str, Any]:
+    sig = inspect.signature(func)
+
+    if 'params' not in sig.parameters:
+        raise ValueError(f"{func.__name__} missing 'params' argument")
+
+    default_params = sig.parameters['params'].default
+
+    if default_params is inspect.Parameter.empty:
+        raise ValueError(
+            f"{func.__name__} 'params' must have a default value "
+            "(e.g. {'R': 100.0})"
+        )
+
+    return default_params
+
+
+def get_default_params(func: Callable) -> Dict[str, Any]:
+    # Return a copy so callers can’t mutate the cache
+    return dict(_get_default_params_cached(func))
+
 def compile_netlist(
     netlist: dict, 
     models: Dict[str, Callable]
@@ -120,10 +149,12 @@ def compile_netlist(
         b['names'].append(name)
         b['connections'].append(conn_indices)
         
+        default_params = get_default_params(models[comp_type])
+
         # Append params
         settings = data.get('settings', {})
-        for k, v in settings.items():
-            b['params'][k].append(v)
+        for k, v in default_params.items():
+            b['params'][k].append(settings.get(k, v))
 
     # 3. Vectorize Buckets
     compiled_groups = []
