@@ -29,7 +29,17 @@ def voltage_source(vars=jnp.zeros(3), params={'delay':0.0, 'V':0.0}, t=0.0):
     v_a, v_b = vars[0], vars[1]
     i_src    = vars[2]
     kcl = jnp.array([i_src, -i_src])
-    v_output = jnp.array(jnp.where(t > params['delay'], params['V'], 0.0))
+    v_output = jnp.array(jnp.where(t >= params['delay'], params['V'], 0.0))
+    constraint = v_a - v_b + v_output
+    f_contrib = jnp.concatenate([kcl, jnp.array([constraint])])
+    return f_contrib, jnp.zeros(3)
+
+@jax.jit
+def voltage_source_ac(vars=jnp.zeros(3), params={'delay':0.0, 'V':0.0, 'freq':1e6, 'phase':0.0}, t=0.0):
+    v_a, v_b = vars[0], vars[1]
+    i_src    = vars[2]
+    kcl = jnp.array([i_src, -i_src])
+    v_output = jnp.array(jnp.where(t >= params['delay'], params['V']*jnp.sin(2*jnp.pi*params['freq']*t + params['phase']), 0.0))
     constraint = v_a - v_b + v_output
     f_contrib = jnp.concatenate([kcl, jnp.array([constraint])])
     return f_contrib, jnp.zeros(3)
@@ -43,10 +53,6 @@ def inductor(vars=jnp.zeros(3), params={'L':1E-9}):
     return jnp.concatenate([f_kcl, jnp.array([f_branch])]), \
            jnp.concatenate([jnp.zeros(2), jnp.array([q_branch])])
 
-
-# =========================================================================
-# Additional Common Models (SPICE-like)
-# =========================================================================
 
 @jax.jit
 def current_source(vars=jnp.zeros(2), params={'I': 0.0}, t=0.0):
