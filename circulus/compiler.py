@@ -52,6 +52,8 @@ class ComponentGroup(NamedTuple):
     jac_rows: jnp.ndarray    
     jac_cols: jnp.ndarray
 
+    index_map: Dict[str, int] | None = None  # Optional mapping from instance names to indices in the group
+
 
 
 def get_model_width(func):
@@ -98,8 +100,8 @@ def get_default_params(func: Callable) -> Dict[str, Any]:
 
 def compile_netlist(
     netlist: dict, 
-    models: Dict[str, Callable]
-) -> tuple[List[ComponentGroup], int, dict[str, int]]:
+    models: dict[str, Callable]
+) -> tuple[dict[str, ComponentGroup], int, dict[str, int]]:
     """
     Directly converts a Dictionary Netlist into Vectorized Component Groups.
     Avoids intermediate Instance objects for speed.
@@ -108,7 +110,7 @@ def compile_netlist(
     # 1. Analyze Connectivity
     port_map, num_nodes = build_net_map(netlist)
     
-    # 2. Bucket Data by Component Type (Python Lists are fast for appending)
+    # 2. Bucket Data by Component Type
     # structure: buckets[model_name] = { 'names': [], 'connections': [], 'params': {key: []} }
     buckets = defaultdict(lambda: {
         'names': [], 
@@ -148,16 +150,18 @@ def compile_netlist(
         b = buckets[comp_type]
         b['names'].append(name)
         b['connections'].append(conn_indices)
-        
+
+        # This is cached for performance
         default_params = get_default_params(models[comp_type])
 
-        # Append params
-        settings = data.get('settings', {})
+        # Append params/fallback to defaults
+        local_settings = data.get('settings', {})
         for k, v in default_params.items():
-            b['params'][k].append(settings.get(k, v))
+            b['params'][k].append(local_settings.get(k, v))
+            
 
     # 3. Vectorize Buckets
-    compiled_groups = []
+    compiled_groups = {}
     
     # Track where internal variables start (after the last physical node)
     internal_var_offset = num_nodes 
@@ -172,9 +176,7 @@ def compile_netlist(
         # Convert connections to JAX array (N, num_ports)
         node_indices = jnp.array(data['connections'], dtype=jnp.int32)
         
-        # Convert params to JAX arrays
-        # Note: If a param is missing for one instance, this will fail. 
-        # Robust code should fill defaults here.
+        # Batch parameters. Defaults are handled at earlier stage
         batched_params = {k: jnp.array(v) for k, v in data['params'].items()}
         
         # Calculate Dimensions
@@ -217,6 +219,8 @@ def compile_netlist(
         jac_rows = jnp.broadcast_to(rows, (count, model_width, model_width)).flatten()
         jac_cols = jnp.broadcast_to(cols, (count, model_width, model_width)).flatten()
 
+        index_map = {s: i for i, s in enumerate(data['names'])}
+
         group = ComponentGroup(
             name=comp_type,
             physics_func=func,
@@ -224,8 +228,9 @@ def compile_netlist(
             var_indices=var_indices,
             eq_indices=var_indices, # In this formulation, equations map 1-to-1 with variables
             jac_rows=jac_rows,
-            jac_cols=jac_cols
+            jac_cols=jac_cols,
+            index_map=index_map
         )
-        compiled_groups.append(group)
+        compiled_groups[comp_type] = group
 
     return compiled_groups, internal_var_offset, port_map

@@ -9,7 +9,7 @@ from circulus.solvers.dc import solve_dc_op_dense, solve_dc_op_sparse
 # assemble_total_f is local to this module and uses jax
 def assemble_total_f(component_groups, y, t=0.0):
     total_f = jnp.zeros(y.shape[0])
-    for group in component_groups:
+    for group_name, group in component_groups.items():
         v_locs = y[group.var_indices]
         physics_fn = partial(group.physics_func, t=t)
 

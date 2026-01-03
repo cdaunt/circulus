@@ -24,7 +24,7 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
         # We collect all indices once to avoid concatenation inside the Newton loop
         all_rows_list = []
         all_cols_list = []
-        for g in component_groups:
+        for g_name, g in component_groups.items():
             all_rows_list.append(g.jac_rows.reshape(-1))
             all_cols_list.append(g.jac_cols.reshape(-1))
             
@@ -45,7 +45,7 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
         # --- 1. Vectorized History Calculation (at t0) ---
         q_prev = jnp.zeros(num_vars)
         
-        for group in component_groups:
+        for group_name, group in component_groups.items():
             v_locs = y0[group.var_indices]
             
             # Bind t=t0 to the physics function
@@ -68,7 +68,7 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
             jac_vals_list = []
 
             # --- Vectorized Assembly ---
-            for group in component_groups:
+            for group_name, group in component_groups.items():
                 v_locs = y_guess[group.var_indices]
                 
                 def physics_at_t1(v, p):

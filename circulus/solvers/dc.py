@@ -8,7 +8,7 @@ from circulus.solvers.common import _extract_diagonal, _sparse_matvec
 
 
 def solve_dc_op_sparse(
-    component_groups: list, 
+    component_groups: dict[str, ComponentGroup],
     num_vars: int, 
     t0: float = 0.0,
     max_iter: int = 50,
@@ -24,7 +24,7 @@ def solve_dc_op_sparse(
     # --- 1. Pre-calculate Indices (Static) ---
     all_rows_list = []
     all_cols_list = []
-    for g in component_groups:
+    for g_name, g in component_groups.items():
         all_rows_list.append(g.jac_rows.reshape(-1))
         all_cols_list.append(g.jac_cols.reshape(-1))
         
@@ -41,7 +41,7 @@ def solve_dc_op_sparse(
         jac_vals_list = []
 
         # --- Vectorized Assembly ---
-        for group in component_groups:
+        for group_name, group in component_groups.items():
             v_locs = y_guess[group.var_indices]
             
             # Physics at t0 (DC only, ignores time derivatives)
@@ -122,7 +122,7 @@ def solve_dc_op_sparse(
     return sol.value
 
 def solve_dc_op_dense(
-    component_groups: list, 
+    component_groups: dict[str, ComponentGroup],
     num_vars: int, 
     t0: float = 0.0,
     max_iter: int = 50,
@@ -139,7 +139,7 @@ def solve_dc_op_dense(
     # --- 1. Pre-calculate indices (Flattened) ---
     all_rows_list = []
     all_cols_list = []
-    for g in component_groups:
+    for g_name, g in component_groups.items():
         all_rows_list.append(g.jac_rows.reshape(-1))
         all_cols_list.append(g.jac_cols.reshape(-1))
     
@@ -156,7 +156,7 @@ def solve_dc_op_dense(
         jac_vals_list = []
 
         # --- Vectorized Assembly ---
-        for group in component_groups:
+        for group_name, group in component_groups.items():
             v_locs = y_guess[group.var_indices]
             
             # Define physics function at t0

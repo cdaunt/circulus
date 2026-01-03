@@ -13,7 +13,7 @@ def test_compile_netlist_basic(simple_lrc_netlist):
     assert "V1,p2" in port_map and "C1,p1" in port_map
 
     # There should be a group for each non-ground component
-    group_names = {g.name for g in groups}
+    group_names = set(groups.keys())
     assert {'resistor', 'capacitor', 'inductor', 'source_voltage'} <= group_names
 
     # Sys size should include node count + internal variables (V1 and L1 each add 1 internal)

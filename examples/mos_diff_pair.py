@@ -1,12 +1,10 @@
 import jax
 import jax.numpy as jnp
-import diffrax
 
 from circulus.models import resistor, nmos_level1, voltage_source, current_source
 from circulus.compiler import compile_netlist
 from circulus.solvers.dc import solve_dc_op_dense
-from circulus.utils import update_param
-
+from circulus.utils import update_param_dict
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
@@ -60,7 +58,7 @@ if __name__ == "__main__":
         
         # The index 1 corresponds to Vin1's voltage source instance in the instance dict
         # In future versions, there should be a map for this
-        new_groups = update_param(groups, 'source_dc', 1, 'V', v_in_val)
+        new_groups = update_param_dict(groups, 'source_dc', 'Vin1', 'V', v_in_val)
                 
         return solve_dc_op_dense(new_groups, sys_size)
 
