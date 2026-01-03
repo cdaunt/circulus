@@ -4,9 +4,8 @@ import diffrax
 
 from circulus.models import resistor, nmos_level1, voltage_source, current_source
 from circulus.compiler import compile_netlist
-from circulus.solvers.dense import VectorizedDenseSolver
 from circulus.solvers.dc import solve_dc_op_dense
-from circulus.netlist import draw_circuit_graph
+from circulus.utils import update_param
 
 import matplotlib.pyplot as plt
 
@@ -57,38 +56,16 @@ if __name__ == "__main__":
     # We want to sweep Vin1 from 1.5V to 3.5V
     sweep_voltages = jnp.linspace(1.5, 3.5, 100)
     
-    # Identify which index in 'groups' corresponds to Vin1's parameters
-    # This requires knowing how 'compile_netlist' packs parameters. 
-    # Assuming 'groups' stores params as JAX arrays, we can vmap over them.
-    
-    # Strategy: Create a function that updates the params and solves
     def solve_for_vin(v_in_val):
-        # We manually update the parameter for the specific group containing 'Vin1'
-        # Note: In a real compiler, you'd have a map for this. 
-        # Here we perform a functional update on the specific ComponentGroup.
         
-        # 1. Find the voltage source group (Assuming it's named 'source_dc')
-        # 2. Update the 'V' param for the 2nd instance (Vin1 is usually later in the list)
-        # This is tricky without a specific API, so we will cheat slightly 
-        # by treating the DC solver as a function of the parameter vector.
-        
-        # Simpler approach for this demo: 
-        # Re-construct the params for the Voltage Source group specifically.
-        
-        new_groups = []
-        for g in groups:
-            if g.name == 'source_dc': # This matches the key in models_map
-                # Find which index is Vin1. Let's assume order: VDD, Vin1, Vin2
-                # We update the 'V' array at index 1
-                new_V = g.params['V'].at[1].set(v_in_val)
-                new_params = {**g.params, 'V': new_V}
-                new_groups.append(g._replace(params=new_params))
-            else:
-                new_groups.append(g)
+        # The index 1 corresponds to Vin1's voltage source instance in the instance dict
+        # In future versions, there should be a map for this
+        new_groups = update_param(groups, 'source_dc', 1, 'V', v_in_val)
                 
         return solve_dc_op_dense(new_groups, sys_size)
 
     # JAX VMAP allows us to solve 100 circuits in parallel on the GPU
+    # Excellent performance on CPU as well due to JIT compilation
     print("Sweeping DC Operating Point...")
     solutions = jax.vmap(solve_for_vin)(sweep_voltages)
     
