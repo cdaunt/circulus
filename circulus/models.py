@@ -38,6 +38,22 @@ def capacitor(vars=jnp.zeros(2), params={'C': 1e-12}):
     # Returns (Resistive=0, Reactive=q)
     return jnp.array([0.0, 0.0]), jnp.array([q, -q])
 
+def inductor(vars=jnp.zeros(3), params={'L': 1e-9}):
+    # vars: [NodeA, NodeB, Current_Through_Inductor]
+    v_a, v_b, i_branch = vars[0], vars[1], vars[2]
+    
+    f_kcl = jnp.array([i_branch, -i_branch])
+    
+    # Branch Equation: V_L - L*di/dt = 0
+    # V_L = v_a - v_b
+    # In our MNA format: f(y) + d/dt(q(y)) = 0
+    # So: (v_a - v_b) + d/dt(-L * i_branch) = 0
+    f_branch = v_a - v_b
+    q_branch = -params['L'] * i_branch
+    
+    return jnp.concatenate([f_kcl, jnp.array([f_branch])]), \
+           jnp.concatenate([jnp.zeros(2), jnp.array([q_branch])])
+
 @jax.jit
 def voltage_source(vars=jnp.zeros(3), params={'delay':0.0, 'V':0.0}, t=0.0):
     # vars: [NodeA, NodeB, Current_Through_Source]
@@ -90,24 +106,6 @@ def current_source(vars=jnp.zeros(2), params={'I': 0.0}, t=0.0):
     # At Node A: Current I is LEAVING. Contribution = +I
     # At Node B: Current I is ENTERING. Contribution = -I
     return jnp.array([I_val, -I_val]), jnp.array([0.0, 0.0])
-
-def inductor(vars=jnp.zeros(3), params={'L': 1e-9}):
-    # vars: [NodeA, NodeB, Current_Through_Inductor]
-    v_a, v_b, i_branch = vars[0], vars[1], vars[2]
-    
-    f_kcl = jnp.array([i_branch, -i_branch])
-    
-    # Branch Equation: V_L - L*di/dt = 0
-    # V_L = v_a - v_b
-    # In our MNA format: f(y) + d/dt(q(y)) = 0
-    # So: (v_a - v_b) + d/dt(-L * i_branch) = 0
-    f_branch = v_a - v_b
-    q_branch = -params['L'] * i_branch
-    
-    return jnp.concatenate([f_kcl, jnp.array([f_branch])]), \
-           jnp.concatenate([jnp.zeros(2), jnp.array([q_branch])])
-
-
 
 
 @jax.jit

@@ -15,13 +15,13 @@ jax.config.update("jax_enable_x64", True)
 @pytest.fixture
 def simple_lrc_netlist():
     """Returns (net_dict, models_map) for a small LRC example."""
-    from circulus.models import resistor, capacitor, voltage_source, inductor
+    from circulus.components import Resistor, Capacitor, Inductor, VoltageSource
 
     models_map = {
-        'resistor': resistor,
-        'capacitor': capacitor,
-        'inductor': inductor,
-        'source_voltage': voltage_source,
+        'resistor': Resistor,
+        'capacitor': Capacitor,
+        'inductor': Inductor,
+        'source_voltage': VoltageSource,
         'ground': lambda: 0
     }
 
@@ -42,4 +42,3 @@ def simple_lrc_netlist():
     }
 
     return net_dict, models_map
-

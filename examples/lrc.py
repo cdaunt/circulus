@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import diffrax
 
-from circulus.models import resistor, capacitor, voltage_source, inductor, voltage_source_ac
+from circulus.components import Resistor, Capacitor, Inductor, VoltageSource
 from circulus.compiler import compile_netlist, build_net_map
 #from circulus.solvers.sparse import VectorizedSparseSolver as SparseSolver
 from circulus.solvers.dense import VectorizedDenseSolver as DenseSolver
@@ -16,13 +16,13 @@ if __name__ == "__main__":
     # Enable 64-bit precision (Critical for Circuit Simulation)
     jax.config.update("jax_enable_x64", True)
 
-    t_max = 1E-8
+    t_max = 3E-9
 
     models_map = {
-            'resistor': resistor,
-            'capacitor': capacitor,
-            'inductor': inductor,
-            'source_voltage': voltage_source_ac,
+            'resistor': Resistor,
+            'capacitor': Capacitor,
+            'inductor': Inductor,
+            'source_voltage': VoltageSource,
             'ground': lambda: 0
         }
 
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     net_dict = {
         "instances": {
             "GND": {"component":"ground"},
-            "V1": {"component":"source_voltage", "settings":{"V": 1.0,"freq":1e9}},
+            "V1": {"component":"source_voltage", "settings":{"V": 1.0,"delay":1E-9}},
             "R1": {"component":"resistor", "settings":{"R": 10.0}},
             "C1": {"component":"capacitor", "settings":{"C": 1e-11}},
             "L1": {"component":"inductor", "settings":{"L": 5e-9}},
@@ -51,8 +51,8 @@ if __name__ == "__main__":
     print(port_map)
     
     print(f"Total System Size: {sys_size}")
-    for g in groups:
-        print(f"\nGroup: {g.name}")
+    for g_name, g in groups.items():
+        print(f"\nGroup: {g_name}")
         print(f"  Count: {g.var_indices.shape[0]}")
         print(f"  Var Indices Shape: {g.var_indices.shape}")
         print(f"  Sample Var Indices:\n{g.var_indices}")

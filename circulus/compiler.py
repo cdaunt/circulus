@@ -5,8 +5,6 @@ from typing import NamedTuple, Callable, List, Dict, Any
 from collections import defaultdict
 import inspect
 from functools import wraps, lru_cache
-from natsort import natsorted
-import inspect
 
 from circulus.netlist import build_net_map
 
@@ -98,139 +96,179 @@ def get_default_params(func: Callable) -> Dict[str, Any]:
     # Return a copy so callers can’t mutate the cache
     return dict(_get_default_params_cached(func))
 
-def compile_netlist(
-    netlist: dict, 
-    models: dict[str, Callable]
-) -> tuple[dict[str, ComponentGroup], int, dict[str, int]]:
+
+
+def solve_connectivity(connections: dict) -> dict:
     """
-    Directly converts a Dictionary Netlist into Vectorized Component Groups.
-    Avoids intermediate Instance objects for speed.
+    Resolves Port-to-Port connections into a Port-to-NodeID map.
+    Example: {"R1,p1": "V1,p1"} -> {"R1,p1": 1, "V1,p1": 1}
     """
+    parent = {}
+
+    def find(i):
+        if i not in parent: parent[i] = i
+        if parent[i] != i:
+            parent[i] = find(parent[i])
+        return parent[i]
+
+    def union(i, j):
+        root_i = find(i)
+        root_j = find(j)
+        if root_i != root_j:
+            parent[root_i] = root_j
+
+    # 1. Process all connections
+    for src, targets in connections.items():
+        # Ensure 'targets' is a list
+        if not isinstance(targets, (list, tuple)):
+            targets = [targets]
+        
+        # Link Source to all Targets
+        for tgt in targets:
+            union(src, tgt)
+
+    # 2. Assign Node IDs
+    # We reserve ID 0 for Ground (any group containing "GND")
+    groups = {}
+    node_map = {}
     
-    # 1. Analyze Connectivity
-    port_map, num_nodes = build_net_map(netlist)
+    # Identify the root for "GND" if it exists
+    gnd_roots = {find(k) for k in parent if "GND" in k}
     
-    # 2. Bucket Data by Component Type
-    # structure: buckets[model_name] = { 'names': [], 'connections': [], 'params': {key: []} }
-    buckets = defaultdict(lambda: {
-        'names': [], 
-        'connections': [], 
-        'params': defaultdict(list)
-    })
+    node_counter = 1
     
+    for port in parent:
+        root = find(port)
+        
+        if root in gnd_roots:
+            node_id = 0
+        else:
+            if root not in groups:
+                groups[root] = node_counter
+                node_counter += 1
+            node_id = groups[root]
+            
+        node_map[port] = node_id
+        
+    return node_map, node_counter
+
+
+def compile_netlist(netlist: dict, models_map: dict):
+    # --- 1. Resolve Connectivity (Using your existing function) ---
+    # This returns {'R1,p1': 1, 'V1,p1': 1, 'GND,p1': 0 ...}
+    port_to_node_map, num_nodes = build_net_map(netlist)
+    
+    # Buckets: Key = (comp_type_name, tree_structure), Value = list of instances
+    # We include tree_structure to separate instances with different static fields (e.g. callables)
+    buckets = defaultdict(list)
+    sys_size = num_nodes 
+
+    # --- 2. Process Instances ---
     instances = netlist.get("instances", {})
     
-    # Single pass through the netlist dictionary
     for name, data in instances.items():
-        comp_type = data.get('component')
+        comp_type = data['component']
         
-        # Skip ground definition (it's implicit in the net map)
+        # Skip ground (it's just a marker, already handled in build_net_map)
         if comp_type == 'ground' or name == 'GND':
             continue
             
-        if comp_type not in models:
-            raise ValueError(f"Model '{comp_type}' not found in provided models dict.")
+        if comp_type not in models_map:
+            raise ValueError(f"Model '{comp_type}' not found for '{name}'")
             
-        # Resolve connections to integers immediately
-        # We assume standard pin naming or order implies connection order
-        # If specific pin names are required, sort keys of port_map matching name
+        comp_cls = models_map[comp_type]
+        settings = data.get('settings', {})
         
-        # Heuristic: Find all ports in port_map that start with "InstanceName,"
-        # and sort them to ensure p1, p2, p3 order.
-        related_ports = [k for k in port_map.keys() if k.startswith(f"{name},")]
-        related_ports = natsorted(related_ports) 
-        
-        if not related_ports:
-            # Handle unconnected components or manual connection lists if needed
-            continue
+        # A. Create Equinox Object
+        try:
+            comp_obj = comp_cls(**settings)
+        except TypeError as e:
+            raise TypeError(f"Settings error for {name}: {e}")
+
+        # B. Get Port Indices
+        # We look up "InstanceName,PortName" in your map
+        port_indices = []
+        for port in comp_cls.ports:
+            key = f"{name},{port}"
             
-        conn_indices = [port_map[p] for p in related_ports]
-        
-        # Append to bucket
-        b = buckets[comp_type]
-        b['names'].append(name)
-        b['connections'].append(conn_indices)
+            if key in port_to_node_map:
+                port_indices.append(port_to_node_map[key])
+            else:
+                # Error: The component has a port defined in Python (e.g. 'body')
+                # but it wasn't listed in the netlist connections.
+                raise ValueError(
+                    f"Port '{port}' on '{name}' is unconnected.\n"
+                    f"Your netlist connections must include '{key}'"
+                )
 
-        # This is cached for performance
-        default_params = get_default_params(models[comp_type])
+        # Group by Type AND Structure (to handle static field differences)
+        structure = jax.tree.structure(comp_obj)
+        buckets[(comp_type, structure)].append({
+            'obj': comp_obj,
+            'ports': port_indices,
+            'num_states': len(comp_cls.states),
+            'name': name
+        })
 
-        # Append params/fallback to defaults
-        local_settings = data.get('settings', {})
-        for k, v in default_params.items():
-            b['params'][k].append(local_settings.get(k, v))
-            
-
-    # 3. Vectorize Buckets
+    # --- 3. Vectorize ---
     compiled_groups = {}
     
-    # Track where internal variables start (after the last physical node)
-    internal_var_offset = num_nodes 
+    # Helper to generate unique names for split groups
+    type_counts = defaultdict(int)
+    for (ctype, _) in buckets.keys():
+        type_counts[ctype] += 1
+    type_counters = defaultdict(int)
     
-    for comp_type, data in buckets.items():
-        func = ensure_time_signature(models[comp_type])
-        count = len(data['names'])
+    for (comp_type, structure), items in buckets.items():
+        comp_cls = models_map[comp_type]
         
-        if count == 0:
-            continue
-
-        # Convert connections to JAX array (N, num_ports)
-        node_indices = jnp.array(data['connections'], dtype=jnp.int32)
-        
-        # Batch parameters. Defaults are handled at earlier stage
-        batched_params = {k: jnp.array(v) for k, v in data['params'].items()}
-        
-        # Calculate Dimensions
-        model_width = get_model_width(func)
-        num_ports = node_indices.shape[1]
-        num_internals = model_width - num_ports
-        
-        # -- Generate Internal Indices --
-        if num_internals > 0:
-            # Create a block of new indices: [offset, offset+1, ..., offset + N*internals]
-            total_new_vars = count * num_internals
-            
-            # Shape (N, num_internals)
-            internal_indices = jnp.arange(
-                internal_var_offset, 
-                internal_var_offset + total_new_vars
-            ).reshape(count, num_internals)
-            
-            # Update global counter
-            internal_var_offset += total_new_vars
-            
-            # Combine [Node Indices | Internal Indices]
-            # Shape (N, model_width)
-            var_indices = jnp.concatenate([node_indices, internal_indices], axis=1)
+        # Generate Group Name
+        if type_counts[comp_type] > 1:
+            idx = type_counters[comp_type]
+            group_name = f"{comp_type}_{idx}"
+            type_counters[comp_type] += 1
         else:
-            var_indices = node_indices
-
-        # -- Vectorized Jacobian Index Generation --
-        # We need the Cartesian product of var_indices with itself for every instance
-        # var_indices shape: (N, W)
+            group_name = comp_type
         
-        # Expand dims for broadcasting
-        # rows: (N, W, 1)
-        # cols: (N, 1, W)
-        rows = var_indices[:, :, None]
-        cols = var_indices[:, None, :]
+        # A. Assign Internal States
+        all_var_indices = []
+        for item in items:
+            state_indices = []
+            for _ in range(item['num_states']):
+                state_indices.append(sys_size)
+                sys_size += 1
+            all_var_indices.append(item['ports'] + state_indices)
+
+        # B. Batch Params
+        instance_objects = [item['obj'] for item in items]
+        batched_params = jax.tree.map(lambda *args: jnp.stack(args), *instance_objects)
         
-        # Broadcast and flatten
-        # Target shape for sparse matrix: (N * W^2, )
-        jac_rows = jnp.broadcast_to(rows, (count, model_width, model_width)).flatten()
-        jac_cols = jnp.broadcast_to(cols, (count, model_width, model_width)).flatten()
+        # C. Matrices
+        var_indices_arr = jnp.array(all_var_indices, dtype=jnp.int32)
+        width = var_indices_arr.shape[1]
+        count = len(items)
+        
+        jac_rows = jnp.broadcast_to(var_indices_arr[:, :, None], (count, width, width))
+        jac_cols = jnp.broadcast_to(var_indices_arr[:, None, :], (count, width, width))
 
-        index_map = {s: i for i, s in enumerate(data['names'])}
+        # Create Index Map for parameter updates
+        index_map = {item['name']: i for i, item in enumerate(items)}
 
-        group = ComponentGroup(
-            name=comp_type,
-            physics_func=func,
-            params=batched_params,
-            var_indices=var_indices,
-            eq_indices=var_indices, # In this formulation, equations map 1-to-1 with variables
+        compiled_groups[group_name] = ComponentGroup(
+            name=group_name,
+            var_indices=var_indices_arr,
+            eq_indices=var_indices_arr,
+            
+            params=batched_params,  # This is the 'self' for the bridge
+            
+            # The bridge expects (instance, vars, t)
+            # The solver usually does: func(params, vars, t)
+            # We just need to ensure the solver argument order matches.
+            physics_func=comp_cls.solver_bridge, 
+            
             jac_rows=jac_rows,
             jac_cols=jac_cols,
             index_map=index_map
         )
-        compiled_groups[comp_type] = group
 
-    return compiled_groups, internal_var_offset, port_map
+    return compiled_groups, sys_size, port_to_node_map

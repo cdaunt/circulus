@@ -8,7 +8,7 @@ from circulus.solvers.dense import VectorizedDenseSolver
 from circulus.solvers.sparse import VectorizedSparseSolver
 from circulus.solvers.dc import solve_dc_op_dense, solve_dc_op_sparse
 from circulus.netlist import draw_circuit_graph
-from circulus.models import resistor, capacitor, inductor, voltage_source, smooth_pulse
+from circulus.components import Resistor, Capacitor, Inductor, SmoothPulse
 
 import matplotlib.pyplot as plt
 
@@ -17,9 +17,9 @@ if __name__ == "__main__":
     jax.config.update("jax_enable_x64", True)
 
     # --- CONFIGURATION ---
-    N_SECTIONS = 50       # Try 50 for Dense, 2000+ for Sparse
-    USE_SPARSE = True     # Toggle this to test your Sparse Solver
-    T_MAX = 20e-9          # 50ns simulation
+    N_SECTIONS = 2000       # Try 50 for Dense, 2000+ for Sparse
+    USE_SPARSE = True     # Toggle this to switch between Dense or Sparse solver
+    T_MAX = 500e-9          # 500ns simulation
     # ---------------------
 
     def create_lc_ladder(n_sections):
@@ -80,10 +80,10 @@ if __name__ == "__main__":
     
     # Map your models (ensure they are imported)
     models_map = {
-        'resistor': resistor,
-        'capacitor': capacitor,
-        'inductor': inductor,
-        'voltage_source': smooth_pulse,
+        'resistor': Resistor,
+        'capacitor': Capacitor,
+        'inductor': Inductor,
+        'voltage_source': SmoothPulse,
         'ground': lambda: 0
     }
 
@@ -120,11 +120,12 @@ if __name__ == "__main__":
     step_controller = diffrax.PIDController(
     rtol=1e-3, 
     atol=1e-4,  # <-- Relaxed from 1e-6. 100uV noise floor is usually fine.
-    pcoeff=0.3, # Low P-term helps stability on stiff jumps
-    icoeff=0.3,
-    dcoeff=0.0,
+    pcoeff=0.2, # Low P-term helps stability on stiff jumps
+    icoeff=0.5,
+    dcoeff=0.1,
     force_dtmin=True,
     dtmin=1e-14, # <-- Don't let it shrink smaller than 100 femtoseconds
+    dtmax=1e-9,
     error_order=2
     )
 

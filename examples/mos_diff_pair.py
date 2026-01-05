@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 
-from circulus.models import resistor, nmos_level1, voltage_source, current_source
+from circulus.components import Resistor, NMOS, VoltageSource, CurrentSource
 from circulus.compiler import compile_netlist
 from circulus.solvers.dc import solve_dc_op_dense
 from circulus.utils import update_param_dict
@@ -12,10 +12,10 @@ if __name__ == "__main__":
     
     # Models (Static models are fine for DC)
     models_map = {
-        'nmos': nmos_level1,
-        'resistor': resistor,
-        'source_dc': voltage_source,
-        'current_src': current_source,
+        'nmos': NMOS,
+        'resistor': Resistor,
+        'source_dc': VoltageSource,
+        'current_src': CurrentSource,
         'ground': lambda: 0
     }
 
@@ -35,16 +35,16 @@ if __name__ == "__main__":
         "connections": {
             "GND,p1": ("VDD,p2", "Vin1,p2", "Vin2,p2", "Iss,p2"),
             # Tail
-            "Iss,p1": ("M1,p3", "M2,p3"),
+            "Iss,p1": ("M1,s", "M2,s"),
             # Drains to Resistors
-            "M1,p1": "RD1,p2",
-            "M2,p1": "RD2,p2",
+            "M1,d": "RD1,p2",
+            "M2,d": "RD2,p2",
             # Resistors to VDD
             "RD1,p1": "VDD,p1",
             "RD2,p1": "VDD,p1",
             # Inputs
-            "Vin1,p1": "M1,p2",
-            "Vin2,p1": "M2,p2",
+            "Vin1,p1": "M1,g",
+            "Vin2,p1": "M2,g",
         },
     }
 

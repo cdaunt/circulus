@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import diffrax
 
-from circulus.models import resistor, diode, voltage_source_ac
+from circulus.components import Resistor, Diode, VoltageSourceAC
 from circulus.compiler import compile_netlist
 from circulus.solvers.dense import VectorizedDenseSolver
 from circulus.solvers.dc import solve_dc_op_dense
@@ -16,9 +16,9 @@ if __name__ == "__main__":
     
     # 1. Define Models
     models_map = {
-        'resistor': resistor,
-        'diode': diode, # Uses your updated diode model
-        'source_voltage': voltage_source_ac,
+        'resistor': Resistor,
+        'diode': Diode, # Uses your updated diode model
+        'source_voltage': VoltageSourceAC,
         'ground': lambda: 0
     }
 
