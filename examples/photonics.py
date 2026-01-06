@@ -17,14 +17,6 @@ class Grating(CircuitComponent):
         # Convert dB loss to linear transmission amplitude (T)
         # T = 10^(-loss_dB / 20)
         T = 10.0 ** (-self.loss_dB / 20.0)
-        
-        # S-Matrix to Y-Matrix conversion for a matched 2-port:
-        # S = [[0, T], [T, 0]]
-        # Y = (I - S) * (I + S)^-1
-        # This handles the "flow" of the optical field through the component.
-        
-        # Singularity Check: T=1.0 implies a perfect short (Infinite Admittance).
-        # We clamp slightly to keep numbers finite.
         T_safe = jnp.minimum(T, 0.999)
         
         denom = 1.0 - T_safe**2
@@ -91,7 +83,7 @@ if __name__ == "__main__":
     plt.title("Grating Coupler Transmission Test")
     plt.xlabel("Grating Loss Setting (dB)")
     #plt.xlabel("Input signal (V)")
-    plt.ylabel("Received Power (linear)")
+    plt.ylabel("Received Power (dB)")
     plt.legend()
     plt.grid(True)
     plt.show()
