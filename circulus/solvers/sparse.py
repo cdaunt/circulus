@@ -47,7 +47,9 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
         static_cols = jnp.concatenate(all_cols_list + [jnp.array([0])])
         
         # Check for Complex Mode (via y0 OR parameters)
-        is_complex = jnp.iscomplexobj(y0)
+        # If y0 is 2*num_vars, we assume it's a split real/imag representation for complex mode.
+        is_complex = jnp.iscomplexobj(y0) or (y0.shape[0] == 2 * num_vars)
+        
         if not is_complex:
             for group in component_groups.values():
                 for leaf in jax.tree.leaves(group.params):
@@ -67,9 +69,6 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
         else:
             static_rows = jnp.concatenate([base_rows, jnp.array([0])])
             static_cols = jnp.concatenate([base_cols, jnp.array([0])])
-
-        if is_complex:
-            y0 = y0.astype(jnp.complex128)
 
         # Store is_complex decision in solver_state to ensure step() agrees with init()
         history = (y0, 1.0)
@@ -92,16 +91,19 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
         y_prev_step, dt_prev = history
         dt = t1 - t0
 
-        if is_complex_mode:
-            y0 = y0.astype(jnp.complex128)
-        
         solver_dtype = y0.dtype
         
         # --- 1. History (t0) ---
-        q_prev = jnp.zeros(num_vars, dtype=solver_dtype)
+        if is_complex_mode:
+            # Handle both complex(N) and split-real(2N) inputs
+            y_c = y0 if jnp.iscomplexobj(y0) else (y0[:num_vars] + 1j * y0[num_vars:])
+            q_prev = jnp.zeros(num_vars, dtype=jnp.complex128)
+        else:
+            y_c = y0
+            q_prev = jnp.zeros(num_vars, dtype=solver_dtype)
 
         for group_name, group in component_groups.items():
-            v_locs = y0[group.var_indices]
+            v_locs = y_c[group.var_indices]
 
             physics_at_t0 = partial(group.physics_func, t=t0)
             
@@ -139,9 +141,8 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
                     jac_res = jax.vmap(jax.jacfwd(physics_split, argnums=(0,1)))(
                         v_locs.real, v_locs.imag, group.params
                     )
-                    # Unpack Jacobian: (J_wrt_vr, J_wrt_vi) -> Each contains (fr, fi, qr, qi)
-                    (jac_vr, jac_vi) = jac_res
-                    (dfr_vr, dfi_vr, dqr_vr, dqi_vr), (dfr_vi, dfi_vi, dqr_vi, dqi_vi) = jac_vr, jac_vi
+                    # Unpack Jacobian: Output structure is (fr, fi, qr, qi), each containing (d_vr, d_vi)
+                    ((dfr_vr, dfr_vi), (dfi_vr, dfi_vi), (dqr_vr, dqr_vi), (dqi_vr, dqi_vi)) = jac_res
                     
                     # Effective Jacobian: J = df/dv + (1/dt)*dq/dv
                     vals_rr.append((dfr_vr + dqr_vr/dt).reshape(-1))
@@ -229,7 +230,18 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
 
         # --- 3. Solver Loop ---
         solver = optx.FixedPointIteration(rtol=1e-5, atol=1e-5)
-        sol = optx.fixed_point(sparse_newton_step, solver, y0, max_steps=20, throw=False)
+        
+        if is_complex_mode and jnp.iscomplexobj(y0):
+            y_solver_init = jnp.concatenate([y0.real, y0.imag])
+        else:
+            y_solver_init = y0
+            
+        sol = optx.fixed_point(sparse_newton_step, solver, y_solver_init, max_steps=20, throw=False)
+        
+        if is_complex_mode and jnp.iscomplexobj(y0):
+            y_next = sol.value[:num_vars] + 1j * sol.value[num_vars:]
+        else:
+            y_next = sol.value
         
         result = jax.lax.cond(
             sol.result == optx.RESULTS.successful,
@@ -245,14 +257,13 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
         
         # The error is the difference between the Newton solution and the Linear Prediction
         # This scales with curvature (d2y/dt2), not slope (dy/dt)
-        y_next = sol.value
         y_error = y_next - y_pred
 
         # Update History for next step
         new_history = (y0, dt)
         new_state = SparseSolverState(static_rows, static_cols,  diag_mask, new_history, is_complex_mode=is_complex_mode)
         
-        return sol.value, y_error, {"y0": y0, "y1": sol.value}, new_state, result
+        return y_next, y_error, {"y0": y0, "y1": y_next}, new_state, result
     
     def func(self, terms, t0, y0, args):
             return terms.vf(t0, y0, args)
