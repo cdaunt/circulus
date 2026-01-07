@@ -139,8 +139,9 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
                     jac_res = jax.vmap(jax.jacfwd(physics_split, argnums=(0,1)))(
                         v_locs.real, v_locs.imag, group.params
                     )
-                    # Unpack the massive tuple structure
-                    ((dfr_vr, dfr_vi), (dfi_vr, dfi_vi), (dqr_vr, dqr_vi), (dqi_vr, dqi_vi)) = jac_res
+                    # Unpack Jacobian: (J_wrt_vr, J_wrt_vi) -> Each contains (fr, fi, qr, qi)
+                    (jac_vr, jac_vi) = jac_res
+                    (dfr_vr, dfi_vr, dqr_vr, dqi_vr), (dfr_vi, dfi_vi, dqr_vi, dqi_vi) = jac_vr, jac_vi
                     
                     # Effective Jacobian: J = df/dv + (1/dt)*dq/dv
                     vals_rr.append((dfr_vr + dqr_vr/dt).reshape(-1))
@@ -190,7 +191,7 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
             # Instead of a custom function, we use segment_sum with the mask we made in init.
             # This handles summing duplicate diagonal entries (parallel resistors) automatically.
             diag_vals = jax.ops.segment_sum(
-                all_vals * diag_mask, static_rows, num_segments=num_vars
+                all_vals * diag_mask, static_rows, num_segments=sys_size
             )
             
             # Compute Preconditioner (Inverse Diagonal)
@@ -202,7 +203,7 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
             def matvec(x):
                 x_gathered = x[static_cols]
                 products = all_vals * x_gathered
-                return jax.ops.segment_sum(products, static_rows, num_segments=num_vars)
+                return jax.ops.segment_sum(products, static_rows, num_segments=sys_size)
 
             # --- GMRES Solve ---
             # Use Preconditioned Residual as initial guess (1-step Jacobi)
