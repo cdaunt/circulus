@@ -4,7 +4,7 @@ import jax.numpy as jnp
 from circulus.components import Resistor, NMOS, VoltageSource, CurrentSource
 from circulus.compiler import compile_netlist
 from circulus.solvers.dc import solve_dc_op_dense
-from circulus.utils import update_param_dict
+from circulus.utils import update_params_dict
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
@@ -56,9 +56,7 @@ if __name__ == "__main__":
     
     def solve_for_vin(v_in_val):
         
-        # The index 1 corresponds to Vin1's voltage source instance in the instance dict
-        # In future versions, there should be a map for this
-        new_groups = update_param_dict(groups, 'source_dc', 'Vin1', 'V', v_in_val)
+        new_groups = update_params_dict(groups, 'source_dc', 'Vin1', 'V', v_in_val)
                 
         return solve_dc_op_dense(new_groups, sys_size)
 
