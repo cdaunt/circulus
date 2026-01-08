@@ -101,6 +101,7 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
             physics_at_t0 = partial(group.physics_func, t=t0)
             
             # Single vmap over all components of this type
+            # group.params is the batched component instance; vmap unbatches it into 'self' for each call.
             _, q_locs = jax.vmap(physics_at_t0)(v_locs, group.params)
             
             # Scatter add results
@@ -127,7 +128,7 @@ class VectorizedDenseSolver(diffrax.AbstractSolver):
                     y_real = y_guess[:num_vars]
                     y_imag = y_guess[num_vars:]
                     y_c = y_real + 1j * y_imag
-                    v_locs = y_c[group.var_indices]
+                    v_locs = y_Pc[group.var_indices]
 
                     # Split Physics for Non-Holomorphic Support
                     def physics_split(v_r, v_i, p):

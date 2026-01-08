@@ -35,8 +35,9 @@ class ComponentGroup(eqx.Module):
     physics_func: Callable = eqx.field(static=True)
     
     # BATCHED PARAMETERS: 
-    # {'R': jnp.array([100.0, 200.0, ...])} - Shape (N,)
-    params: Dict[str, jnp.ndarray] 
+    # This is the batched component instance (e.g. a Resistor where self.R is an array).
+    # It acts as 'self' when passed to the physics function via vmap.
+    params: Any 
     
     # BATCHED STATE INDICES:
     # Shape (N, num_vars_per_component) - Used to gather 'v' from y0

@@ -138,6 +138,7 @@ class VectorizedSparseSolver(diffrax.AbstractSolver):
                         return f.real, f.imag, q.real, q.imag
 
                     # Jacobian: Returns 4 tuples of (f_r, f_i, q_r, q_i) derivs
+                    # group.params is passed as the 3rd arg, acting as 'self' inside the split physics
                     jac_res = jax.vmap(jax.jacfwd(physics_split, argnums=(0,1)))(
                         v_locs.real, v_locs.imag, group.params
                     )
