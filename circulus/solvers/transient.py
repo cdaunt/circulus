@@ -7,14 +7,13 @@ from functools import partial
 from typing import Tuple, Any
 
 # --- 1. Common Logic (JIT-able Functions) ---
-
 def _compute_history(component_groups, y0, t0, num_vars):
     """
     Computes the history vector (q_prev) at time t0.
     Shared by both Dense and Sparse solvers.
     """
     solver_dtype = y0.dtype
-    q_prev = jnp.zeros(num_vars, dtype=solver_dtype)
+    q_prev = jnp.zeros(y0.shape[0], dtype=solver_dtype)
 
     for group in component_groups.values():
         v_locs = y0[group.var_indices]
@@ -30,9 +29,8 @@ def _compute_history(component_groups, y0, t0, num_vars):
         
     return q_prev
 
-
 def _assemble_system_real(y_guess, component_groups, t1, dt, num_vars):
-    sys_size = num_vars
+    sys_size = y_guess.shape[0]
     total_f = jnp.zeros(sys_size, dtype=y_guess.dtype)
     total_q = jnp.zeros(sys_size, dtype=y_guess.dtype)
     
@@ -58,11 +56,11 @@ def _assemble_system_real(y_guess, component_groups, t1, dt, num_vars):
     all_vals = jnp.concatenate(vals_list)
     return total_f, total_q, all_vals
 
-
 def _assemble_system_complex(y_guess, component_groups, t1, dt, num_vars):
-    sys_size = 2 * num_vars
-    y_real = y_guess[:num_vars]
-    y_imag = y_guess[num_vars:]
+    sys_size = y_guess.shape[0]
+    half_size = sys_size // 2
+    y_real = y_guess[:half_size]
+    y_imag = y_guess[half_size:]
     
     total_f = jnp.zeros(sys_size, dtype=jnp.float64)
     total_q = jnp.zeros(sys_size, dtype=jnp.float64)
@@ -92,8 +90,8 @@ def _assemble_system_complex(y_guess, component_groups, t1, dt, num_vars):
         
         # Residuals
         fr, fi, qr, qi = jax.vmap(physics_split)(v_locs_real, v_locs_imag, group.params)
-        total_f = total_f.at[group.eq_indices].add(fr).at[group.eq_indices + num_vars].add(fi)
-        total_q = total_q.at[group.eq_indices].add(qr).at[group.eq_indices + num_vars].add(qi)
+        total_f = total_f.at[group.eq_indices].add(fr).at[group.eq_indices + half_size].add(fi)
+        total_q = total_q.at[group.eq_indices].add(qr).at[group.eq_indices + half_size].add(qi)
 
     # Ground Constraint (Stiffness)
     G_stiff = 1e9
@@ -105,7 +103,6 @@ def _assemble_system_complex(y_guess, component_groups, t1, dt, num_vars):
 
 
 # --- 2. Newton Step Strategies ---
-
 def _dense_newton_step_real(y_guess, args):
     (component_groups, t1, dt, q_prev, static_rows, static_cols, diag_mask, num_vars) = args
     
@@ -113,7 +110,7 @@ def _dense_newton_step_real(y_guess, args):
     residual = total_f + (total_q - q_prev) / dt
     residual = residual.at[0].add(1e9 * y_guess[0]) # Real Ground
 
-    sys_size = num_vars
+    sys_size = y_guess.shape[0]
     J_dense = jnp.zeros((sys_size, sys_size), dtype=residual.dtype)
     J_dense = J_dense.at[static_rows, static_cols].add(all_vals)
 
@@ -124,7 +121,6 @@ def _dense_newton_step_real(y_guess, args):
     
     return y_guess + (delta * damping_factor)
 
-
 def _dense_newton_step_complex(y_guess, args):
     (component_groups, t1, dt, q_prev, static_rows, static_cols, diag_mask, num_vars) = args
     
@@ -133,9 +129,11 @@ def _dense_newton_step_complex(y_guess, args):
     q_prev_expanded = jnp.concatenate([q_prev.real, q_prev.imag])
     residual = total_f + (total_q - q_prev_expanded) / dt
     residual = residual.at[0].add(1e9 * y_guess[0]) # Real Ground
-    residual = residual.at[num_vars].add(1e9 * y_guess[num_vars]) # Imag Ground
+    
+    half_size = y_guess.shape[0] // 2
+    residual = residual.at[half_size].add(1e9 * y_guess[half_size]) # Imag Ground
 
-    sys_size = 2 * num_vars
+    sys_size = y_guess.shape[0]
     J_dense = jnp.zeros((sys_size, sys_size), dtype=residual.dtype)
     J_dense = J_dense.at[static_rows, static_cols].add(all_vals)
 
@@ -149,7 +147,7 @@ def _dense_newton_step_complex(y_guess, args):
 
 def _sparse_newton_step_real(y_guess, args):
     (component_groups, t1, dt, q_prev, static_rows, static_cols, diag_mask, num_vars) = args
-    sys_size = num_vars
+    sys_size = y_guess.shape[0]
 
     total_f, total_q, all_vals = _assemble_system_real(y_guess, component_groups, t1, dt, num_vars)
     residual = total_f + (total_q - q_prev) / dt
@@ -180,14 +178,15 @@ def _sparse_newton_step_real(y_guess, args):
 
 def _sparse_newton_step_complex(y_guess, args):
     (component_groups, t1, dt, q_prev, static_rows, static_cols, diag_mask, num_vars) = args
-    sys_size = 2 * num_vars
+    sys_size = y_guess.shape[0]
+    half_size = sys_size // 2
 
     total_f, total_q, all_vals = _assemble_system_complex(y_guess, component_groups, t1, dt, num_vars)
     
     q_prev_expanded = jnp.concatenate([q_prev.real, q_prev.imag])
     residual = total_f + (total_q - q_prev_expanded) / dt
     residual = residual.at[0].add(1e9 * y_guess[0])
-    residual = residual.at[num_vars].add(1e9 * y_guess[num_vars])
+    residual = residual.at[half_size].add(1e9 * y_guess[half_size])
 
     # Preconditioner
     diag_vals = jax.ops.segment_sum(
