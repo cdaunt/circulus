@@ -2,107 +2,12 @@ import jax
 import jax.numpy as jnp
 
 from circulus.compiler import compile_netlist
-from circulus.solvers.dc import solve_dc_op_dense, s_to_y
-from circulus.utils import update_params_dict, update_group_params
+from circulus.solvers.dc import solve_dc_op_dense
+from circulus.utils import update_group_params
 import matplotlib.pyplot as plt
 import time
-from circulus.base_component import CircuitComponent
-from circulus.components import VoltageSource, Resistor
-
-class Grating(CircuitComponent):
-    center_wavelength_nm: float | jnp.ndarray = 1310.0
-    peak_loss_dB: float | jnp.ndarray = 0.0
-    bandwidth_1dB: float | jnp.ndarray = 20.0
-    
-    # Explicit parameter for the simulation wavelength
-    wavelength_nm: float | jnp.ndarray = 1310.0
-    
-    ports = ("grating", "waveguide")
-
-    @jax.jit
-    def physics(self, v, s, t):
-        # Use the explicit parameter, ignoring 't' (time)
-        delta = self.wavelength_nm - self.center_wavelength_nm
-        # Loss increases by 1dB at delta = bandwidth/2
-        # Loss = Peak + ((t - center) / (BW/2))^2
-        excess_loss = (delta / (0.5 * self.bandwidth_1dB))**2
-        loss_dB = self.peak_loss_dB + excess_loss
-        
-        # S-param magnitude
-        T = 10.0 ** (-loss_dB / 20.0)
-        # Clip to avoid singularity in Y-matrix (perfect transmission = infinite admittance)
-        T = jnp.minimum(T, 0.9999)
-        
-        # S-matrix (Reciprocal, Symmetric)
-        # S = [[0, T], [T, 0]]
-        S = jnp.array([[0.0, T], [T, 0.0]], dtype=jnp.complex128)
-        
-        Y = s_to_y(S)
-        
-        # I = Y * V
-        v_vec = jnp.array([v.grating, v.waveguide], dtype=jnp.complex128)
-        i_vec = Y @ v_vec
-        
-        return {"grating": i_vec[0], "waveguide": i_vec[1]}
-
-class OpticalWaveguide(CircuitComponent):
-    length_um: float | jnp.ndarray = 100.0
-    loss_dB_cm: float | jnp.ndarray = 1.0
-    neff: float | jnp.ndarray = 2.4
-    n_group: float | jnp.ndarray = 4.0
-    center_wavelength_nm: float | jnp.ndarray = 1310.0
-    
-    wavelength_nm: float | jnp.ndarray = 1310.0
-    
-    ports = ("p1", "p2")
-    
-    @jax.jit
-    def physics(self, v, s, t):
-        # Dispersion: n_eff(lambda)
-        d_lam = self.wavelength_nm - self.center_wavelength_nm
-        slope = (self.neff - self.n_group) / self.center_wavelength_nm
-        n_eff_disp = self.neff + slope * d_lam
-        
-        # Phase: phi = 2*pi * n * L / lambda
-        # Units: L(um), lambda(nm). Factor 1000 converts nm to um in denominator
-        phi = 2.0 * jnp.pi * n_eff_disp * (self.length_um / self.wavelength_nm) * 1000.0
-        
-        # Loss: dB/cm * L_cm
-        loss_val = self.loss_dB_cm * (self.length_um / 10000.0)
-        T_mag = 10.0 ** (-loss_val / 20.0)
-        
-        # Complex Transmission
-        T = T_mag * jnp.exp(-1j * phi)
-        
-        S = jnp.array([[0.0, T], [T, 0.0]], dtype=jnp.complex128)
-        Y = s_to_y(S)
-        
-        v_vec = jnp.array([v.p1, v.p2], dtype=jnp.complex128)
-        i_vec = Y @ v_vec
-        
-        return {"p1": i_vec[0], "p2": i_vec[1]}
-
-class Splitter(CircuitComponent):
-    split_ratio: float | jnp.ndarray = 0.5 # Power ratio to port 2
-    ports = ("p1", "p2", "p3") # In, Out1, Out2
-    
-    def physics(self, v, s, t):
-        r = jnp.sqrt(self.split_ratio)
-        tc = jnp.sqrt(1.0 - self.split_ratio)
-        
-        # 3-Port S-matrix (Behavioral Model)
-        # p1 -> p2 (r), p1 -> p3 (j*t)
-        S = jnp.array([
-            [0.0, r, 1j*tc],
-            [r, 0.0, 0.0],
-            [1j*tc, 0.0, 0.0]
-        ], dtype=jnp.complex128)
-        
-        Y = s_to_y(S)
-        v_vec = jnp.array([v.p1, v.p2, v.p3], dtype=jnp.complex128)
-        i_vec = Y @ v_vec
-        
-        return {"p1": i_vec[0], "p2": i_vec[1], "p3": i_vec[2]}
+from circulus.components import Resistor
+from circulus.photonic_components import Grating, OpticalWaveguide, Splitter, OpticalSource
 
 if __name__ == "__main__":
     print("\n--- DEMO: Photonic Splitter & Grating Link (Wavelength Sweep) ---")
@@ -111,7 +16,7 @@ if __name__ == "__main__":
         'grating': Grating,
         'waveguide': OpticalWaveguide,
         'splitter': Splitter,
-        'source': VoltageSource, # Acts as a Phasor Source if V is complex
+        'source': OpticalSource,
         'resistor': Resistor,    # Acts as a Matched Load (Z0=1)
         'ground': lambda: 0
     }
@@ -120,7 +25,7 @@ if __name__ == "__main__":
     net_dict = {
         "instances": {
             "GND": {"component":"ground"},
-            "Laser": {"component":"source", "settings":{"V": 1.0 + 0j}}, # 1.0 Amplitude, 0 Phase
+            "Laser": {"component":"source", "settings":{"power": 1.0, "phase": 0.0}},
             "WG_In": {"component":"waveguide", "settings":{"length_um": 100.0}},
             "Splitter": {"component":"splitter", "settings":{"split_ratio": 0.5}},
             
@@ -152,7 +57,7 @@ if __name__ == "__main__":
     groups, sys_size, port_map = compile_netlist(net_dict, models_map)
     
     # --- Sweep Wavelength ---
-    wavelengths = jnp.linspace(1260, 1360, 200)
+    wavelengths = jnp.linspace(1260, 1360, 1000)
     
     print("Sweeping Wavelength...")
     @jax.jit
@@ -163,7 +68,7 @@ if __name__ == "__main__":
         # Update Waveguides
         g = update_group_params(g, 'waveguide', 'wavelength_nm', val)
         
-        return solve_dc_op_dense(g, sys_size, dtype=jnp.complex128)
+        return solve_dc_op_dense(g, sys_size,  dtype=jnp.complex128)
     
     # JAX VMAP
     #solve_for_loss(1310)
