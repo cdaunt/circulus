@@ -16,9 +16,8 @@ class Resistor(CircuitComponent):
         # 1. Logic
         i = (v.p1 - v.p2) / (self.R + 1e-12)
         
-        # 2. Return Currents (f)
-        # No need to specify 'states' or 'charges' if they are zero.
-        return {"p1": i, "p2": -i}
+        # 2. Return Currents (f) and Charges (q)
+        return {"p1": i, "p2": -i}, {}
 
 class Capacitor(CircuitComponent):
     C: float | jax.Array = 1E-12
@@ -78,8 +77,7 @@ class VoltageSource(CircuitComponent):
         constraint = (v.p1 - v.p2) - v_val
         
         # 3. Return Logic
-        # We return a single dictionary because there are no time derivatives (charges).
-        # The solver interprets this as "Resistive/Static" equations (f).
+        # Return (f, q). f = Resistive/Static, q = Dynamic/Charges.
         
         # KCL: Current 'i_src' leaves p1 (+), enters p2 (-)
         # Eq:  The constraint applies to the 'i_src' row
@@ -87,7 +85,7 @@ class VoltageSource(CircuitComponent):
             "p1": s.i_src,    # Current leaving p1
             "p2": -s.i_src,   # Current entering p2
             "i_src": constraint # The voltage equation
-        }
+        }, {}
     
 class VoltageSourceDynamic(CircuitComponent):
     """
@@ -106,7 +104,7 @@ class VoltageSourceDynamic(CircuitComponent):
             "p1": s.i_src,
             "p2": -s.i_src,
             "i_src": constraint
-        }
+        }, {}
 
 class SmoothPulse(CircuitComponent):
     delay: float | jax.Array = 1e-9
@@ -124,7 +122,7 @@ class SmoothPulse(CircuitComponent):
             "p1": s.i_src,
             "p2": -s.i_src,
             "i_src": constraint
-        }
+        }, {}
 
 class VoltageSourceAC(CircuitComponent):
     delay: float | jax.Array = 0.0
@@ -144,7 +142,7 @@ class VoltageSourceAC(CircuitComponent):
             "p1": s.i_src,
             "p2": -s.i_src,
             "i_src": constraint
-        }
+        }, {}
 
 class CurrentSource(CircuitComponent):
     I: float | jax.Array = 0.0
@@ -152,7 +150,7 @@ class CurrentSource(CircuitComponent):
 
     def physics(self, v, s, t):
         # Current I flows from p1 to p2 (leaving p1, entering p2)
-        return {"p1": self.I, "p2": -self.I}
+        return {"p1": self.I, "p2": -self.I}, {}
 
 class Diode(CircuitComponent):
     Is: float | jax.Array = 1e-12
@@ -165,7 +163,7 @@ class Diode(CircuitComponent):
         vd = v.p1 - v.p2
         vd_safe = jnp.clip(vd, -5.0, 5.0)
         i = self.Is * (jnp.exp(vd_safe / (self.n * self.Vt)) - 1.0)
-        return {"p1": i, "p2": -i}
+        return {"p1": i, "p2": -i}, {}
 
 class DiodeParallelLeakage(CircuitComponent):
     Is: float | jax.Array = 1e-12
@@ -180,7 +178,7 @@ class DiodeParallelLeakage(CircuitComponent):
         i_diode = self.Is * (jnp.exp(vd / (self.n * self.Vt)) - 1.0)
         i_leak = vd / self.R_leak
         i_total = i_diode + i_leak
-        return {"p1": i_total, "p2": -i_total}
+        return {"p1": i_total, "p2": -i_total}, {}
 
 class NMOS(CircuitComponent):
     Kp: float | jax.Array = 2e-5
@@ -205,7 +203,7 @@ class NMOS(CircuitComponent):
                          0.0,
                          jnp.where(vds < v_over, linear_current, sat_current))
         
-        return {"d": i_ds, "g": 0.0, "s": -i_ds}
+        return {"d": i_ds, "g": 0.0, "s": -i_ds}, {}
 
 class PMOS(CircuitComponent):
     Kp: float | jax.Array = 1e-5
@@ -231,7 +229,7 @@ class PMOS(CircuitComponent):
                          0.0,
                          jnp.where(vsd < v_over, linear_current, sat_current))
         
-        return {"d": -i_sd, "g": 0.0, "s": i_sd}
+        return {"d": -i_sd, "g": 0.0, "s": i_sd}, {}
 
 class BJT_NPN(CircuitComponent):
     Is: float | jax.Array = 1e-12
@@ -258,7 +256,7 @@ class BJT_NPN(CircuitComponent):
         i_e = -i_f + alpha_r * i_r
         i_b = -(i_c + i_e)
         
-        return {"c": i_c, "b": i_b, "e": i_e}
+        return {"c": i_c, "b": i_b, "e": i_e}, {}
 
 class VoltageControlledSwitch(CircuitComponent):
     Ron: float | jax.Array = 1.0
@@ -277,7 +275,7 @@ class VoltageControlledSwitch(CircuitComponent):
         g_eff = g_off + (g_on - g_off) * sig
         
         i = (v.p1 - v.p2) * g_eff
-        return {"p1": i, "p2": -i, "cp": 0.0, "cm": 0.0}
+        return {"p1": i, "p2": -i, "cp": 0.0, "cm": 0.0}, {}
 
 class ZenerDiode(CircuitComponent):
     Vz: float | jax.Array = 5.0
@@ -292,7 +290,7 @@ class ZenerDiode(CircuitComponent):
         i_fwd = self.Is * (jnp.exp(vd / (self.n * self.Vt)) - 1.0)
         i_rev = -self.Is * (jnp.exp(-(vd + self.Vz) / (self.n * self.Vt)) - 1.0)
         i_total = i_fwd + jnp.where(vd < -self.Vz, i_rev, 0.0)
-        return {"p1": i_total, "p2": -i_total}
+        return {"p1": i_total, "p2": -i_total}, {}
 
 @jax.jit
 def _junction_charge(v, Cj0, Vj, m):
@@ -310,7 +308,7 @@ class NMOSDynamic(NMOS):
     Cgs_ov: float | jax.Array = 1e-15
 
     def physics(self, v, s, t):
-        dc_res = super().physics(v, s, t)
+        dc_res, _ = super().physics(v, s, t)
         
         vgs = v.g - v.s
         vds = v.d - v.s
@@ -348,7 +346,7 @@ class BJT_NPN_Dynamic(BJT_NPN):
     Tr: float | jax.Array = 0.0
 
     def physics(self, v, s, t):
-        dc_res = super().physics(v, s, t)
+        dc_res, _ = super().physics(v, s, t)
         
         vbe = v.b - v.e
         vbc = v.b - v.c
@@ -379,7 +377,7 @@ class VCCS(CircuitComponent):
 
     def physics(self, v, s, t):
         i = self.G * (v.ctrl_p - v.ctrl_m)
-        return {"out_p": i, "out_m": -i, "ctrl_p": 0.0, "ctrl_m": 0.0}
+        return {"out_p": i, "out_m": -i, "ctrl_p": 0.0, "ctrl_m": 0.0}, {}
 
 class VCVS(CircuitComponent):
     A: float | jax.Array = 1.0
@@ -392,7 +390,7 @@ class VCVS(CircuitComponent):
             "out_p": s.i_src, "out_m": -s.i_src,
             "ctrl_p": 0.0, "ctrl_m": 0.0,
             "i_src": constraint
-        }
+        }, {}
 
 class CCVS(CircuitComponent):
     R: float | jax.Array = 1.0
@@ -410,7 +408,7 @@ class CCVS(CircuitComponent):
             "in_p": s.i_ctrl, "in_m": -s.i_ctrl,
             "i_src": eq_out,
             "i_ctrl": eq_in
-        }
+        }, {}
 
 class CCCS(CircuitComponent):
     alpha: float | jax.Array = 1.0
@@ -427,7 +425,7 @@ class CCCS(CircuitComponent):
             "out_p": i_out, "out_m": -i_out,
             "in_p": s.i_ctrl, "in_m": -s.i_ctrl,
             "i_ctrl": eq_in
-        }
+        }, {}
 
 class Norton(CircuitComponent):
     I: float | jax.Array = 0.0
@@ -436,7 +434,7 @@ class Norton(CircuitComponent):
 
     def physics(self, v, s, t):
         i_ab = self.I + self.G * (v.p1 - v.p2)
-        return {"p1": i_ab, "p2": -i_ab}
+        return {"p1": i_ab, "p2": -i_ab}, {}
 
 class DiodeSeries(CircuitComponent):
     Is: float | jax.Array = 1e-12
@@ -450,7 +448,7 @@ class DiodeSeries(CircuitComponent):
         j = self.Is * (jnp.exp(vd / (self.n * self.Vt)) - 1.0)
         r_term = jnp.where(self.Rs != 0, vd / self.Rs, 0.0)
         i = j + r_term
-        return {"p1": i, "p2": -i}
+        return {"p1": i, "p2": -i}, {}
 
 class Schottky(CircuitComponent):
     Is: float | jax.Array = 1e-6
@@ -461,7 +459,7 @@ class Schottky(CircuitComponent):
     def physics(self, v, s, t):
         vd = v.p1 - v.p2
         i = self.Is * (jnp.exp(vd / (self.n * self.Vt)) - 1.0)
-        return {"p1": i, "p2": -i}
+        return {"p1": i, "p2": -i}, {}
 
 class IdealOpAmp(CircuitComponent):
     A: float | jax.Array = 1e6
@@ -474,7 +472,7 @@ class IdealOpAmp(CircuitComponent):
             "out_p": s.i_src, "out_m": -s.i_src,
             "in_p": 0.0, "in_m": 0.0,
             "i_src": constraint
-        }
+        }, {}
 if __name__ == "__main__":
     a = Resistor()
     print(a)
