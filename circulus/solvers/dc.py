@@ -358,7 +358,7 @@ def solve_operating_point(
     component_groups: Dict[str, ComponentGroup],
     num_vars: int,
     t0: float = 0.0,
-    method: str = 'dense',
+    mode: str = 'dense',
     max_iter: int = 50,
     tol: float = 1e-6,
     g_leak: float = 1e-9,
@@ -372,7 +372,7 @@ def solve_operating_point(
         component_groups: Dictionary of ComponentGroups.
         num_vars: Number of nodes in the circuit.
         t0: Time at which to solve (default 0.0).
-        method: 'dense' or 'sparse'.
+        mode: 'dense' or 'sparse'.
         max_iter: Maximum Newton iterations.
         tol: Convergence tolerance.
         g_leak: Leakage conductance for floating node stabilization.
@@ -425,14 +425,14 @@ def solve_operating_point(
     solver = optx.FixedPointIteration(rtol=tol, atol=tol)
     
     if is_complex:
-        if method == 'dense':
+        if mode == 'dense':
             step_args = (groups_list, t0, static_rows, static_cols, g_leak)
             solver_fn = _dc_step_complex_dense
         else:
             step_args = (groups_list, t0, static_rows, static_cols, diag_mask, g_leak)
             solver_fn = _dc_step_complex_sparse
     else:
-        if method == 'dense':
+        if mode == 'dense':
             step_args = (groups_list, t0, static_rows, static_cols, g_leak)
             solver_fn = _dc_step_real_dense
         else:
