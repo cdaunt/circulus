@@ -4,8 +4,7 @@ import diffrax
 
 from circulus.components import Resistor, Capacitor, Inductor, VoltageSource
 from circulus.compiler import compile_netlist, build_net_map
-#from circulus.solvers.sparse import VectorizedSparseSolver as SparseSolver
-from circulus.solvers.dense import VectorizedDenseSolver as DenseSolver
+from circulus.solvers.transient import VectorizedTransientSolver
 from circulus.solvers.dc import solve_dc_op_dense
 from circulus.netlist import draw_circuit_graph
 
@@ -30,7 +29,7 @@ if __name__ == "__main__":
     net_dict = {
         "instances": {
             "GND": {"component":"ground"},
-            "V1": {"component":"source_voltage", "settings":{"V": 1.0,"delay":1E-9}},
+            "V1": {"component":"source_voltage", "settings":{"V": 1.0,"delay":0.25E-9}},
             "R1": {"component":"resistor", "settings":{"R": 10.0}},
             "C1": {"component":"capacitor", "settings":{"C": 1e-11}},
             "L1": {"component":"inductor", "settings":{"L": 5e-9}},
@@ -66,7 +65,7 @@ if __name__ == "__main__":
     y_op = solve_dc_op_dense(groups, sys_size, t0=0.0)
     #print(f"   OP Solution: {y_op}")
     
-    solver = DenseSolver()
+    solver = VectorizedTransientSolver(mode='dense')
     term = diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y))
     
     saveat = diffrax.SaveAt(ts=jnp.linspace(0, t_max, 500))

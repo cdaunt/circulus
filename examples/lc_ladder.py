@@ -4,9 +4,8 @@ import diffrax
 import time
 
 from circulus.compiler import compile_netlist
-from circulus.solvers.dense import VectorizedDenseSolver
-from circulus.solvers.sparse import VectorizedSparseSolver
-from circulus.solvers.dc import solve_dc_op_dense, solve_dc_op_sparse
+from circulus.solvers.transient import VectorizedTransientSolver
+from circulus.solvers.dc import solve_operating_point
 from circulus.netlist import draw_circuit_graph
 from circulus.components import Resistor, Capacitor, Inductor, SmoothPulse
 
@@ -30,7 +29,7 @@ if __name__ == "__main__":
         net = {
             "instances": {
                 "GND": {"component": "ground"},
-                "Vin": {"component": "voltage_source", "settings": {"V": 1.0, "delay": 1e-9, "tr":1E-12}}, # Step at 1ns
+                "Vin": {"component": "voltage_source", "settings": {"V": 1.0, "delay": 2e-9, "tr":1E-12}}, # Step at 1ns
                 "Rs":  {"component": "resistor", "settings": {"R": 50.0}}, # 50 Ohm Source
                 "Rl":  {"component": "resistor", "settings": {"R": 50.0}}, # 50 Ohm Load (Matched)
             },
@@ -93,22 +92,11 @@ if __name__ == "__main__":
     print(f"System Matrix Size: {sys_size}x{sys_size} ({sys_size**2} elements)")
 
     # --- 2. Select Solver ---
-    if USE_SPARSE:
-        print("Using: VectorizedSparseSolver (GMRES)")
-        # Ensure you use the updated sparse solver class from our previous discussion
-        solver_cls = VectorizedSparseSolver() 
-    else:
-        print("Using: VectorizedDenseSolver (LU)")
-        solver_cls = VectorizedDenseSolver()
-
+    mode = "sparse" if USE_SPARSE else "dense"
+    solver_cls = VectorizedTransientSolver(mode=mode)
     # --- 3. DC Operating Point (Initial Condition) ---
     print("Solving DC Operating Point...")
-    # For a ladder starting at 0V, a simple zeros initialization is fine, 
-    # but running the OP solver is good practice.
-    if USE_SPARSE:
-        y0 = solve_dc_op_sparse(groups, sys_size)
-    else:
-        y0 = solve_dc_op_dense(groups, sys_size)
+    y0 = solve_operating_point(groups, sys_size, mode=mode)
 
     # --- 4. Transient Simulation ---
     print("Running Transient Simulation...")
