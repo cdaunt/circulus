@@ -4,9 +4,8 @@ import diffrax
 
 from circulus.components import Resistor, Diode, VoltageSourceAC
 from circulus.compiler import compile_netlist
-from circulus.solvers.dense import VectorizedDenseSolver
+from circulus.solvers.transient import VectorizedTransientSolver
 from circulus.solvers.dc import solve_dc_op_dense
-from circulus.netlist import draw_circuit_graph
 
 import matplotlib.pyplot as plt
 
@@ -50,8 +49,8 @@ if __name__ == "__main__":
     # controller = diffrax.PIDController(rtol=1e-3, atol=1e-6)
     
     sol = diffrax.diffeqsolve(
-        diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y)),
-        VectorizedDenseSolver(), # Ensure this class has order=1 defined!
+        diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y)), 
+        VectorizedTransientSolver(mode='dense'),
         t0=0.0, t1=t_max, dt0=1e-6, y0=y0, args=(groups, sys_size),
         #stepsize_controller=controller, 
         saveat=saveat, max_steps=50000
