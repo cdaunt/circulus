@@ -3,8 +3,9 @@ import jax.numpy as jnp
 
 from circulus.components import Resistor, NMOS, VoltageSource, CurrentSource
 from circulus.compiler import compile_netlist
-from circulus.solvers.dc import solve_dc_op_dense
+from circulus.solvers.dc import solve_operating_point
 from circulus.utils import update_params_dict
+import time
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
@@ -54,16 +55,22 @@ if __name__ == "__main__":
     # We want to sweep Vin1 from 1.5V to 3.5V
     sweep_voltages = jnp.linspace(1.5, 3.5, 100)
     
+    @jax.jit
     def solve_for_vin(v_in_val):
         
         new_groups = update_params_dict(groups, 'source_dc', 'Vin1', 'V', v_in_val)
                 
-        return solve_dc_op_dense(new_groups, sys_size)
+        return solve_operating_point(new_groups, sys_size, mode="sparse")
 
     # JAX VMAP allows us to solve 100 circuits in parallel on the GPU
     # Excellent performance on CPU as well due to JIT compilation
+    solve_for_vin(sweep_voltages[0])
     print("Sweeping DC Operating Point...")
+    start = time.time()
     solutions = jax.vmap(solve_for_vin)(sweep_voltages)
+    total = time.time() - start
+    print(f"Simulation Time: {total:.3f}s")
+
     
     v_out1 = solutions[:, port_map["RD1,p2"]]
     v_out2 = solutions[:, port_map["RD2,p2"]]

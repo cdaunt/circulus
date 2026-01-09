@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 
 from circulus.compiler import compile_netlist
-from circulus.solvers.dc import solve_dc_op_dense
+from circulus.solvers.dc import solve_operating_point
 from circulus.utils import update_group_params
 import matplotlib.pyplot as plt
 import time
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     groups, sys_size, port_map = compile_netlist(net_dict, models_map)
     
     # --- Sweep Wavelength ---
-    wavelengths = jnp.linspace(1260, 1360, 1000)
+    wavelengths = jnp.linspace(1260, 1360, 200)
     
     print("Sweeping Wavelength...")
     @jax.jit
@@ -68,14 +68,19 @@ if __name__ == "__main__":
         # Update Waveguides
         g = update_group_params(g, 'waveguide', 'wavelength_nm', val)
         
-        return solve_dc_op_dense(g, sys_size,  dtype=jnp.complex128)
+        return solve_operating_point(g, sys_size,  mode = 'dense', dtype=jnp.complex128)
     
-    # JAX VMAP
-    #solve_for_loss(1310)
+    start = time.time()
+    print("Solving for single wavelength (and jit compiling)")
+    solve_for_loss(1310)
+    total = time.time() - start
+    print(f"Compilation and single point simulation Time: {total:.3f}s")
+
+    print("Sweeping DC Operating Point...")
     start = time.time()
     solutions = jax.vmap(solve_for_loss)(wavelengths)
     total = time.time() - start
-    print(total)
+    print(f"Vmap simulation Time: {total:.3f}s")
 
     # Extract Output Fields
     v_out1 = solutions[:, port_map["Load1,p1"]]
