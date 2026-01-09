@@ -258,6 +258,10 @@ def _dc_step_real_dense(y_guess, args):
     diag_idx = jnp.arange(sys_size)
     J_dense = J_dense.at[diag_idx, diag_idx].add(g_leak)
     
+    # --- CRITICAL FIX: Add Ground Derivative to Matrix ---
+    # We added 1e9*y to residual, so we MUST add 1e9 to the diagonal.
+    J_dense = J_dense.at[0, 0].add(1e9)
+    
     delta = jnp.linalg.solve(J_dense, -residual)
     return _apply_soft_damping(y_guess, delta)
 
@@ -280,18 +284,30 @@ def _dc_step_real_sparse(y_guess, args):
         all_vals * diag_mask, static_rows, num_segments=sys_size
     )
     diag_vals = diag_vals + g_leak
+
+    # --- FIX 1: Add Ground Stiffness to Preconditioner ---
+    # This ensures inv_diag scales the huge ground residual down correctly
+    diag_vals = diag_vals.at[0].add(1e9)
+    
     inv_diag = jnp.where(jnp.abs(diag_vals) < 1e-12, 1.0, 1.0 / diag_vals)
 
     def matvec(x):
         x_gathered = x[static_cols]
         products = all_vals * x_gathered
         Ax = jax.ops.segment_sum(products, static_rows, num_segments=sys_size)
+        
+        # --- FIX 2: Add Ground Stiffness to Linear Operator ---
+        # The solver asks: "If I change x, how does the residual change?"
+        # Answer: "If you change x[0], the residual changes by 1e9."
+        Ax = Ax.at[0].add(1e9 * x[0])
+        
         return Ax + (x * g_leak)
 
     delta_guess = -residual * inv_diag
-    delta, _ = jax.scipy.sparse.linalg.gmres(
+    
+    delta, _ = jax.scipy.sparse.linalg.bicgstab(
         matvec, -residual, x0=delta_guess,
-        M=lambda x: inv_diag * x, tol=1e-6, maxiter=100, restart=20
+        M=lambda x: inv_diag * x, tol=1e-5, maxiter=200
     )
     return _apply_soft_damping(y_guess, delta)
 
@@ -333,23 +349,44 @@ def _dc_step_complex_sparse(y_guess, args):
     residual = residual.at[half_size].add(1e9 * y_guess[half_size]) # Imag Ground
     residual = residual + (y_guess * g_leak)
     
+    # 2. Build Preconditioner (Diagonal)
     diag_vals = jax.ops.segment_sum(
         all_vals * diag_mask, static_rows, num_segments=sys_size
     )
     diag_vals = diag_vals + g_leak
+    
+    # --- FIX 1: Add Ground Stiffness to Diagonal ---
+    # We must treat the ground constraint as having a derivative of 1e9
+    # at both the Real index (0) and Imag index (half_size)
+    diag_vals = diag_vals.at[0].add(1e9)
+    diag_vals = diag_vals.at[half_size].add(1e9)
+    
     inv_diag = jnp.where(jnp.abs(diag_vals) < 1e-12, 1.0, 1.0 / diag_vals)
 
+    # 3. Define Linear Operator (MatVec)
     def matvec(x):
         x_gathered = x[static_cols]
         products = all_vals * x_gathered
         Ax = jax.ops.segment_sum(products, static_rows, num_segments=sys_size)
+        
+        # --- FIX 2: Add Ground Stiffness to Operator ---
+        # The Jacobian * x must include the ground constraint derivatives:
+        # d/dx(1e9 * x[0]) -> 1e9
+        Ax = Ax.at[0].add(1e9 * x[0])
+        Ax = Ax.at[half_size].add(1e9 * x[half_size])
+        
         return Ax + (x * g_leak)
 
     delta_guess = -residual * inv_diag
-    delta, _ = jax.scipy.sparse.linalg.gmres(
+    
+    # 4. Solve (Switched to BiCGSTAB)
+    # BiCGSTAB is generally robust for "unrolled" complex matrices which are 
+    # often non-symmetric (e.g. Real-Imaginary coupling blocks).
+    delta, _ = jax.scipy.sparse.linalg.bicgstab(
         matvec, -residual, x0=delta_guess,
-        M=lambda x: inv_diag * x, tol=1e-6, maxiter=100, restart=20
+        M=lambda x: inv_diag * x, tol=1e-5, maxiter=100
     )
+    
     return _apply_soft_damping(y_guess, delta)
 
 # --- Main Solver Entry Point ---
@@ -447,6 +484,7 @@ def solve_operating_point(
         return sol.value[:num_vars] + 1j * sol.value[num_vars:]
     else:
         return sol.value
+    return sol.value
 
 # --- Legacy Wrappers ---
 
