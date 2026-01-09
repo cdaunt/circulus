@@ -7,7 +7,7 @@ from circulus.compiler import compile_netlist
 from circulus.solvers.transient import VectorizedTransientSolver
 from circulus.solvers.dc import solve_operating_point
 from circulus.netlist import draw_circuit_graph
-from circulus.components import Resistor, Capacitor, Inductor, SmoothPulse
+from circulus.components import Resistor, Capacitor, Inductor, SmoothPulse, VoltageSourceAC
 
 import matplotlib.pyplot as plt
 
@@ -16,10 +16,22 @@ if __name__ == "__main__":
     jax.config.update("jax_enable_x64", True)
 
     # --- CONFIGURATION ---
-    N_SECTIONS = 2000       # Try 50 for Dense, 2000+ for Sparse
-    USE_SPARSE = True     # Toggle this to switch between Dense or Sparse solver
-    T_MAX = 500e-9          # 500ns simulation
+    N_SECTIONS = 20       # Try 50 for Dense, 100+ for Sparse
+    USE_SPARSE = N_SECTIONS >= 100     # Toggle this to switch between Dense or Sparse solver
+    T_MAX = N_SECTIONS*0.5e-9          # 500ns simulation
+    FREQ = 5.0/T_MAX
     # ---------------------
+
+    # Map your models (ensure they are imported)
+    models_map = {
+        'resistor': Resistor,
+        'capacitor': Capacitor,
+        'inductor': Inductor,
+        'voltage_source': VoltageSourceAC,
+        #'voltage_source': SmoothPulse,
+        'ground': lambda: 0
+    }
+
 
     def create_lc_ladder(n_sections):
         """
@@ -29,7 +41,8 @@ if __name__ == "__main__":
         net = {
             "instances": {
                 "GND": {"component": "ground"},
-                "Vin": {"component": "voltage_source", "settings": {"V": 1.0, "delay": 2e-9, "tr":1E-12}}, # Step at 1ns
+                #"Vin": {"component": "voltage_source", "settings": {"V": 1.0, "delay": 2e-9, "tr":1E-12}}, # Step at 1ns
+                "Vin": {"component": "voltage_source", "settings": {"V": 1.0, "freq":FREQ}}, # Step at 1ns
                 "Rs":  {"component": "resistor", "settings": {"R": 50.0}}, # 50 Ohm Source
                 "Rl":  {"component": "resistor", "settings": {"R": 50.0}}, # 50 Ohm Load (Matched)
             },
@@ -77,14 +90,7 @@ if __name__ == "__main__":
     print(f"Generating {N_SECTIONS}-stage LC Ladder...")
     net_dict = create_lc_ladder(N_SECTIONS)
     
-    # Map your models (ensure they are imported)
-    models_map = {
-        'resistor': Resistor,
-        'capacitor': Capacitor,
-        'inductor': Inductor,
-        'voltage_source': SmoothPulse,
-        'ground': lambda: 0
-    }
+
 
     t0_compile = time.time()
     groups, sys_size, port_map = compile_netlist(net_dict, models_map)
@@ -110,19 +116,19 @@ if __name__ == "__main__":
     atol=1e-4,  # <-- Relaxed from 1e-6. 100uV noise floor is usually fine.
     pcoeff=0.2, # Low P-term helps stability on stiff jumps
     icoeff=0.5,
-    dcoeff=0.1,
+    dcoeff=0.0,
     force_dtmin=True,
     dtmin=1e-14, # <-- Don't let it shrink smaller than 100 femtoseconds
-    dtmax=1e-9,
+    dtmax=1e-10,
     error_order=2
     )
 
     t0_sim = time.time()
     sol = diffrax.diffeqsolve(
         term, solver_cls, 
-        t0=0.0, t1=T_MAX, dt0=1e-11, 
+        t0=0.0, t1=T_MAX, dt0=1e-12, 
         y0=y0, args=(groups, sys_size),
-        stepsize_controller=step_controller,
+        #stepsize_controller=step_controller,
         max_steps=1000000,
         # Save output every 0.1ns
         saveat=diffrax.SaveAt(ts=jnp.linspace(0, T_MAX, 200)),
