@@ -16,10 +16,12 @@ if __name__ == "__main__":
     jax.config.update("jax_enable_x64", True)
 
     # --- CONFIGURATION ---
-    N_SECTIONS = 20       # Try 50 for Dense, 100+ for Sparse
-    USE_SPARSE = N_SECTIONS >= 100     # Toggle this to switch between Dense or Sparse solver
-    T_MAX = N_SECTIONS*0.5e-9          # 500ns simulation
+    N_SECTIONS = 50       # Try 50 for Dense, 100+ for Sparse
+    USE_SPARSE = N_SECTIONS >= 50     # Toggle this to switch between Dense or Sparse solver
+    T_MAX = 3*N_SECTIONS*0.5e-9          # 500ns simulation
     FREQ = 5.0/T_MAX
+    R_SOURCE = 10.0   # Low impedance source (creates reflections)
+    R_LOAD = 5000.0    # Open circuit load (doubles voltage)
     # ---------------------
 
     # Map your models (ensure they are imported)
@@ -27,8 +29,8 @@ if __name__ == "__main__":
         'resistor': Resistor,
         'capacitor': Capacitor,
         'inductor': Inductor,
-        'voltage_source': VoltageSourceAC,
-        #'voltage_source': SmoothPulse,
+        #'voltage_source': VoltageSourceAC,
+        'voltage_source': SmoothPulse,
         'ground': lambda: 0
     }
 
@@ -41,10 +43,10 @@ if __name__ == "__main__":
         net = {
             "instances": {
                 "GND": {"component": "ground"},
-                #"Vin": {"component": "voltage_source", "settings": {"V": 1.0, "delay": 2e-9, "tr":1E-12}}, # Step at 1ns
-                "Vin": {"component": "voltage_source", "settings": {"V": 1.0, "freq":FREQ}}, # Step at 1ns
-                "Rs":  {"component": "resistor", "settings": {"R": 50.0}}, # 50 Ohm Source
-                "Rl":  {"component": "resistor", "settings": {"R": 50.0}}, # 50 Ohm Load (Matched)
+                "Vin": {"component": "voltage_source", "settings": {"V": 1.0, "delay": 2e-9, "tr":1E-11}}, # Step at 1ns
+                #"Vin": {"component": "voltage_source", "settings": {"V": 1.0, "freq":FREQ}}, # Step at 1ns
+                "Rs":  {"component": "resistor", "settings": {"R": R_SOURCE}}, 
+                "Rl":  {"component": "resistor", "settings": {"R": R_LOAD}}, 
             },
             "connections": {}
         }
@@ -118,17 +120,18 @@ if __name__ == "__main__":
     icoeff=0.5,
     dcoeff=0.0,
     force_dtmin=True,
-    dtmin=1e-14, # <-- Don't let it shrink smaller than 100 femtoseconds
-    dtmax=1e-10,
+    #dtmin=2E-4/FREQ,
+    dtmin=1E-14,
+    dtmax=1e-9,
     error_order=2
     )
 
     t0_sim = time.time()
     sol = diffrax.diffeqsolve(
         term, solver_cls, 
-        t0=0.0, t1=T_MAX, dt0=1e-12, 
+        t0=0.0, t1=T_MAX, dt0=1e-11, 
         y0=y0, args=(groups, sys_size),
-        #stepsize_controller=step_controller,
+        stepsize_controller=step_controller,
         max_steps=1000000,
         # Save output every 0.1ns
         saveat=diffrax.SaveAt(ts=jnp.linspace(0, T_MAX, 200)),
@@ -144,14 +147,14 @@ if __name__ == "__main__":
     # Identify Output Node Index
     # It's the node connected to Rl,p1. Let's find it in the port map.
     node_out_idx = port_map["Rl,p1"]
-    node_in_idx  = port_map["Vin,p1"] # Or Rs,p1
+    node_in_idx  = port_map["Rs,p2"] # Line Input (After Source Resistor)
 
     ts = sol.ts * 1e9 # Convert to ns
     v_in = sol.ys[:, node_in_idx]
     v_out = sol.ys[:, node_out_idx]
 
     plt.figure(figsize=(10, 6))
-    plt.plot(ts, v_in, 'r--', alpha=0.6, label='Input (Step)')
+    plt.plot(ts, v_in, 'r--', alpha=0.6, label='Line Input (Rs,p2)')
     plt.plot(ts, v_out, 'b-', linewidth=1.5, label=f'Output (Stage {N_SECTIONS})')
     
     plt.title(f"LC Ladder Propagation Delay ({N_SECTIONS} Sections)")
