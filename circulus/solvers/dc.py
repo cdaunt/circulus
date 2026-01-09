@@ -484,7 +484,6 @@ def solve_operating_point(
         return sol.value[:num_vars] + 1j * sol.value[num_vars:]
     else:
         return sol.value
-    return sol.value
 
 # --- Legacy Wrappers ---
 

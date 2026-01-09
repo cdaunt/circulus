@@ -1,12 +1,13 @@
 import jax
 import jax.numpy as jnp
+import equinox as eqx
 import diffrax
 import optimistix as optx
-import equinox as eqx
 from functools import partial
-from typing import Tuple, Any
 
-# --- 1. Common Logic (JIT-able Functions) ---
+# ==============================================================================
+# 1. ASSEMBLY KERNELS (PHYSICS)
+# ==============================================================================
 
 def _assemble_system_real(y_guess, component_groups, t1, dt):
     """Assembles Jacobian/Residual for Real systems."""
@@ -104,7 +105,8 @@ def _unified_newton_step(y_guess, args, is_complex=False, mode='dense'):
     # --- 1. Assemble System ---
     if is_complex:
         total_f, total_q, all_vals = _assemble_system_complex(y_guess, groups, t1, dt)
-        q_prev_flat = jnp.concatenate([q_prev.real, q_prev.imag])
+        # FIX: q_prev is already flat real (2N) from _compute_history. Do not re-expand.
+        q_prev_flat = q_prev 
         ground_indices = [0, sys_size // 2] # Real Ground, Imag Ground
     else:
         total_f, total_q, all_vals = _assemble_system_real(y_guess, groups, t1, dt)
@@ -147,9 +149,11 @@ def _unified_newton_step(y_guess, args, is_complex=False, mode='dense'):
             return Ax
 
         delta_guess = -residual * inv_diag
+        
+        # TUNING: Increased limits for steady-state robustness
         delta, _ = jax.scipy.sparse.linalg.bicgstab(
             matvec, -residual, x0=delta_guess, 
-            M=lambda x: inv_diag * x, tol=1e-5, maxiter=50
+            M=lambda x: inv_diag * x, tol=1e-6, maxiter=1000
         )
 
     # --- 4. Damping ---
@@ -255,9 +259,10 @@ class VectorizedTransientSolver(diffrax.AbstractSolver):
         # Bind static args for JIT compilation
         solver_fn = partial(_unified_newton_step, is_complex=is_complex, mode=self.mode)
 
-        solver = optx.FixedPointIteration(rtol=1e-5, atol=1e-5)
+        # TUNING: Increased limits for large steps
+        solver = optx.FixedPointIteration(rtol=1e-6, atol=1e-6)
         # Start Newton from Predictor
-        sol = optx.fixed_point(solver_fn, solver, y_pred, args=step_args, max_steps=30, throw=False)
+        sol = optx.fixed_point(solver_fn, solver, y_pred, args=step_args, max_steps=100, throw=False)
 
         # 5. Result
         y_next = sol.value # Already Flat Real
@@ -266,8 +271,9 @@ class VectorizedTransientSolver(diffrax.AbstractSolver):
         # Approximates local truncation error O(dt^2) for Order 1 methods.
         y_error = y_next - y_pred
 
-        # Update history
-        new_state = eqx.tree_at(lambda s: s.history, solver_state, (y_next, dt))
+        # Update history with the state at the START of the step (y0_flat)
+        # This enables the next step to calculate the slope (y_next - y0_flat)
+        new_state = eqx.tree_at(lambda s: s.history, solver_state, (y0_flat, dt))
         
         result = jax.lax.cond(
             sol.result == optx.RESULTS.successful,
