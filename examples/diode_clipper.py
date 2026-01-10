@@ -4,9 +4,8 @@ import diffrax
 
 from circulus.components import Resistor, Diode, VoltageSourceAC
 from circulus.compiler import compile_netlist
-from circulus.solvers.dense import VectorizedDenseSolver
+from circulus.solvers.transient import VectorizedTransientSolver
 from circulus.solvers.dc import solve_dc_op_dense
-from circulus.netlist import draw_circuit_graph
 
 import matplotlib.pyplot as plt
 
@@ -17,7 +16,7 @@ if __name__ == "__main__":
     # 1. Define Models
     models_map = {
         'resistor': Resistor,
-        'diode': Diode, # Uses your updated diode model
+        'diode': Diode,
         'source_voltage': VoltageSourceAC,
         'ground': lambda: 0
     }
@@ -26,10 +25,10 @@ if __name__ == "__main__":
     net_dict = {
         "instances": {
             "GND": {"component":"ground"},
-            "Vin": {"component":"source_voltage", "settings":{"V": 5.0, "freq": 1e3,}}, # 5V Amplitude
+            "Vin": {"component":"source_voltage", "settings":{"V": 5.0, "freq": 1e3,}},
             "R1":  {"component":"resistor", "settings":{"R": 1000.0}},
-            "D1":  {"component":"diode", "settings":{'Is':1e-14,}}, # Forward
-            "D2":  {"component":"diode", "settings":{'Is':1e-14,}}, # Anti-parallel
+            "D1":  {"component":"diode", "settings":{'Is':1e-14,}},
+            "D2":  {"component":"diode", "settings":{'Is':1e-14,}},
         },
         "connections": {
             "GND,p1": ("Vin,p2", "D1,p2", "D2,p1"),
@@ -50,8 +49,8 @@ if __name__ == "__main__":
     # controller = diffrax.PIDController(rtol=1e-3, atol=1e-6)
     
     sol = diffrax.diffeqsolve(
-        diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y)),
-        VectorizedDenseSolver(), # Ensure this class has order=1 defined!
+        diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y)), 
+        VectorizedTransientSolver(mode='dense'),
         t0=0.0, t1=t_max, dt0=1e-6, y0=y0, args=(groups, sys_size),
         #stepsize_controller=controller, 
         saveat=saveat, max_steps=50000

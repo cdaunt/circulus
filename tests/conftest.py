@@ -42,3 +42,21 @@ def simple_lrc_netlist():
     }
 
     return net_dict, models_map
+
+@pytest.fixture
+def simple_optical_netlist():
+    from circulus.components import Resistor
+    from circulus.photonic_components import OpticalWaveguide, OpticalSourcePulse
+
+    models_map = {'waveguide': OpticalWaveguide, 'source': OpticalSourcePulse, 'resistor': Resistor, 'ground': lambda: 0}
+    net_dict = {
+        "instances": {
+            "GND": {"component": "ground"},
+            "I1": {"component": "source", "settings": {"power": 1.0 + 0j, "delay": 0.1e-9}},
+            "WG1": {"component": "waveguide", "settings": {"length_um": 100.0}},
+            "R1": {"component": "resistor", "settings": {"R": 1.0}} # circulus.components.Resistor defaults to 1k, we set 1.0
+        },
+        "connections": {"GND,p1": ("I1,p2", "R1,p2"), "I1,p1": "WG1,p1", "WG1,p2": "R1,p1"}
+    }
+
+    return net_dict, models_map

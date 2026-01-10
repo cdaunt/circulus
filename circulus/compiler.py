@@ -5,6 +5,7 @@ from typing import NamedTuple, Callable, List, Dict, Any
 from collections import defaultdict
 import inspect
 from functools import wraps, lru_cache
+import equinox as eqx
 
 from circulus.netlist import build_net_map
 
@@ -25,17 +26,18 @@ def ensure_time_signature(model_func):
         
     return time_aware_wrapper
 
-class ComponentGroup(NamedTuple):
+class ComponentGroup(eqx.Module):
     """
     Represents a BATCH of identical components (e.g., ALL Resistors).
     Optimized for jax.vmap in the solver.
     """
-    name: str                 # e.g., "resistor_model"
-    physics_func: Callable    # The shared model function
+    name: str = eqx.field(static=True)
+    physics_func: Callable = eqx.field(static=True)
     
     # BATCHED PARAMETERS: 
-    # {'R': jnp.array([100.0, 200.0, ...])} - Shape (N,)
-    params: Dict[str, jnp.ndarray] 
+    # This is the batched component instance (e.g. a Resistor where self.R is an array).
+    # It acts as 'self' when passed to the physics function via vmap.
+    params: Any 
     
     # BATCHED STATE INDICES:
     # Shape (N, num_vars_per_component) - Used to gather 'v' from y0
@@ -50,7 +52,7 @@ class ComponentGroup(NamedTuple):
     jac_rows: jnp.ndarray    
     jac_cols: jnp.ndarray
 
-    index_map: Dict[str, int] | None = None  # Optional mapping from instance names to indices in the group
+    index_map: Dict[str, int] | None = eqx.field(static=True, default=None)
 
 
 

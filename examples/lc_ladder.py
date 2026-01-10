@@ -4,11 +4,10 @@ import diffrax
 import time
 
 from circulus.compiler import compile_netlist
-from circulus.solvers.dense import VectorizedDenseSolver
-from circulus.solvers.sparse import VectorizedSparseSolver
-from circulus.solvers.dc import solve_dc_op_dense, solve_dc_op_sparse
+from circulus.solvers.transient import VectorizedTransientSolver
+from circulus.solvers.dc import solve_operating_point
 from circulus.netlist import draw_circuit_graph
-from circulus.components import Resistor, Capacitor, Inductor, SmoothPulse
+from circulus.components import Resistor, Capacitor, Inductor, SmoothPulse, VoltageSourceAC
 
 import matplotlib.pyplot as plt
 
@@ -17,10 +16,24 @@ if __name__ == "__main__":
     jax.config.update("jax_enable_x64", True)
 
     # --- CONFIGURATION ---
-    N_SECTIONS = 2000       # Try 50 for Dense, 2000+ for Sparse
-    USE_SPARSE = True     # Toggle this to switch between Dense or Sparse solver
-    T_MAX = 500e-9          # 500ns simulation
+    N_SECTIONS = 50       # Try 50 for Dense, 100+ for Sparse
+    USE_SPARSE = N_SECTIONS >= 50     # Toggle this to switch between Dense or Sparse solver
+    T_MAX = 3*N_SECTIONS*0.5e-9          # 500ns simulation
+    FREQ = 5.0/T_MAX
+    R_SOURCE = 25.0   # Low impedance source (creates reflections)
+    R_LOAD = 5000.0    # Open circuit load (doubles voltage)
     # ---------------------
+
+    # Map your models (ensure they are imported)
+    models_map = {
+        'resistor': Resistor,
+        'capacitor': Capacitor,
+        'inductor': Inductor,
+        #'voltage_source': VoltageSourceAC,
+        'voltage_source': SmoothPulse,
+        'ground': lambda: 0
+    }
+
 
     def create_lc_ladder(n_sections):
         """
@@ -30,9 +43,10 @@ if __name__ == "__main__":
         net = {
             "instances": {
                 "GND": {"component": "ground"},
-                "Vin": {"component": "voltage_source", "settings": {"V": 1.0, "delay": 1e-9, "tr":1E-12}}, # Step at 1ns
-                "Rs":  {"component": "resistor", "settings": {"R": 50.0}}, # 50 Ohm Source
-                "Rl":  {"component": "resistor", "settings": {"R": 50.0}}, # 50 Ohm Load (Matched)
+                "Vin": {"component": "voltage_source", "settings": {"V": 1.0, "delay": 2e-9, "tr":1E-11}}, # Step at 1ns
+                #"Vin": {"component": "voltage_source", "settings": {"V": 1.0, "freq":FREQ}}, # Step at 1ns
+                "Rs":  {"component": "resistor", "settings": {"R": R_SOURCE}}, 
+                "Rl":  {"component": "resistor", "settings": {"R": R_LOAD}}, 
             },
             "connections": {}
         }
@@ -78,14 +92,7 @@ if __name__ == "__main__":
     print(f"Generating {N_SECTIONS}-stage LC Ladder...")
     net_dict = create_lc_ladder(N_SECTIONS)
     
-    # Map your models (ensure they are imported)
-    models_map = {
-        'resistor': Resistor,
-        'capacitor': Capacitor,
-        'inductor': Inductor,
-        'voltage_source': SmoothPulse,
-        'ground': lambda: 0
-    }
+
 
     t0_compile = time.time()
     groups, sys_size, port_map = compile_netlist(net_dict, models_map)
@@ -93,22 +100,11 @@ if __name__ == "__main__":
     print(f"System Matrix Size: {sys_size}x{sys_size} ({sys_size**2} elements)")
 
     # --- 2. Select Solver ---
-    if USE_SPARSE:
-        print("Using: VectorizedSparseSolver (GMRES)")
-        # Ensure you use the updated sparse solver class from our previous discussion
-        solver_cls = VectorizedSparseSolver() 
-    else:
-        print("Using: VectorizedDenseSolver (LU)")
-        solver_cls = VectorizedDenseSolver()
-
+    mode = "sparse" if USE_SPARSE else "dense"
+    solver_cls = VectorizedTransientSolver(mode=mode)
     # --- 3. DC Operating Point (Initial Condition) ---
     print("Solving DC Operating Point...")
-    # For a ladder starting at 0V, a simple zeros initialization is fine, 
-    # but running the OP solver is good practice.
-    if USE_SPARSE:
-        y0 = solve_dc_op_sparse(groups, sys_size)
-    else:
-        y0 = solve_dc_op_dense(groups, sys_size)
+    y0 = solve_operating_point(groups, sys_size, mode=mode)
 
     # --- 4. Transient Simulation ---
     print("Running Transient Simulation...")
@@ -122,9 +118,10 @@ if __name__ == "__main__":
     atol=1e-4,  # <-- Relaxed from 1e-6. 100uV noise floor is usually fine.
     pcoeff=0.2, # Low P-term helps stability on stiff jumps
     icoeff=0.5,
-    dcoeff=0.1,
+    dcoeff=0.0,
     force_dtmin=True,
-    dtmin=1e-14, # <-- Don't let it shrink smaller than 100 femtoseconds
+    #dtmin=2E-4/FREQ,
+    dtmin=1E-14,
     dtmax=1e-9,
     error_order=2
     )
@@ -150,14 +147,14 @@ if __name__ == "__main__":
     # Identify Output Node Index
     # It's the node connected to Rl,p1. Let's find it in the port map.
     node_out_idx = port_map["Rl,p1"]
-    node_in_idx  = port_map["Vin,p1"] # Or Rs,p1
+    node_in_idx  = port_map["Rs,p2"] # Line Input (After Source Resistor)
 
     ts = sol.ts * 1e9 # Convert to ns
     v_in = sol.ys[:, node_in_idx]
     v_out = sol.ys[:, node_out_idx]
 
     plt.figure(figsize=(10, 6))
-    plt.plot(ts, v_in, 'r--', alpha=0.6, label='Input (Step)')
+    plt.plot(ts, v_in, 'r--', alpha=0.6, label='Line Input (Rs,p2)')
     plt.plot(ts, v_out, 'b-', linewidth=1.5, label=f'Output (Stage {N_SECTIONS})')
     
     plt.title(f"LC Ladder Propagation Delay ({N_SECTIONS} Sections)")

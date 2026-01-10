@@ -44,11 +44,12 @@ def run_phys(component, v_dict, s_dict={}, t=0.0):
 def test_resistor():
     r = Resistor(R=10.0)
     v_dict = {'p1': 5.0, 'p2': 0.0}
-    f = run_phys(r, v_dict)
+    f, q = run_phys(r, v_dict)
     
     expected_i = (v_dict['p1'] - v_dict['p2']) / (r.R + 1e-12)
     assert jnp.isclose(f['p1'], expected_i)
     assert jnp.isclose(f['p2'], -expected_i)
+    assert not q
 
 def test_capacitor():
     c = Capacitor(C=1e-11)
@@ -67,13 +68,15 @@ def test_voltage_source_delay():
     s_dict = {'i_src': 0.0}
 
     # Before delay
-    f0 = run_phys(vs, v_dict, s_dict, t=0.0)
+    f0, q0 = run_phys(vs, v_dict, s_dict, t=0.0)
     assert jnp.isclose(f0['i_src'], 0.0) # Constraint should be (0-0) - 0 = 0
+    assert not q0
 
     # After delay
-    f1 = run_phys(vs, v_dict, s_dict, t=1.0)
+    f1, q1 = run_phys(vs, v_dict, s_dict, t=1.0)
     expected_constraint = (v_dict['p1'] - v_dict['p2']) - vs.V
     assert jnp.isclose(f1['i_src'], expected_constraint)
+    assert not q1
 
 def test_inductor():
     ind = Inductor(L=1e-9)
@@ -94,38 +97,42 @@ def test_inductor():
 def test_diode_forward_bias():
     d = Diode()
     v_dict = {'p1': 0.7, 'p2': 0.0}
-    f = run_phys(d, v_dict)
+    f, q = run_phys(d, v_dict)
     assert f['p1'] > 0.0
     assert jnp.isclose(f['p1'], -f['p2'])
+    assert not q
 
 def test_current_source():
     cs = CurrentSource(I=2.0)
     v_dict = {'p1': 0.0, 'p2': 0.0}
-    f = run_phys(cs, v_dict)
+    f, q = run_phys(cs, v_dict)
     assert jnp.isclose(f['p1'], cs.I)
     assert jnp.isclose(f['p2'], -cs.I)
+    assert not q
 
 def test_vcvs():
     vcvs = VCVS(A=10.0)
     v_dict = {'out_p': 1.0, 'out_m': 0.0, 'ctrl_p': 0.2, 'ctrl_m': 0.0}
     s_dict = {'i_src': 0.0}
-    f = run_phys(vcvs, v_dict, s_dict)
+    f, q = run_phys(vcvs, v_dict, s_dict)
     
     expected_constraint = (v_dict['out_p'] - v_dict['out_m']) - vcvs.A * (v_dict['ctrl_p'] - v_dict['ctrl_m'])
     assert jnp.isclose(f['i_src'], expected_constraint)
     assert f['ctrl_p'] == 0.0
     assert f['ctrl_m'] == 0.0
+    assert not q
 
 def test_ideal_opamp():
     opamp = IdealOpAmp(A=1e6)
     v_dict = {'out_p': 1.0, 'out_m': 0.0, 'in_p': 0.1, 'in_m': 0.0}
     s_dict = {'i_src': 0.0}
-    f = run_phys(opamp, v_dict, s_dict)
+    f, q = run_phys(opamp, v_dict, s_dict)
     
     expected_constraint = (v_dict['out_p'] - v_dict['out_m']) - opamp.A * (v_dict['in_p'] - v_dict['in_m'])
     assert jnp.isclose(f['i_src'], expected_constraint)
     assert f['in_p'] == 0.0
     assert f['in_m'] == 0.0
+    assert not q
 
 # --- Base Component Tests ---
 
@@ -170,6 +177,9 @@ def test_subclass_init_creates_namedtuples():
     class MyComp(CircuitComponent):
         ports = ("a", "b")
         states = ("s1",)
+
+        def physics(self, v, s, t):
+            return {}, {}
     
     assert MyComp._VarsType_P is not None
     assert MyComp._VarsType_S is not None

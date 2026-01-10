@@ -21,11 +21,10 @@ class CircuitComponent(eqx.Module):
         if cls.states:
             cls._VarsType_S = namedtuple("States", cls.states)
 
-    def physics(self, v, s, t) -> Union[Dict, Tuple[Dict, Dict]]:
+    def physics(self, v, s, t) -> Tuple[Dict, Dict]:
         """
         User implements this.
         Returns:
-            dict: Resistive currents only (f).
             (dict, dict): (Resistive f, Reactive q).
         """
         raise NotImplementedError
@@ -48,22 +47,15 @@ class CircuitComponent(eqx.Module):
 
         # 2. Call the Instance Method
         # We use 'instance' (the VoltageSource object) as 'self'
-        result = instance.physics(v, s, t)
+        f_dict, q_dict = instance.physics(v, s, t)
 
-        # 3. Normalize Result (Allow returning just a dict, or tuple)
-        if isinstance(result, tuple):
-            f_dict, q_dict = result
-        else:
-            f_dict, q_dict = result, {}
-
-        # 4. Flatten Dictionaries to Arrays
+        # 3. Flatten Dictionaries to Arrays
         full_keys = cls.ports + cls.states
         
-        def dict_to_arr(d):
-            if not d: return jnp.zeros(len(full_keys))
-            return jnp.array([d.get(k, 0.0) for k in full_keys])
+        if not full_keys:
+            return jnp.zeros(0), jnp.zeros(0)
 
-        f_vec = dict_to_arr(f_dict)
-        q_vec = dict_to_arr(q_dict)
+        f_vec = jnp.stack([f_dict.get(k, 0.0) for k in full_keys])
+        q_vec = jnp.stack([q_dict.get(k, 0.0) for k in full_keys])
 
         return f_vec, q_vec
