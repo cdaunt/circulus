@@ -20,7 +20,7 @@ if __name__ == "__main__":
     USE_SPARSE = N_SECTIONS >= 50     # Toggle this to switch between Dense or Sparse solver
     T_MAX = 3*N_SECTIONS*0.5e-9          # 500ns simulation
     FREQ = 5.0/T_MAX
-    R_SOURCE = 10.0   # Low impedance source (creates reflections)
+    R_SOURCE = 25.0   # Low impedance source (creates reflections)
     R_LOAD = 5000.0    # Open circuit load (doubles voltage)
     # ---------------------
 
