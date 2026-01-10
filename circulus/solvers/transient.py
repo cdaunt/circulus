@@ -1,9 +1,14 @@
 import jax
 import jax.numpy as jnp
+import jax.experimental.sparse as jsparse
 import equinox as eqx
 import diffrax
 import optimistix as optx
 from functools import partial
+import warnings
+import scipy.sparse
+import scipy.sparse.linalg
+import numpy as np
 
 # ==============================================================================
 # 1. ASSEMBLY KERNELS (PHYSICS)
@@ -94,7 +99,35 @@ def _compute_history(component_groups, y_c, t, num_vars):
     return total_q
 
 # ==============================================================================
-# 2. UNIFIED SOLVER KERNEL
+# 2. HOST CALLBACK FOR SCIPY (CPU Direct Solve)
+# ==============================================================================
+
+def _scipy_host_solve(data, rows, cols, rhs):
+    """
+    Host-side callback that uses Scipy's SuperLU solver.
+    This runs on CPU and automatically sums duplicate indices (COO -> CSC).
+    """
+    # JAX passes read-only arrays to callbacks. 
+    # Scipy needs mutable arrays for in-place sorting/summing of duplicates.
+    # We must explicitly copy them to mutable NumPy arrays.
+    data = np.array(data, copy=True)
+    rows = np.array(rows, copy=True)
+    cols = np.array(cols, copy=True)
+    rhs = np.array(rhs, copy=True)
+
+    sys_size = rhs.shape[0]
+    # Scipy COO matrix construction sums duplicates automatically
+    mat = scipy.sparse.coo_matrix((data, (rows, cols)), shape=(sys_size, sys_size))
+    
+    # Explicitly convert to CSR to sum duplicates and avoid SparseEfficiencyWarning
+    mat = mat.tocsr()
+    
+    # spsolve invokes SuperLU (or UMFPACK)
+    solution = scipy.sparse.linalg.spsolve(mat, rhs)
+    return solution.astype(rhs.dtype)
+
+# ==============================================================================
+# 3. UNIFIED SOLVER KERNEL
 # ==============================================================================
 
 @partial(jax.jit, static_argnames=['is_complex', 'mode'])
@@ -105,7 +138,6 @@ def _unified_newton_step(y_guess, args, is_complex=False, mode='dense'):
     # --- 1. Assemble System ---
     if is_complex:
         total_f, total_q, all_vals = _assemble_system_complex(y_guess, groups, t1, dt)
-        # FIX: q_prev is already flat real (2N) from _compute_history. Do not re-expand.
         q_prev_flat = q_prev 
         ground_indices = [0, sys_size // 2] # Real Ground, Imag Ground
     else:
@@ -120,24 +152,44 @@ def _unified_newton_step(y_guess, args, is_complex=False, mode='dense'):
     for idx in ground_indices:
         residual = residual.at[idx].add(1e9 * y_guess[idx])
 
-    # --- 3. Solve (Dense vs Sparse) ---
+    # --- 3. Solve Strategy ---
+    
     if mode == 'dense':
+        # Dense Solver (O(N^3) but robust for small N)
         J = jnp.zeros((sys_size, sys_size), dtype=residual.dtype)
         J = J.at[static_rows, static_cols].add(all_vals)
-        
-        # Ground Stiffness (Derivative)
         for idx in ground_indices:
             J = J.at[idx, idx].add(1e9)
-            
         delta = jnp.linalg.solve(J, -residual)
+    
+    elif mode == 'scipy':
+        # Scipy Direct Solver (CPU Callback)
+        # Replaces KLU. Uses SuperLU via pure_callback.
+        # Robust, handles duplicates, no extra JAX plugins needed.
         
-    else: # Sparse
+        # 1. Append Ground Stiffness
+        g_rows = jnp.array(ground_indices, dtype=static_rows.dtype)
+        g_cols = jnp.array(ground_indices, dtype=static_cols.dtype)
+        g_vals = jnp.full(len(ground_indices), 1e9, dtype=all_vals.dtype)
+        
+        rows_raw = jnp.concatenate([static_rows, g_rows])
+        cols_raw = jnp.concatenate([static_cols, g_cols])
+        vals_raw = jnp.concatenate([all_vals, g_vals])
+
+        # 2. Call Scipy on Host
+        # We pass raw arrays (with duplicates). Scipy handles summation on CPU.
+        # pure_callback ensures this works inside JIT.
+        delta = jax.pure_callback(
+            _scipy_host_solve,
+            residual, # Result shape/dtype example
+            vals_raw, rows_raw, cols_raw, -residual
+        )
+
+    else: # 'sparse' (Iterative BiCGSTAB)
         # Preconditioner
         diag_vals = jax.ops.segment_sum(all_vals * diag_mask, static_rows, num_segments=sys_size)
         for idx in ground_indices:
             diag_vals = diag_vals.at[idx].add(1e9)
-        
-        # Guard against zero diagonal
         inv_diag = jnp.where(jnp.abs(diag_vals) < 1e-12, 1.0, 1.0 / diag_vals)
 
         # Linear Operator
@@ -149,8 +201,6 @@ def _unified_newton_step(y_guess, args, is_complex=False, mode='dense'):
             return Ax
 
         delta_guess = -residual * inv_diag
-        
-        # TUNING: Increased limits for steady-state robustness
         delta, _ = jax.scipy.sparse.linalg.bicgstab(
             matvec, -residual, x0=delta_guess, 
             M=lambda x: inv_diag * x, tol=1e-6, maxiter=1000
@@ -158,15 +208,15 @@ def _unified_newton_step(y_guess, args, is_complex=False, mode='dense'):
 
     # --- 4. Damping ---
     max_change = jnp.max(jnp.abs(delta))
-    # Heuristic: Stricter damping for sparse/complex to prevent oscillation
-    safe_factor = 2.0 if mode == 'sparse' else 1.0 
-    damping = jnp.minimum(1.0, safe_factor / (max_change + 1e-9))
+    # Heuristic: Limit update to ~200mV per iteration for stability.
+    voltage_limit = 0.2
+    damping = jnp.minimum(1.0, voltage_limit / (max_change + 1e-9))
     
     return y_guess + (delta * damping)
 
 
 # ==============================================================================
-# 3. SOLVER CLASS
+# 4. SOLVER CLASS
 # ==============================================================================
 
 class TransientSolverState(eqx.Module):
@@ -177,7 +227,7 @@ class TransientSolverState(eqx.Module):
     is_complex_mode: bool = eqx.field(static=True)
 
 class VectorizedTransientSolver(diffrax.AbstractSolver):
-    mode: str = eqx.field(static=True)
+    mode: str = eqx.field(static=True) # 'dense', 'sparse', 'scipy'
     term_structure = diffrax.AbstractTerm
     interpolation_cls = diffrax.LocalLinearInterpolation
 
@@ -185,7 +235,7 @@ class VectorizedTransientSolver(diffrax.AbstractSolver):
 
     def init(self, terms, t0, t1, y0, args):
         component_groups, num_vars = args
-
+        
         # --- 1. Index Pre-calculation ---
         all_rows, all_cols = [], []
         for k in sorted(component_groups.keys()):
@@ -197,25 +247,22 @@ class VectorizedTransientSolver(diffrax.AbstractSolver):
         base_cols = jnp.concatenate(all_cols)
 
         # --- 2. Detect Complexity ---
-        # If y0 is size 2N, we assume it's an unrolled complex state
         is_complex = jnp.iscomplexobj(y0) or (y0.shape[0] == 2 * num_vars)
-        if not is_complex: # Double check params
+        if not is_complex: 
             for g in component_groups.values():
                 if any(jnp.iscomplexobj(p) for p in jax.tree.leaves(g.params)):
                     is_complex = True; break
 
-        # --- 3. Build Block Indices ---
+        # --- 3. Build Indices ---
         if is_complex:
             r, c = base_rows, base_cols
             N = num_vars
-            # RR, RI, IR, II Blocks. NO Ground indices here (handled in step)
             static_rows = jnp.concatenate([r, r, r+N, r+N])
             static_cols = jnp.concatenate([c, c+N, c, c+N])
         else:
             static_rows, static_cols = base_rows, base_cols
 
         # --- 4. History Setup ---
-        # Normalize y0 to flat real
         if jnp.iscomplexobj(y0):
             y0_flat = jnp.concatenate([y0.real, y0.imag])
         elif is_complex and y0.shape[0] == num_vars:
@@ -234,45 +281,38 @@ class VectorizedTransientSolver(diffrax.AbstractSolver):
         y_prev_step, dt_prev = solver_state.history
         is_complex = solver_state.is_complex_mode
 
-        # 1. Normalize State (Complex -> Flat Real)
+        # 1. Normalize State
         y0_flat = y0
         if jnp.iscomplexobj(y0): 
             y0_flat = jnp.concatenate([y0.real, y0.imag])
 
-        # 2. Physics Prep (Flat Real -> Complex View)
+        # 2. Physics Prep
         y_c = y0_flat
         if is_complex:
             y_c = y0_flat[:num_vars] + 1j * y0_flat[num_vars:]
 
         # 3. Predictor & History
-        # Linear prediction for better initial guess: y_pred = y0 + y' * dt
-        # Guard dt_prev to prevent division instability
         rate = (y0_flat - y_prev_step) / (dt_prev + 1e-30)
         y_pred = y0_flat + rate * dt
         
         q_prev = _compute_history(component_groups, y_c, t0, num_vars)
 
-        # 4. Newton Solve (Unified)
+        # 4. Newton Solve
         step_args = (component_groups, t1, dt, q_prev, solver_state.static_rows, 
                      solver_state.static_cols, solver_state.diag_mask, num_vars)
         
-        # Bind static args for JIT compilation
         solver_fn = partial(_unified_newton_step, is_complex=is_complex, mode=self.mode)
 
-        # TUNING: Increased limits for large steps
-        solver = optx.FixedPointIteration(rtol=1e-6, atol=1e-6)
-        # Start Newton from Predictor
-        sol = optx.fixed_point(solver_fn, solver, y_pred, args=step_args, max_steps=100, throw=False)
+        # TUNING: Increased iterations to accommodate slower (safer) damping
+        # Relaxed tolerance slightly to prevent fighting numerical noise
+        solver = optx.FixedPointIteration(rtol=1e-5, atol=1e-5)
+        sol = optx.fixed_point(solver_fn, solver, y_pred, args=step_args, max_steps=200, throw=False)
 
         # 5. Result
-        y_next = sol.value # Already Flat Real
-        
-        # Error Estimate: Difference between Implicit Solution and Explicit Predictor
-        # Approximates local truncation error O(dt^2) for Order 1 methods.
-        y_error = y_next - y_pred
+        y_next = sol.value
+        y_error = y_next - y_pred # Truncation Error
 
-        # Update history with the state at the START of the step (y0_flat)
-        # This enables the next step to calculate the slope (y_next - y0_flat)
+        # Update history with START of step state
         new_state = eqx.tree_at(lambda s: s.history, solver_state, (y0_flat, dt))
         
         result = jax.lax.cond(
