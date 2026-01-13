@@ -5,7 +5,7 @@ import diffrax
 from circulus.components import Resistor, Capacitor, Inductor, VoltageSource
 from circulus.compiler import compile_netlist, build_net_map
 from circulus.solvers.transient import VectorizedTransientSolver
-from circulus.solvers.dc import solve_dc_op_dense
+from circulus.solvers.strategies import DenseSolver
 from circulus.netlist import draw_circuit_graph
 
 import matplotlib.pyplot as plt
@@ -58,14 +58,18 @@ if __name__ == "__main__":
         print(f"  Jacobian Rows Length: {len(g.jac_rows)}")
 
         # Simulation Config
-    y0 = jnp.zeros(sys_size)
 
     print("2. Solving DC Operating Point...")
     # This solves the system at t=0 assuming capacitors are open
-    y_op = solve_dc_op_dense(groups, sys_size, t0=0.0)
     #print(f"   OP Solution: {y_op}")
+    linear_strat = DenseSolver.from_circuit(groups, sys_size, is_complex=False)
+
+
+    y_guess = jnp.zeros(sys_size)
+    y_op = linear_strat.solve_dc(groups, sys_size, y_guess)
+    #print(f"   DC Solution (First 5): {y_dc[:5]}")
     
-    solver = VectorizedTransientSolver(mode='dense')
+    solver = VectorizedTransientSolver(linear_solver=linear_strat)
     term = diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y))
     
     saveat = diffrax.SaveAt(ts=jnp.linspace(0, t_max, 500))
