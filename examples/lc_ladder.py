@@ -5,7 +5,7 @@ import time
 
 from circulus.compiler import compile_netlist
 from circulus.solvers.transient import VectorizedTransientSolver
-from circulus.solvers.dc import solve_operating_point
+from circulus.solvers.strategies import KLUSolver, DenseSolver
 from circulus.netlist import draw_circuit_graph
 from circulus.components import Resistor, Capacitor, Inductor, SmoothPulse, VoltageSourceAC
 
@@ -20,8 +20,8 @@ if __name__ == "__main__":
     USE_SPARSE = N_SECTIONS >= 50     # Toggle this to switch between Dense or Sparse solver
     T_MAX = 3*N_SECTIONS*0.5e-9          # 500ns simulation
     FREQ = 5.0/T_MAX
-    R_SOURCE = 25.0   # Low impedance source (creates reflections)
-    R_LOAD = 5000.0    # Open circuit load (doubles voltage)
+    R_SOURCE = 50.0   # Low impedance source (creates reflections)
+    R_LOAD = 50.0    # Open circuit load (doubles voltage)
     # ---------------------
 
     # Map your models (ensure they are imported)
@@ -100,11 +100,16 @@ if __name__ == "__main__":
     print(f"System Matrix Size: {sys_size}x{sys_size} ({sys_size**2} elements)")
 
     # --- 2. Select Solver ---
-    mode = "sparse" if USE_SPARSE else "dense"
-    solver_cls = VectorizedTransientSolver(mode=mode)
-    # --- 3. DC Operating Point (Initial Condition) ---
+    if USE_SPARSE:
+        linear_strat = KLUSolver.from_circuit(groups, sys_size, is_complex=False)
+    else:
+        linear_strat = DenseSolver.from_circuit(groups, sys_size, is_complex=False)
+
+
     print("Solving DC Operating Point...")
-    y0 = solve_operating_point(groups, sys_size, mode=mode)
+    y0 = linear_strat.solve_dc(groups, sys_size, jnp.zeros(sys_size))  
+
+    solver_cls = VectorizedTransientSolver(linear_solver=linear_strat)
 
     # --- 4. Transient Simulation ---
     print("Running Transient Simulation...")
@@ -137,37 +142,42 @@ if __name__ == "__main__":
         saveat=diffrax.SaveAt(ts=jnp.linspace(0, T_MAX, 200)),
         progress_meter=diffrax.TqdmProgressMeter(refresh_steps=100) 
     )
-    t_end_sim = time.time()
-    print(f"Simulation completed in {t_end_sim - t0_sim:.4f}s")
-    print(f"Total Steps: {sol.stats['num_steps']}")
 
-    # --- 5. Visualization ---
-    # We want to compare Input vs Output (Last Node)
-    
-    # Identify Output Node Index
-    # It's the node connected to Rl,p1. Let's find it in the port map.
-    node_out_idx = port_map["Rl,p1"]
-    node_in_idx  = port_map["Rs,p2"] # Line Input (After Source Resistor)
+    if sol.result == diffrax.RESULTS.successful:
+        print("   ✅ Simulation Successful")
 
-    ts = sol.ts * 1e9 # Convert to ns
-    v_in = sol.ys[:, node_in_idx]
-    v_out = sol.ys[:, node_out_idx]
+        t_end_sim = time.time()
+        print(f"Simulation completed in {t_end_sim - t0_sim:.4f}s")
+        print(f"Total Steps: {sol.stats['num_steps']}")
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(ts, v_in, 'r--', alpha=0.6, label='Line Input (Rs,p2)')
-    plt.plot(ts, v_out, 'b-', linewidth=1.5, label=f'Output (Stage {N_SECTIONS})')
-    
-    plt.title(f"LC Ladder Propagation Delay ({N_SECTIONS} Sections)")
-    plt.xlabel("Time (ns)")
-    plt.ylabel("Voltage (V)")
-    plt.legend(loc='upper left')
-    plt.grid(True)
-    
-    # Theoretical Delay Marker
-    # Delay = N * sqrt(L*C)
-    # L=10nH, C=4pF -> sqrt(LC) approx 200ps = 0.2ns
-    theory_delay = N_SECTIONS * jnp.sqrt(10e-9 * 4e-12) * 1e9
-    plt.axvline(theory_delay + 1.0, color='green', linestyle=':', label='Theoretical Arrival')
-    plt.legend()
-    
-    plt.show()
+
+        # Identify Output Node Index
+        # It's the node connected to Rl,p1. Let's find it in the port map.
+        node_out_idx = port_map["Rl,p1"]
+        node_in_idx  = port_map["Rs,p2"] # Line Input (After Source Resistor)
+
+        ts = sol.ts * 1e9 # Convert to ns
+        v_in = sol.ys[:, node_in_idx]
+        v_out = sol.ys[:, node_out_idx]
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(ts, v_in, 'r--', alpha=0.6, label='Line Input (Rs,p2)')
+        plt.plot(ts, v_out, 'b-', linewidth=1.5, label=f'Output (Stage {N_SECTIONS})')
+        
+        plt.title(f"LC Ladder Propagation Delay ({N_SECTIONS} Sections)")
+        plt.xlabel("Time (ns)")
+        plt.ylabel("Voltage (V)")
+        plt.legend(loc='upper left')
+        plt.grid(True)
+        
+        # Theoretical Delay Marker
+        # Delay = N * sqrt(L*C)
+        # L=10nH, C=4pF -> sqrt(LC) approx 200ps = 0.2ns
+        theory_delay = N_SECTIONS * jnp.sqrt(10e-9 * 4e-12) * 1e9
+        plt.axvline(theory_delay + 1.0, color='green', linestyle=':', label='Theoretical Arrival')
+        plt.legend()
+        
+        plt.show()
+    else:
+        print("   ❌ Simulation Failed")
+        print(f"   Result Code: {sol.result}")
