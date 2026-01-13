@@ -79,108 +79,109 @@ def _assemble_system_complex(y_guess, component_groups, t1, dt):
     all_vals = jnp.concatenate([jnp.concatenate(b) for b in vals_blocks])
     return total_f, total_q, all_vals
 
-import jax
-import jax.numpy as jnp
-import numpy as np
-import equinox as eqx
-import lineax as lx
-import optimistix as optx
-from abc import abstractmethod
+
 
 # ==============================================================================
-# 1. ABSTRACT BASE CLASS
+# 1. ABSTRACT BASE CLASS (With Complex Support)
 # ==============================================================================
 
 class CircuitLinearSolver(lx.AbstractLinearSolver):
     """
     Base class for circuit linear solvers.
+    Includes stabilized DC operating point logic for Real AND Complex systems.
     """
     ground_indices: jax.Array
+    # g_leak is defined in subclasses to satisfy dataclass rules
 
-    def init(self, operator, options):
-        return None
-
-    def compute(self, state, vector, options):
-        # Dispatch to specific implementation
-        # operator = Jacobian values (1D array 'all_vals')
-        # vector = Residual (1D array 'rhs')
-        return self._solve_impl(state.operator, vector)
-
-    def transpose(self, state, options):
-        raise NotImplementedError
-    
-    def conj(self, state, options):
-        # We generally deal with real or complex symmetric-ish systems manually.
-        # Returning self is usually sufficient for custom solvers that don't support conjugate transpose.
-        return self
-
-    def allow_dependent_columns(self, operator):
-        # Circuit matrices (MNA) should be full rank if grounded correctly.
-        return False
-
-    def allow_dependent_rows(self, operator):
-        return False
+    # --- Lineax Interface ---
+    def init(self, operator, options): return None
+    def compute(self, state, vector, options): raise NotImplementedError
+    def transpose(self, state, options): raise NotImplementedError
+    def conj(self, state, options): return self
+    def allow_dependent_columns(self, operator): return False
+    def allow_dependent_rows(self, operator): return False
 
     def _solve_impl(self, all_vals, residual):
+        """Internal solver logic. Returns lx.Solution."""
         raise NotImplementedError
 
     def solve_dc(self, component_groups, num_vars, y_guess):
-            """
-            Helper: Performs a DC Operating Point analysis (dt=infinity).
-            """
+        """
+        Helper: Performs a DC Operating Point analysis (dt=infinity).
+        Automatically detects if system is Real (N) or Complex Unrolled (2N).
+        """
 
-            def dc_step(y, _):
-                # 1. Assemble (dt=infinity)
+        # Detect Mode based on guess shape
+        sys_size = y_guess.shape[0]
+        is_complex_unrolled = (sys_size == 2 * num_vars)
+
+        def dc_step(y, _):
+            # 1. Assemble System (dt=infinity to kill capacitor current)
+            #    Note: We pass dt=1e18 (very large) instead of inf to avoid NaNs in some divisions
+            if is_complex_unrolled:
+                total_f, _, all_vals = _assemble_system_complex(y, component_groups, t1=0.0, dt=1e18)
+            else:
                 total_f, _, all_vals = _assemble_system_real(y, component_groups, t1=0.0, dt=1e18)
-                
-                # 2. Apply ground constraints
-                for idx in self.ground_indices:
-                    total_f = total_f.at[idx].add(1e9 * y[idx])
-                
-                # 3. Solve Linear System
-                # FIX: Call internal implementation directly
-                sol = self._solve_impl(all_vals, -total_f)
-                
-                return y + sol.value
+            
+            # 2. Apply Ground Constraints to Residual
+            #    Ground indices were pre-calculated in 'from_circuit' 
+            #    to match the mode (Real: [0], Complex: [0, N])
+            total_f_grounded = total_f
+            for idx in self.ground_indices:
+                total_f_grounded = total_f_grounded.at[idx].add(1e9 * y[idx])
+            
+            # 3. Solve Linear System (J * delta = -Residual)
+            sol = self._solve_impl(all_vals, -total_f_grounded)
+            delta = sol.value
 
-            # 4. Run Newton Loop
-            solver = optx.FixedPointIteration(rtol=1e-6, atol=1e-6)
-            sol = optx.fixed_point(dc_step, solver, y_guess, max_steps=50, throw=False)
-            return sol.value
+            # 4. Apply Voltage Limiting (Damping)
+            max_change = jnp.max(jnp.abs(delta))
+            # Access g_leak from self (Subclass provides it)
+            damping = jnp.minimum(1.0, 0.5 / (max_change + 1e-9))
+            
+            return y + delta * damping
+
+        # 5. Run Newton Loop
+        solver = optx.FixedPointIteration(rtol=1e-6, atol=1e-6)
+        sol = optx.fixed_point(dc_step, solver, y_guess, max_steps=100, throw=False)
+        return sol.value
 
 # ==============================================================================
-# 2. DENSE SOLVER (O(N^3))
+# 2. DENSE SOLVER
 # ==============================================================================
 
 class DenseSolver(CircuitLinearSolver):
     static_rows: jax.Array
     static_cols: jax.Array
     sys_size: int = eqx.field(static=True)
+    
+    # Defined here to allow default value in subclass
+    g_leak: float = 1e-9
 
     def _solve_impl(self, all_vals, residual):
-        # 1. Build Dense Matrix
+        # 1. Build Matrix
         J = jnp.zeros((self.sys_size, self.sys_size), dtype=residual.dtype)
         J = J.at[self.static_rows, self.static_cols].add(all_vals)
         
-        # 2. Apply Ground Constraints
+        # 2. Add Leakage (Regularization)
+        diag_idx = jnp.arange(self.sys_size)
+        J = J.at[diag_idx, diag_idx].add(self.g_leak)
+        
+        # 3. Apply Ground Constraints
         for idx in self.ground_indices:
             J = J.at[idx, idx].add(1e9)
             
-        # 3. Solve
         x = jnp.linalg.solve(J, residual)
-        
-        # FIX: Added 'stats={}' which is required by Lineax
         return lx.Solution(value=x, result=lx.RESULTS.successful, state=None, stats={})
 
     @classmethod
     def from_circuit(cls, component_groups, num_vars, is_complex=False):
-        """Factory: Builds indices on CPU."""
         all_rows, all_cols = [], []
         for k in sorted(component_groups.keys()):
             g = component_groups[k]
             all_rows.append(np.array(g.jac_rows).reshape(-1))
             all_cols.append(np.array(g.jac_cols).reshape(-1))
-            
+        
         static_rows = np.concatenate(all_rows)
         static_cols = np.concatenate(all_cols)
         
@@ -191,6 +192,7 @@ class DenseSolver(CircuitLinearSolver):
             sys_size = num_vars * 2
             r, c = static_rows, static_cols
             N = num_vars
+            # Block structure matches _assemble_system_complex output: [RR, RI, IR, II]
             static_rows = np.concatenate([r, r, r+N, r+N])
             static_cols = np.concatenate([c, c+N, c, c+N])
             ground_idxs = np.array([0, num_vars], dtype=np.int32)
@@ -201,32 +203,39 @@ class DenseSolver(CircuitLinearSolver):
             sys_size=sys_size,
             ground_indices=jnp.array(ground_idxs)
         )
-    
+
+# ==============================================================================
+# 3. KLU SOLVER
+# ==============================================================================
+
 class KLUSolver(CircuitLinearSolver):
     u_rows: jax.Array
     u_cols: jax.Array
     map_idx: jax.Array
     n_unique: int = eqx.field(static=True)
+    sys_size: int = eqx.field(static=True)
+    
+    g_leak: float = 1e-9
 
     def _solve_impl(self, all_vals, residual):
         # 1. Build Raw Values
         g_vals = jnp.full(self.ground_indices.shape[0], 1e9, dtype=all_vals.dtype)
-        raw_vals = jnp.concatenate([all_vals, g_vals])
+        l_vals = jnp.full(self.sys_size, self.g_leak, dtype=all_vals.dtype) 
+        
+        # Concatenate: [Circuit, Ground, Leakage]
+        raw_vals = jnp.concatenate([all_vals, g_vals, l_vals])
 
         # 2. Coalesce
         coalesced_vals = jax.ops.segment_sum(
             raw_vals, self.map_idx, num_segments=self.n_unique
         )
 
-        # 3. Solve via KLU
+        # 3. Solve
         solution = klujax.solve(self.u_rows, self.u_cols, coalesced_vals, residual)
-        
-        # FIX: Added 'stats={}'
         return lx.Solution(value=solution, result=lx.RESULTS.successful, state=None, stats={})
 
     @classmethod
     def from_circuit(cls, component_groups, num_vars, is_complex=False):
-        #if not _KLU_AVAILABLE: raise ImportError("klujax not installed.")
         
         all_rows, all_cols = [], []
         for k in sorted(component_groups.keys()):
@@ -248,8 +257,12 @@ class KLUSolver(CircuitLinearSolver):
             static_cols = np.concatenate([c, c+N, c, c+N])
             ground_idxs = np.array([0, num_vars], dtype=np.int32)
 
-        full_rows = np.concatenate([static_rows, ground_idxs])
-        full_cols = np.concatenate([static_cols, ground_idxs])
+        # Create Leakage Indices (Full Diagonal)
+        leak_rows = np.arange(sys_size, dtype=np.int32)
+        leak_cols = np.arange(sys_size, dtype=np.int32)
+
+        full_rows = np.concatenate([static_rows, ground_idxs, leak_rows])
+        full_cols = np.concatenate([static_cols, ground_idxs, leak_cols])
         
         rc_hashes = full_rows.astype(np.int64) * sys_size + full_cols.astype(np.int64)
         unique_hashes, map_indices = np.unique(rc_hashes, return_inverse=True)
@@ -263,122 +276,28 @@ class KLUSolver(CircuitLinearSolver):
             u_cols=jnp.array(u_cols),
             map_idx=jnp.array(map_indices),
             n_unique=n_unique,
-            ground_indices=jnp.array(ground_idxs)
+            ground_indices=jnp.array(ground_idxs),
+            sys_size=sys_size 
         )
+
+# ==============================================================================
+# 4. SPARSE SOLVER (JAX BiCGStab Wrapper)
+# ==============================================================================
 
 class SparseSolver(CircuitLinearSolver):
-    """
-    Iterative solver using BiCGSTAB with Jacobi (Diagonal) Preconditioning.
-    Memory efficient O(N), but convergence depends on matrix conditioning.
-    """
-    static_rows: jax.Array
-    static_cols: jax.Array
-    diag_mask: jax.Array  # Boolean mask where rows == cols
-    sys_size: int = eqx.field(static=True)
-    g_leak: float = 1e-12 # Small leakage for stability
-
-    def _solve_impl(self, all_vals, residual):
-        # 1. Build Preconditioner (Diagonal Approximation)
-        #    Sum all values that land on the diagonal
-        diag_vals = jax.ops.segment_sum(
-            all_vals * self.diag_mask, self.static_rows, num_segments=self.sys_size
-        )
-        
-        #    Add leakage and Ground Stiffness to diagonal
-        diag_vals = diag_vals + self.g_leak
-        for idx in self.ground_indices:
-            diag_vals = diag_vals.at[idx].add(1e9)
-            
-        #    Invert diagonal (Safe division)
-        inv_diag = jnp.where(jnp.abs(diag_vals) < 1e-12, 1.0, 1.0 / diag_vals)
-        
-        # 2. Define Linear Operator A * x
-        def matvec(x):
-            # Gather x values to match sparse format
-            x_gathered = x[self.static_cols]
-            products = all_vals * x_gathered
-            
-            # Sum products back into rows (Ax)
-            Ax = jax.ops.segment_sum(products, self.static_rows, num_segments=self.sys_size)
-            
-            # Add Ground Constraints and Leakage to result
-            Ax = Ax + (x * self.g_leak)
-            for idx in self.ground_indices:
-                Ax = Ax.at[idx].add(1e9 * x[idx])
-                
-            return Ax
-
-        # 3. Solve using JAX BiCGSTAB
-        #    Initial guess using the preconditioner
-        delta_guess = residual * inv_diag
-        
-        x, _ = jax.scipy.sparse.linalg.bicgstab(
-            matvec, 
-            residual, # Note: Lineax/Optx usually passes -residual, check sign in caller!
-                      # If caller passes -residual (RHS), then x solves Ax = -R. Correct.
-            x0=delta_guess,
-            M=lambda v: inv_diag * v, # Jacobi Preconditioner
-            tol=1e-5, 
-            maxiter=200
-        )
-        
-        # Return as Lineax Solution
-        return lx.Solution(value=x, result=lx.RESULTS.successful, state=None, stats={})
-
-    @classmethod
-    def from_circuit(cls, component_groups, num_vars, is_complex=False):
-        """Factory: Builds indices and diagonal mask on CPU."""
-        # 1. Extract Indices
-        all_rows, all_cols = [], []
-        for k in sorted(component_groups.keys()):
-            g = component_groups[k]
-            all_rows.append(np.array(g.jac_rows).reshape(-1))
-            all_cols.append(np.array(g.jac_cols).reshape(-1))
-            
-        static_rows = np.concatenate(all_rows)
-        static_cols = np.concatenate(all_cols)
-        
-        # 2. Handle Complexity
-        sys_size = num_vars
-        ground_idxs = np.array([0], dtype=np.int32)
-
-        if is_complex:
-            sys_size = num_vars * 2
-            r, c = static_rows, static_cols
-            N = num_vars
-            static_rows = np.concatenate([r, r, r+N, r+N])
-            static_cols = np.concatenate([c, c+N, c, c+N])
-            ground_idxs = np.array([0, num_vars], dtype=np.int32)
-
-        # 3. Create Diagonal Mask (Where row == col)
-        #    This is static, so we calculate it once here.
-        diag_mask = (static_rows == static_cols)
-
-        return cls(
-            static_rows=jnp.array(static_rows),
-            static_cols=jnp.array(static_cols),
-            diag_mask=jnp.array(diag_mask),
-            sys_size=sys_size,
-            ground_indices=jnp.array(ground_idxs)
-        )
-
-class GMRESSolver(CircuitLinearSolver):
-    """
-    Wrapper around jax.scipy.sparse.linalg.gmres.
-    """
     static_rows: jax.Array
     static_cols: jax.Array
     diag_mask: jax.Array
     sys_size: int = eqx.field(static=True)
-    g_leak: float = 1e-12
-    # Increased restart to 200 to capture more history for stiff DC solves
-    restart: int = eqx.field(static=True, default=200) 
+    
+    g_leak: float = 1e-9
 
     def _solve_impl(self, all_vals, residual):
-        # 1. Build Indefinite Preconditioner
+        # 1. Build Preconditioner
         diag_vals = jax.ops.segment_sum(
             all_vals * self.diag_mask, self.static_rows, num_segments=self.sys_size
         )
+        
         diag_vals = diag_vals + self.g_leak
         for idx in self.ground_indices:
             diag_vals = diag_vals.at[idx].add(1e9)
@@ -390,37 +309,29 @@ class GMRESSolver(CircuitLinearSolver):
             x_gathered = x[self.static_cols]
             products = all_vals * x_gathered
             Ax = jax.ops.segment_sum(products, self.static_rows, num_segments=self.sys_size)
+            
             Ax = Ax + (x * self.g_leak)
             for idx in self.ground_indices:
                 Ax = Ax.at[idx].add(1e9 * x[idx])
             return Ax
 
-        # 3. JAX GMRES
+        # 3. Solve
         delta_guess = residual * inv_diag
         
-        x, info = jax.scipy.sparse.linalg.gmres(
+        x, _ = jax.scipy.sparse.linalg.bicgstab(
             matvec, 
-            residual, 
+            residual,
             x0=delta_guess,
             M=lambda v: inv_diag * v,
-            tol=1e-8,       # Tighter tolerance for DC
-            restart=self.restart,
-            maxiter=1000    # Allow many iterations for stiff DC
+            tol=1e-5, 
+            maxiter=200
         )
         
-        # 4. Result Mapping (FIXED)
-        #    Map JAX error (info > 0) to Lineax 'singular' failure
-        result = jax.lax.cond(
-            info == 0,
-            lambda: lx.RESULTS.successful,
-            lambda: lx.RESULTS.singular  # <--- FIXED: Valid Lineax code
-        )
-        
-        return lx.Solution(value=x, result=result, state=None, stats={})
+        return lx.Solution(value=x, result=lx.RESULTS.successful, state=None, stats={})
 
     @classmethod
-    def from_circuit(cls, component_groups, num_vars, is_complex=False, restart=200):
-        # ... (Indices extraction logic same as before) ...
+    def from_circuit(cls, component_groups, num_vars, is_complex=False):
+        # [Same setup logic]
         all_rows, all_cols = [], []
         for k in sorted(component_groups.keys()):
             g = component_groups[k]
@@ -448,6 +359,95 @@ class GMRESSolver(CircuitLinearSolver):
             static_cols=jnp.array(static_cols),
             diag_mask=jnp.array(diag_mask),
             sys_size=sys_size,
-            ground_indices=jnp.array(ground_idxs),
-            restart=restart
+            ground_indices=jnp.array(ground_idxs)
         )
+
+# class GMRESSolver(CircuitLinearSolver):
+#     """
+#     Wrapper around jax.scipy.sparse.linalg.gmres.
+#     """
+#     static_rows: jax.Array
+#     static_cols: jax.Array
+#     diag_mask: jax.Array
+#     sys_size: int = eqx.field(static=True)
+#     g_leak: float = 1e-12
+#     # Increased restart to 200 to capture more history for stiff DC solves
+#     restart: int = eqx.field(static=True, default=200) 
+
+#     def _solve_impl(self, all_vals, residual):
+#         # 1. Build Indefinite Preconditioner
+#         diag_vals = jax.ops.segment_sum(
+#             all_vals * self.diag_mask, self.static_rows, num_segments=self.sys_size
+#         )
+#         diag_vals = diag_vals + self.g_leak
+#         for idx in self.ground_indices:
+#             diag_vals = diag_vals.at[idx].add(1e9)
+            
+#         inv_diag = jnp.where(jnp.abs(diag_vals) < 1e-12, 1.0, 1.0 / diag_vals)
+        
+#         # 2. Operator
+#         def matvec(x):
+#             x_gathered = x[self.static_cols]
+#             products = all_vals * x_gathered
+#             Ax = jax.ops.segment_sum(products, self.static_rows, num_segments=self.sys_size)
+#             Ax = Ax + (x * self.g_leak)
+#             for idx in self.ground_indices:
+#                 Ax = Ax.at[idx].add(1e9 * x[idx])
+#             return Ax
+
+#         # 3. JAX GMRES
+#         delta_guess = residual * inv_diag
+        
+#         x, info = jax.scipy.sparse.linalg.gmres(
+#             matvec, 
+#             residual, 
+#             x0=delta_guess,
+#             M=lambda v: inv_diag * v,
+#             tol=1e-8,       # Tighter tolerance for DC
+#             restart=self.restart,
+#             maxiter=1000    # Allow many iterations for stiff DC
+#         )
+        
+#         # 4. Result Mapping (FIXED)
+#         #    Map JAX error (info > 0) to Lineax 'singular' failure
+#         result = jax.lax.cond(
+#             info == 0,
+#             lambda: lx.RESULTS.successful,
+#             lambda: lx.RESULTS.singular  # <--- FIXED: Valid Lineax code
+#         )
+        
+#         return lx.Solution(value=x, result=result, state=None, stats={})
+
+#     @classmethod
+#     def from_circuit(cls, component_groups, num_vars, is_complex=False, restart=200):
+#         # ... (Indices extraction logic same as before) ...
+#         all_rows, all_cols = [], []
+#         for k in sorted(component_groups.keys()):
+#             g = component_groups[k]
+#             all_rows.append(np.array(g.jac_rows).reshape(-1))
+#             all_cols.append(np.array(g.jac_cols).reshape(-1))
+            
+#         static_rows = np.concatenate(all_rows)
+#         static_cols = np.concatenate(all_cols)
+        
+#         sys_size = num_vars
+#         ground_idxs = np.array([0], dtype=np.int32)
+
+#         if is_complex:
+#             sys_size = num_vars * 2
+#             r, c = static_rows, static_cols
+#             N = num_vars
+#             static_rows = np.concatenate([r, r, r+N, r+N])
+#             static_cols = np.concatenate([c, c+N, c, c+N])
+#             ground_idxs = np.array([0, num_vars], dtype=np.int32)
+
+#         diag_mask = (static_rows == static_cols)
+
+#         return cls(
+#             static_rows=jnp.array(static_rows),
+#             static_cols=jnp.array(static_cols),
+#             diag_mask=jnp.array(diag_mask),
+#             sys_size=sys_size,
+#             ground_indices=jnp.array(ground_idxs),
+#             restart=restart
+#         )
