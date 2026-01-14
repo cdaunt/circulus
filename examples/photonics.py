@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 
 from circulus.compiler import compile_netlist
-from circulus.solvers.dc import solve_operating_point
+from circulus.solvers.strategies import KLUSolver
 from circulus.utils import update_group_params
 import matplotlib.pyplot as plt
 import time
@@ -57,19 +57,26 @@ if __name__ == "__main__":
     groups, sys_size, port_map = compile_netlist(net_dict, models_map)
     
     # --- Sweep Wavelength ---
-    wavelengths = jnp.linspace(1260, 1360, 200)
+    wavelengths = jnp.linspace(1260, 1360, 100)
+
+    solver_strat = KLUSolver.from_circuit(groups, sys_size, is_complex=True)
     
     print("Sweeping Wavelength...")
     @jax.jit
     def solve_for_loss(val):
-        g = groups
         # Update Gratings
-        g = update_group_params(g, 'grating', 'wavelength_nm', val)
+        g = update_group_params(groups, 'grating', 'wavelength_nm', val)
         # Update Waveguides
         g = update_group_params(g, 'waveguide', 'wavelength_nm', val)
         
-        return solve_operating_point(g, sys_size,  mode = 'dense', dtype=jnp.complex128)
+        # Returns flat vector [Real_0..N, Imag_0..N]
+        y_flat = solver_strat.solve_dc(g, y_guess=jnp.ones(sys_size*2))
+        
+        # Reconstruct Complex for Plotting
+        #return y_flat[:sys_size] + 1j * y_flat[sys_size:]
+        return y_flat
     
+
     start = time.time()
     print("Solving for single wavelength (and jit compiling)")
     solve_for_loss(1310)
@@ -83,8 +90,8 @@ if __name__ == "__main__":
     print(f"Vmap simulation Time: {total:.3f}s")
 
     # Extract Output Fields
-    v_out1 = solutions[:, port_map["Load1,p1"]]
-    v_out2 = solutions[:, port_map["Load2,p1"]]
+    v_out1 = solutions[:, port_map["Load1,p1"]] + 1j * solutions[:, port_map["Load1,p1"]+sys_size]   
+    v_out2 = solutions[:, port_map["Load2,p1"]] + 1j * solutions[:, port_map["Load2,p1"]+sys_size]
     
     # Calculate Power (|E|^2)
     p_out1_db = 10.0 * jnp.log10(jnp.abs(v_out1)**2 + 1e-12)

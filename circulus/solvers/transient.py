@@ -28,8 +28,8 @@ def _compute_history(component_groups, y_c, t, num_vars):
 
 class VectorizedTransientSolver(diffrax.AbstractSolver):
     """
-    Transient Circuit Solver.
-    Uses a custom Newton loop via Optimistix FixedPointIteration.
+    Transient solver that works strictly on FLAT (Real) vectors.
+    Delegates complexity handling to the 'linear_solver' strategy.
     """
     linear_solver: CircuitLinearSolver
     
@@ -39,62 +39,61 @@ class VectorizedTransientSolver(diffrax.AbstractSolver):
     def order(self, terms): return 1
 
     def init(self, terms, t0, t1, y0, args):
-        if jnp.iscomplexobj(y0):
-            y0_flat = jnp.concatenate([y0.real, y0.imag])
-        else:
-            y0_flat = y0
-        return (y0_flat, 1.0) 
+        return (y0, 1.0) 
 
     def step(self, terms, t0, t1, y0, args, solver_state, options):
         component_groups, num_vars = args
         dt = t1 - t0
         y_prev_step, dt_prev = solver_state
         
-        # 1. State Normalization
-        y0_flat = y0
-        if jnp.iscomplexobj(y0): 
-            y0_flat = jnp.concatenate([y0.real, y0.imag])
-            
-        # 2. Predictor
-        rate = (y0_flat - y_prev_step) / (dt_prev + 1e-30)
-        y_pred = y0_flat + rate * dt
+        # 0. Check Mode from Linear Solver Strategy
+        #    (We trust the strategy knows if it's 2N or N size)
+        is_complex = getattr(self.linear_solver, 'is_complex', False)
+
+        # 1. Predictor (1st order extrapolation on Flat Vector)
+        rate = (y0 - y_prev_step) / (dt_prev + 1e-30)
+        y_pred = y0 + rate * dt
         
-        # 3. Compute History
-        is_complex = (y0_flat.shape[0] == 2 * num_vars)
-        y_c = y0_flat[:num_vars] + 1j * y0_flat[num_vars:] if is_complex else y0_flat
+        # 2. Compute History
+        #    _compute_history expects a Complex vector if physics is complex.
+        #    We reconstruct it temporarily here.
+        if is_complex:
+            y_c = y0[:num_vars] + 1j * y0[num_vars:]
+        else:
+            y_c = y0
+            
         q_prev = _compute_history(component_groups, y_c, t0, num_vars)
 
-        # 4. Define One Newton Step
+        # 3. Define One Newton Step
         def newton_update_step(y, _):
             # A. Assemble Physics
+            #    Both assemblers now expect FLAT vectors 'y'.
             if is_complex:
                 total_f, total_q, all_vals = _assemble_system_complex(y, component_groups, t1, dt)
-                ground_indices = [0, num_vars]
+                ground_indices = [0, num_vars] # Real and Imag ground nodes
             else:
                 total_f, total_q, all_vals = _assemble_system_real(y, component_groups, t1, dt)
                 ground_indices = [0]
             
-            # B. Transient Residual
+            # B. Transient Residual: I + dQ/dt
             residual = total_f + (total_q - q_prev) / dt
             
             # C. Apply Ground Constraints (RHS)
             for idx in ground_indices:
                 residual = residual.at[idx].add(1e9 * y[idx])
             
-            # D. Solve Linear System (FIXED)
-            #    We call _solve_impl directly. 
-            #    The solver expects the Jacobian values and the NEGATIVE residual (RHS).
+            # D. Solve Linear System
+            #    Strategy handles the flat 2N system automatically
             sol = self.linear_solver._solve_impl(all_vals, -residual)
-            
             delta = sol.value
             
             # E. Damping
             max_change = jnp.max(jnp.abs(delta))
-            damping = jnp.minimum(1.0, 0.2 / (max_change + 1e-9))
+            damping = jnp.minimum(1.0, 0.5 / (max_change + 1e-9))
             
             return y + delta * damping
 
-        # 5. Run Newton Loop
+        # 4. Run Newton Loop (On Flat Vectors)
         solver = optx.FixedPointIteration(rtol=1e-5, atol=1e-5)
         sol = optx.fixed_point(
             newton_update_step, 
@@ -107,6 +106,7 @@ class VectorizedTransientSolver(diffrax.AbstractSolver):
         y_next = sol.value
         y_error = y_next - y_pred 
         
+        # Map result to Diffrax
         result = jax.lax.cond(
             sol.result == optx.RESULTS.successful,
             lambda _: diffrax.RESULTS.successful,
@@ -114,6 +114,6 @@ class VectorizedTransientSolver(diffrax.AbstractSolver):
             None
         )
 
-        return y_next, y_error, {"y0": y0_flat, "y1": y_next}, (y0_flat, dt), result
+        return y_next, y_error, {"y0": y0, "y1": y_next}, (y0, dt), result
     
     def func(self, terms, t0, y0, args): return terms.vf(t0, y0, args)

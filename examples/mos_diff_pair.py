@@ -94,7 +94,7 @@ if __name__ == "__main__":
         new_groups = update_param_value(groups, 'source_dc', 'Vin1', 'V', v_in_val)
         
         #    Use y_prev as the guess! Massive stability boost.
-        y_sol = linear_strat.solve_dc(new_groups, sys_size, y_guess=y_prev)
+        y_sol = linear_strat.solve_dc(new_groups, y_guess=y_prev)
         
         # 3. Return (carry, output)
         return y_sol, y_sol
