@@ -57,7 +57,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/eb/4b/3c7e373d81219ee7493c1581c85a926c413ddeb3794cff87a37023a337e4/jaxlib-0.8.1-cp312-cp312-manylinux_2_27_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/b8/97/88264b1af140f66ba7ca6eb2f3a108be233ee278bb3f1d5c750243e7458a/jaxtyping-0.3.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/70/90/6d240beb0f24b74371762873e9b7f499f1e02166a2d9c5801f4dbf8fa12e/kiwisolver-1.4.9-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
-      - pypi: https://files.pythonhosted.org/packages/0a/6b/e22bab7854b4e687cd3723f0f1299abb64385ca0bc7bcc45dbf4474051d0/klujax-0.4.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+      - pypi: https://files.pythonhosted.org/packages/e7/db/78edb3460853a7fe44921e4d51f757dee95e7876d51fd6b140443d0bee5d/klujax-0.4.5-cp312-cp312-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/82/3d/14ce75ef66813643812f3093ab17e46d3a206942ce7376d31ec2d36229e7/lark-1.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1b/a9/2d8d6002eb124e79f7c9ee2311b62f35289fc7e75ee0bbfbe5a4c7295bb9/lineax-0.0.8-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/94/54/e7d793b573f298e1c9013b8c4dade17d481164aa517d1d7148619c2cedbf/markdown_it_py-4.0.0-py3-none-any.whl
@@ -151,7 +151,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/07/6c/a6f449a7d1c7f91d73c3b8e00ceba92dff9dfd642508bbe1ddba9cb9ea57/jaxlib-0.8.1-cp312-cp312-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/b8/97/88264b1af140f66ba7ca6eb2f3a108be233ee278bb3f1d5c750243e7458a/jaxtyping-0.3.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/41/85d82b0291db7504da3c2defe35c9a8a5c9803a730f297bd823d11d5fb77/kiwisolver-1.4.9-cp312-cp312-win_amd64.whl
-      - pypi: https://files.pythonhosted.org/packages/be/8e/f98b9335bed8415fd49bbe1204be5c8815679cb19190cc0e717d148782ef/klujax-0.4.3-cp312-cp312-win_amd64.whl
+      - pypi: https://files.pythonhosted.org/packages/89/16/e7e867c71e706915a47899257c5d1a6b7ea0178a6e020bea34fc31baef66/klujax-0.4.5-cp312-cp312-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/82/3d/14ce75ef66813643812f3093ab17e46d3a206942ce7376d31ec2d36229e7/lark-1.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1b/a9/2d8d6002eb124e79f7c9ee2311b62f35289fc7e75ee0bbfbe5a4c7295bb9/lineax-0.0.8-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/94/54/e7d793b573f298e1c9013b8c4dade17d481164aa517d1d7148619c2cedbf/markdown_it_py-4.0.0-py3-none-any.whl
@@ -275,7 +275,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/bb/f5/fddaec430367be9d62a7ed125530e133bfd4a1c0350fe221149ee0f2b526/jupyter_client-8.7.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e7/e7/80988e32bf6f73919a113473a604f5a8f09094de312b9d52b79c2df7612b/jupyter_core-5.9.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/70/90/6d240beb0f24b74371762873e9b7f499f1e02166a2d9c5801f4dbf8fa12e/kiwisolver-1.4.9-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
-      - pypi: https://files.pythonhosted.org/packages/0a/6b/e22bab7854b4e687cd3723f0f1299abb64385ca0bc7bcc45dbf4474051d0/klujax-0.4.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+      - pypi: https://files.pythonhosted.org/packages/e7/db/78edb3460853a7fe44921e4d51f757dee95e7876d51fd6b140443d0bee5d/klujax-0.4.5-cp312-cp312-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/82/3d/14ce75ef66813643812f3093ab17e46d3a206942ce7376d31ec2d36229e7/lark-1.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0d/d0/5239a8507e6117a3cb59ce0095bdd258bd2a93d8d4b819a506da06d8d645/librt-0.7.5-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/1b/a9/2d8d6002eb124e79f7c9ee2311b62f35289fc7e75ee0bbfbe5a4c7295bb9/lineax-0.0.8-py3-none-any.whl
@@ -401,7 +401,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/bb/f5/fddaec430367be9d62a7ed125530e133bfd4a1c0350fe221149ee0f2b526/jupyter_client-8.7.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e7/e7/80988e32bf6f73919a113473a604f5a8f09094de312b9d52b79c2df7612b/jupyter_core-5.9.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/41/85d82b0291db7504da3c2defe35c9a8a5c9803a730f297bd823d11d5fb77/kiwisolver-1.4.9-cp312-cp312-win_amd64.whl
-      - pypi: https://files.pythonhosted.org/packages/be/8e/f98b9335bed8415fd49bbe1204be5c8815679cb19190cc0e717d148782ef/klujax-0.4.3-cp312-cp312-win_amd64.whl
+      - pypi: https://files.pythonhosted.org/packages/89/16/e7e867c71e706915a47899257c5d1a6b7ea0178a6e020bea34fc31baef66/klujax-0.4.5-cp312-cp312-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/82/3d/14ce75ef66813643812f3093ab17e46d3a206942ce7376d31ec2d36229e7/lark-1.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f8/91/197dfeb8d3bdeb0a5344d0d8b3077f183ba5e76c03f158126f6072730998/librt-0.7.5-cp312-cp312-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/1b/a9/2d8d6002eb124e79f7c9ee2311b62f35289fc7e75ee0bbfbe5a4c7295bb9/lineax-0.0.8-py3-none-any.whl
@@ -1565,10 +1565,10 @@ packages:
   version: 1.4.9
   sha256: f68208a520c3d86ea51acf688a3e3002615a7f0238002cccc17affecc86a8a54
   requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/0a/6b/e22bab7854b4e687cd3723f0f1299abb64385ca0bc7bcc45dbf4474051d0/klujax-0.4.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+- pypi: https://files.pythonhosted.org/packages/89/16/e7e867c71e706915a47899257c5d1a6b7ea0178a6e020bea34fc31baef66/klujax-0.4.5-cp312-cp312-win_amd64.whl
   name: klujax
-  version: 0.4.3
-  sha256: b5b7a9e26d38adeaea658cbe844d7ac60fc8c6716b141d11c2ec43f65a976e15
+  version: 0.4.5
+  sha256: 3f937e0eb1da5bd47a156b87c85e9c0d5b7e0b63d3349c69d04e46e068ce327b
   requires_dist:
   - jax>=0.5.0
   - jaxlib>=0.5.0
@@ -1581,11 +1581,11 @@ packages:
   - ruff>=0.9.7 ; extra == 'dev'
   - setuptools>=75.8.0 ; extra == 'dev'
   - tbump>=6.11.0 ; extra == 'dev'
-  requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/be/8e/f98b9335bed8415fd49bbe1204be5c8815679cb19190cc0e717d148782ef/klujax-0.4.3-cp312-cp312-win_amd64.whl
+  requires_python: '>=3.11'
+- pypi: https://files.pythonhosted.org/packages/e7/db/78edb3460853a7fe44921e4d51f757dee95e7876d51fd6b140443d0bee5d/klujax-0.4.5-cp312-cp312-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl
   name: klujax
-  version: 0.4.3
-  sha256: c7ab718933402dc4a4a58c3e10e3713d2e69626c6f20e67c495ada363a9fe171
+  version: 0.4.5
+  sha256: 15709a88f3c7e8a748a3f43a0641eb62ec8e4e3444ec6965679bff72b016d785
   requires_dist:
   - jax>=0.5.0
   - jaxlib>=0.5.0
@@ -1598,7 +1598,7 @@ packages:
   - ruff>=0.9.7 ; extra == 'dev'
   - setuptools>=75.8.0 ; extra == 'dev'
   - tbump>=6.11.0 ; extra == 'dev'
-  requires_python: '>=3.10'
+  requires_python: '>=3.11'
 - pypi: https://files.pythonhosted.org/packages/82/3d/14ce75ef66813643812f3093ab17e46d3a206942ce7376d31ec2d36229e7/lark-1.3.1-py3-none-any.whl
   name: lark
   version: 1.3.1

@@ -4,12 +4,13 @@ requires-python = ">=3.12"
 dependencies = [
     "numpy",
     "ruff",
-    "klujax>=0.4.3", 
+    "klujax>=0.4.5,<0.5", 
     "jax>=0.8.1,<0.9", 
     "diffrax>=0.7.0,<0.8", 
     "sax>=0.15.15,<0.16",
     "matplotlib",
     "typing-extensions>=4.13.2",
+    "lineax"
 ]
 
 
