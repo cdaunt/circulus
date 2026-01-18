@@ -2,7 +2,8 @@ import diffrax
 import jax
 import jax.numpy as jnp
 import optimistix as optx
-from circulus.solvers.strategies import CircuitLinearSolver,_assemble_system_complex, _assemble_system_real
+from circulus.solvers.strategies import CircuitLinearSolver
+from circulus.solvers.assembly import _assemble_system_complex, _assemble_system_real
 
 
 def _compute_history(component_groups, y_c, t, num_vars):
