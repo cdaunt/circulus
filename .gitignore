@@ -3,6 +3,7 @@
 !.pixi/config.toml
 *.pyc
 archive/*
+app/*
 circulus_workspace.code-workspace
 docs/examples/
 docs/references/
