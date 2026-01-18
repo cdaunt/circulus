@@ -1,5 +1,4 @@
-# Circuitlus
-
+# Circulus
 A Differentiable, Functional Circuit Analyzer for the AI Era. 
 
 Circuitlus is a next-generation circuit simulation engine built on JAX. It reimagines circuit analysis not as a monolithic black box (like SPICE), but as a modular, differentiable pipeline designed for optimization, inverse design, and AI integration. 

@@ -1,9 +1,10 @@
 theme:
     name: material
     features:
-        - navigation.sections  # Sections are included in the navigation on the left.
+        #- navigation.sections  # Sections are included in the navigation on the left.
         - toc.integrate  # Table of contents is integrated on the left; does not appear separately on the right.
         - header.autohide  # header disappears as you scroll
+    logo: images/circulus_logo.svg
     palette:
         # Light mode / dark mode
         # We deliberately don't automatically use `media` to check a user's preferences. We default to light mode as
@@ -22,7 +23,6 @@ theme:
              name: Switch to light mode
     icon:
         repo: fontawesome/brands/github  # GitHub logo in top right
-        logo: "material/math-integral-box"  # Diffrax logo in top left
     favicon: "_static/favicon.png"
     #custom_dir: "docs/_overrides"  # Overriding part of the HTML
 
