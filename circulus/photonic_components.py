@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 from circulus.base_component import CircuitComponent
-from circulus.solvers.dc import s_to_y
+from circulus.s_transforms import s_to_y
 
 class OpticalWaveguide(CircuitComponent):
     length_um: float | jnp.ndarray = 100.0

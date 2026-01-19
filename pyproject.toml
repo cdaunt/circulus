@@ -66,3 +66,4 @@ copy_readme = "cp ReadMe.md docs/index.md"
 copy-examples = "rm -rf docs/examples/*.ipynb && mkdir -p docs/examples && cp -r examples/* docs/examples/"
 install_ipkernel  = "python -m ipykernel install --user --name circulus"
 docs-serve = { cmd = ["mkdocs", "serve"], depends-on = ["copy_readme", "copy-examples", "install_ipkernel"] }
+pytest_run = "pytest tests"

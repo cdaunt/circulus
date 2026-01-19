@@ -1,6 +1,3 @@
-import pytest
-
-from circulus.models import resistor, capacitor, voltage_source, inductor
 from circulus.compiler import compile_netlist
 
 
