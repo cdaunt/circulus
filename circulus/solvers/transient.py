@@ -5,7 +5,6 @@ import optimistix as optx
 from circulus.solvers.strategies import CircuitLinearSolver
 from circulus.solvers.assembly import _assemble_system_complex, _assemble_system_real
 
-
 def _compute_history(component_groups, y_c, t, num_vars):
     """Computes total charge Q at time t (Initial Condition)."""
     is_complex = jnp.iscomplexobj(y_c)

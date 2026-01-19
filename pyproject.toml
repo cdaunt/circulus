@@ -38,6 +38,14 @@ dev = [
 channels = ["conda-forge"]
 platforms = ["linux-64", "win-64"]
 
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::numpy.exceptions.ComplexWarning",
+    "ignore:Complex dtype support in Diffrax:UserWarning"
+]
+
+
+
 [tool.pixi.pypi-dependencies]
 
 #[tool.pixi.tasks]
