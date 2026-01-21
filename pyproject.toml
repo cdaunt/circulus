@@ -4,12 +4,13 @@ requires-python = ">=3.12"
 dependencies = [
     "numpy",
     "ruff",
-    "klujax>=0.4.3", 
+    "klujax>=0.4.5,<0.5", 
     "jax>=0.8.1,<0.9", 
     "diffrax>=0.7.0,<0.8", 
     "sax>=0.15.15,<0.16",
     "matplotlib",
     "typing-extensions>=4.13.2",
+    "lineax"
 ]
 
 
@@ -21,11 +22,29 @@ dev = [
   "mypy",
   "pre-commit",
   "ipykernel>=6.29.5",
+  "hippogriffe==0.2.2",
+  "mkdocs==1.6.1",
+  "mkdocs-include-exclude-files==0.1.0",
+  "mkdocs-jupyter",
+  "mkdocs-material==9.6.7",
+  "mkdocstrings==0.28.3",
+  "mkdocstrings-python==1.16.8",
+  "mkdocs-gen-files",
+  "mkdocs-literate-nav",
+  "pymdown-extensions==10.14.3"
 ]
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["linux-64", "win-64"]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::numpy.exceptions.ComplexWarning",
+    "ignore:Complex dtype support in Diffrax:UserWarning"
+]
+
+
 
 [tool.pixi.pypi-dependencies]
 
@@ -45,7 +64,14 @@ platforms = ["linux-64", "win-64"]
 python = "==3.12"
 tqdm = ">=4.67.1,<5"
 
-[tool.pixi.environments]
-default = []
-dev = ["dev"]
 
+[tool.pixi.environments]
+default = {features = [], solve-group = "default"}
+dev = {features = ["dev"], solve-group = "default"}
+
+[tool.pixi.feature.dev.tasks]
+copy_readme = "cp ReadMe.md docs/index.md"
+copy-examples = "rm -rf docs/examples/*.ipynb && mkdir -p docs/examples && cp -r examples/* docs/examples/"
+install_ipkernel  = "python -m ipykernel install --user --name circulus"
+docs-serve = { cmd = ["mkdocs", "serve"], depends-on = ["copy_readme", "copy-examples", "install_ipkernel"] }
+pytest_run = "pytest tests"
