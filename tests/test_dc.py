@@ -6,7 +6,7 @@ import pytest
 from circulus.compiler import compile_netlist
 from circulus.solvers import strategies as st
 
-solvers = [st.KLUSolver, st.SparseSolver, st.DenseSolver]
+solvers = [st.KLUSolver, st.SparseSolver, st.DenseSolver, st.KLUSplitSolver]
 
 # assemble_total_f is local to this module and uses jax
 def assemble_total_f(component_groups, y, t=0.0):

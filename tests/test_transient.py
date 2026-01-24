@@ -6,8 +6,9 @@ import pytest
 from circulus.compiler import compile_netlist
 from circulus.solvers import strategies as st
 from circulus.solvers.transient import VectorizedTransientSolver
+from diffrax._sol
 
-solvers = [st.KLUSolver, st.SparseSolver, st.DenseSolver]
+solvers = [st.KLUSolver, st.SparseSolver, st.DenseSolver, st.KLUSplitSolver]
 
 @pytest.mark.parametrize("solver", solvers, ids=lambda x: x.__name__)
 def test_short_transient_runs_float(simple_lrc_netlist, solver):
@@ -44,8 +45,6 @@ def test_short_transient_runs_complex(simple_optical_netlist, solver):
     # Solve DC operating point and run a very short transient with zero forcing
     linear_strat = solver.from_circuit(groups, sys_size, is_complex=True)
 
-    print("2. Solving DC Operating Point...")
-
     y_guess_flat = jnp.zeros(sys_size * 2, dtype=jnp.float64)
     y_op_flat = linear_strat.solve_dc(groups, y_guess_flat)
 
@@ -70,3 +69,6 @@ def test_short_transient_runs_complex(simple_optical_netlist, solver):
         throw=False,
         stepsize_controller=diffrax.PIDController(rtol=1e-4, atol=1e-6)
     )
+
+    assert sol.ys.shape == (500, 2*sys_size)
+    assert jnp.isfinite(sol.ys).all()
