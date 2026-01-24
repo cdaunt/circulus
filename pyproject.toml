@@ -61,7 +61,7 @@ filterwarnings = [
 #test = ["test"]
 #
 [tool.pixi.dependencies]
-python = "==3.12"
+python = "==3.13"
 tqdm = ">=4.67.1,<5"
 
 
