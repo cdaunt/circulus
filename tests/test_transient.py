@@ -6,7 +6,6 @@ import pytest
 from circulus.compiler import compile_netlist
 from circulus.solvers import strategies as st
 from circulus.solvers.transient import VectorizedTransientSolver
-from diffrax._sol
 
 solvers = [st.KLUSolver, st.SparseSolver, st.DenseSolver, st.KLUSplitSolver]
 

@@ -34,6 +34,12 @@ try:
 except ImportError:
     klujax_cpp = None
 
+try:
+    import klujax_rs  as klurs
+except ImportError:
+    klurs = None
+
+
 # Import physics assembly kernels (lazy import handled in methods if needed)
 from circulus.solvers.assembly import _assemble_system_complex, _assemble_system_real
 
@@ -346,6 +352,96 @@ class KLUSplitSolver(CircuitLinearSolver):
             is_complex=is_complex
         )
     
+
+class KlursSplitSolver(KLUSplitSolver):
+
+    def _solve_impl(self, all_vals: jax.Array, residual: jax.Array) -> lx.Solution:
+        # 1. Prepare raw value vector including Ground and Leakage entries
+        g_vals = jnp.full(self.ground_indices.shape[0], 1e9, dtype=all_vals.dtype)
+        l_vals = jnp.full(self.sys_size, self.g_leak, dtype=all_vals.dtype) 
+        
+        raw_vals = jnp.concatenate([all_vals, g_vals, l_vals])
+
+        # 2. Coalesce duplicate entries (COO -> Unique COO)
+        coalesced_vals = jax.ops.segment_sum(
+            raw_vals, self.map_idx, num_segments=self.n_unique
+        )
+
+        # 3. Call klurs Wrapper
+        #solution = klurs.solve_with_symbol(self.u_rows, self.u_cols, coalesced_vals, residual, self.symbolic_handle)
+        solution = klurs.solve_with_symbol(self.symbolic_handle, coalesced_vals, residual)
+        return lx.Solution(value=solution, result=lx.RESULTS.successful, state=None, stats={})
+
+    def __del__(self):
+        self.cleanup()
+
+    def cleanup(self):
+        """Free the C++ symbolic handle. Call when done with the solver."""
+        # Check if handle exists and is not None
+        if hasattr(self, 'symbolic_handle') and self.symbolic_handle is not None:
+            # We must be careful not to free Tracers during JIT compilation.
+            # Tracers are instances of jax.core.Tracer.
+            # If we are inside JIT, calling free_symbolic creates a side-effect node
+            # which is fine (it gets DCE'd if unused), but for __del__ we want immediate host cleanup.
+            try:
+                # Eagerly call free if it's a concrete array
+                if isinstance(self.symbolic_handle, jax.Array):
+                     klurs.free_symbolic(self.symbolic_handle)
+            except Exception:
+                # Fallback or silence errors during shutdown
+                pass
+
+    @classmethod
+    def from_circuit(cls, component_groups: Dict[str, Any], num_vars: int, is_complex: bool = False) -> 'KLUSolver':
+        """Factory method to pre-hash indices for sparse coalescence."""
+        all_rows, all_cols = [], []
+        for k in sorted(component_groups.keys()):
+            g = component_groups[k]
+            all_rows.append(np.array(g.jac_rows).reshape(-1))
+            all_cols.append(np.array(g.jac_cols).reshape(-1))
+        
+        static_rows = np.concatenate(all_rows)
+        static_cols = np.concatenate(all_cols)
+
+        sys_size = num_vars
+        ground_idxs = np.array([0], dtype=np.int32)
+
+        if is_complex:
+            sys_size = num_vars * 2
+            r, c = static_rows, static_cols
+            N = num_vars
+            static_rows = np.concatenate([r, r, r+N, r+N])
+            static_cols = np.concatenate([c, c+N, c, c+N])
+            ground_idxs = np.array([0, num_vars], dtype=np.int32)
+
+        # We must include indices for the full leakage diagonal
+        leak_rows = np.arange(sys_size, dtype=np.int32)
+        leak_cols = np.arange(sys_size, dtype=np.int32)
+
+        # Combine Circuit + Ground + Leakage indices
+        full_rows = np.concatenate([static_rows, ground_idxs, leak_rows])
+        full_cols = np.concatenate([static_cols, ground_idxs, leak_cols])
+        
+        # Hashing to find unique entries for coalescence
+        rc_hashes = full_rows.astype(np.int64) * sys_size + full_cols.astype(np.int64)
+        unique_hashes, map_indices = np.unique(rc_hashes, return_inverse=True)
+        
+        u_rows = (unique_hashes // sys_size).astype(np.int32)
+        u_cols = (unique_hashes % sys_size).astype(np.int32)
+        n_unique = int(len(unique_hashes))
+
+        symbolic = klurs.analyze(u_rows, u_cols, sys_size)
+
+        return cls(
+            u_rows=jnp.array(u_rows),
+            u_cols=jnp.array(u_cols),
+            map_idx=jnp.array(map_indices),
+            n_unique=n_unique,
+            symbolic_handle=symbolic,
+            ground_indices=jnp.array(ground_idxs),
+            sys_size=sys_size,
+            is_complex=is_complex
+        )
 
 class KLUSplitFactorSolver(KLUSplitSolver):
     """

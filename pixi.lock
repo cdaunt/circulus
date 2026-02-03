@@ -49,14 +49,14 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/c6/ce/c3bc53bdda6edb050859939a8e91e206123f96f50906e7ba7c027c6c535f/equinox-0.13.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e7/98/87b5946356095738cb90a6df7b35ff69ac5750f6e783d5fbcc5cb3b6cbd7/etils-1.13.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/76/91/7216b27286936c16f5b4d0c530087e4a54eead683e6b0b73dd0c64844af6/filelock-3.20.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/6b/c2/5157167a7ba03d4ca65bb1e7d830b31f7d45ee26dcc786786694ce47582e/flax-0.12.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e6/cf/d118be069d0fbbfbb6c5591069233678b573e49d81e2a387afb0297528a0/flax-0.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a3/4b/d67eedaed19def5967fade3297fed8161b25ba94699efc124b14fb68cdbc/fonttools-4.61.1-cp313-cp313-manylinux1_x86_64.manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_5_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/51/c7/b64cae5dba3a1b138d7123ec36bb5ccd39d39939f18454407e5468f4763f/fsspec-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c3/5b/9512c5fb6c8218332b530f13500c6ff5f3ce3342f35e0dd7be9ac3856fd3/humanize-4.14.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0f/1c/e5fd8f973d4f375adb21565739498e2e9a1e54c858a97b9a8ccfdc81da9b/identify-2.6.15-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a4/ed/1f1afb2e9e7f38a545d628f864d562a5ae64fe6f7a10e28ffb9b185b4e89/importlib_resources-6.5.2-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/f9/e7/19b8cfc8963b2e10a01a4db7bb27ec5fa39ecd024bc62f8e2d1de5625a9d/jax-0.8.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/7d/61/ab5c98641e15f9844dd49efbf6f22c6a9c5d17304319e5be8c51a1dfd088/jaxlib-0.8.1-cp313-cp313-manylinux_2_27_x86_64.whl
+      - pypi: https://files.pythonhosted.org/packages/d5/e6/5fd0f6fff79eb47469ff9c4fa27125b661517a2fbf8884689b02e9fdfaa8/jax-0.7.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/3e/0b/a33add48e904dd88a52d4653cc8290da0f2d3dc132c60c5dbda6783f4e4a/jaxlib-0.7.2-cp313-cp313-manylinux_2_27_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/b8/97/88264b1af140f66ba7ca6eb2f3a108be233ee278bb3f1d5c750243e7458a/jaxtyping-0.3.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e9/e9/f218a2cb3a9ffbe324ca29a9e399fa2d2866d7f348ec3a88df87fc248fc5/kiwisolver-1.4.9-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/d6/e6/b953fefc790d5b4c27e69e91054acf8b473533d0d74a8898f00df31f34df/klujax-0.4.5-cp313-cp313-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl
@@ -145,14 +145,14 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/c6/ce/c3bc53bdda6edb050859939a8e91e206123f96f50906e7ba7c027c6c535f/equinox-0.13.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e7/98/87b5946356095738cb90a6df7b35ff69ac5750f6e783d5fbcc5cb3b6cbd7/etils-1.13.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/76/91/7216b27286936c16f5b4d0c530087e4a54eead683e6b0b73dd0c64844af6/filelock-3.20.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/6b/c2/5157167a7ba03d4ca65bb1e7d830b31f7d45ee26dcc786786694ce47582e/flax-0.12.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e6/cf/d118be069d0fbbfbb6c5591069233678b573e49d81e2a387afb0297528a0/flax-0.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1a/59/453c06d1d83dc0951b69ef692d6b9f1846680342927df54e9a1ca91c6f90/fonttools-4.61.1-cp313-cp313-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/51/c7/b64cae5dba3a1b138d7123ec36bb5ccd39d39939f18454407e5468f4763f/fsspec-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c3/5b/9512c5fb6c8218332b530f13500c6ff5f3ce3342f35e0dd7be9ac3856fd3/humanize-4.14.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0f/1c/e5fd8f973d4f375adb21565739498e2e9a1e54c858a97b9a8ccfdc81da9b/identify-2.6.15-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a4/ed/1f1afb2e9e7f38a545d628f864d562a5ae64fe6f7a10e28ffb9b185b4e89/importlib_resources-6.5.2-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/f9/e7/19b8cfc8963b2e10a01a4db7bb27ec5fa39ecd024bc62f8e2d1de5625a9d/jax-0.8.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/1c/71/82a04ce93baeca5b3d10340f574e0668d327b7d0d18e32d9080917c507f6/jaxlib-0.8.1-cp313-cp313-win_amd64.whl
+      - pypi: https://files.pythonhosted.org/packages/d5/e6/5fd0f6fff79eb47469ff9c4fa27125b661517a2fbf8884689b02e9fdfaa8/jax-0.7.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/90/9b/2049f4e5e5527cee1cf26a9f037b91abac85503074b5420678bc199b1af7/jaxlib-0.7.2-cp313-cp313-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/b8/97/88264b1af140f66ba7ca6eb2f3a108be233ee278bb3f1d5c750243e7458a/jaxtyping-0.3.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/75/bd/f1a5d894000941739f2ae1b65a32892349423ad49c2e6d0771d0bad3fae4/kiwisolver-1.4.9-cp313-cp313-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/e0/92/e42a47c4d70dba9ef1b7b450aa6ec32973e8572444a75a7a116e598574fb/klujax-0.4.5-cp313-cp313-win_amd64.whl
@@ -271,7 +271,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/c1/ea/53f2148663b321f21b5a606bd5f191517cf40b7072c0497d3c92c4a13b1e/executing-2.2.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/cb/a8/20d0723294217e47de6d9e2e40fd4a9d2f7c4b6ef974babd482a59743694/fastjsonschema-2.21.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/76/91/7216b27286936c16f5b4d0c530087e4a54eead683e6b0b73dd0c64844af6/filelock-3.20.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/6b/c2/5157167a7ba03d4ca65bb1e7d830b31f7d45ee26dcc786786694ce47582e/flax-0.12.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e6/cf/d118be069d0fbbfbb6c5591069233678b573e49d81e2a387afb0297528a0/flax-0.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a3/4b/d67eedaed19def5967fade3297fed8161b25ba94699efc124b14fb68cdbc/fonttools-4.61.1-cp313-cp313-manylinux1_x86_64.manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_5_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/51/c7/b64cae5dba3a1b138d7123ec36bb5ccd39d39939f18454407e5468f4763f/fsspec-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f7/ec/67fbef5d497f86283db54c22eec6f6140243aae73265799baaaa19cd17fb/ghp_import-2.1.0-py3-none-any.whl
@@ -285,8 +285,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/f6/d8/502954a4ec0efcf264f99b65b41c3c54e65a647d9f0d6f62cd02227d242c/ipykernel-6.31.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/86/92/162cfaee4ccf370465c5af1ce36a9eacec1becb552f2033bb3584e6f640a/ipython-9.9.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d9/33/1f075bf72b0b747cb3288d011319aaf64083cf2efef8354174e3ed4540e2/ipython_pygments_lexers-1.1.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/f9/e7/19b8cfc8963b2e10a01a4db7bb27ec5fa39ecd024bc62f8e2d1de5625a9d/jax-0.8.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/7d/61/ab5c98641e15f9844dd49efbf6f22c6a9c5d17304319e5be8c51a1dfd088/jaxlib-0.8.1-cp313-cp313-manylinux_2_27_x86_64.whl
+      - pypi: https://files.pythonhosted.org/packages/d5/e6/5fd0f6fff79eb47469ff9c4fa27125b661517a2fbf8884689b02e9fdfaa8/jax-0.7.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/3e/0b/a33add48e904dd88a52d4653cc8290da0f2d3dc132c60c5dbda6783f4e4a/jaxlib-0.7.2-cp313-cp313-manylinux_2_27_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/b8/97/88264b1af140f66ba7ca6eb2f3a108be233ee278bb3f1d5c750243e7458a/jaxtyping-0.3.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c0/5a/9cac0c82afec3d09ccd97c8b6502d48f165f9124db81b4bcb90b4af974ee/jedi-0.19.2-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl
@@ -448,7 +448,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/c1/ea/53f2148663b321f21b5a606bd5f191517cf40b7072c0497d3c92c4a13b1e/executing-2.2.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/cb/a8/20d0723294217e47de6d9e2e40fd4a9d2f7c4b6ef974babd482a59743694/fastjsonschema-2.21.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/76/91/7216b27286936c16f5b4d0c530087e4a54eead683e6b0b73dd0c64844af6/filelock-3.20.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/6b/c2/5157167a7ba03d4ca65bb1e7d830b31f7d45ee26dcc786786694ce47582e/flax-0.12.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e6/cf/d118be069d0fbbfbb6c5591069233678b573e49d81e2a387afb0297528a0/flax-0.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1a/59/453c06d1d83dc0951b69ef692d6b9f1846680342927df54e9a1ca91c6f90/fonttools-4.61.1-cp313-cp313-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/51/c7/b64cae5dba3a1b138d7123ec36bb5ccd39d39939f18454407e5468f4763f/fsspec-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f7/ec/67fbef5d497f86283db54c22eec6f6140243aae73265799baaaa19cd17fb/ghp_import-2.1.0-py3-none-any.whl
@@ -462,8 +462,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/f6/d8/502954a4ec0efcf264f99b65b41c3c54e65a647d9f0d6f62cd02227d242c/ipykernel-6.31.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/86/92/162cfaee4ccf370465c5af1ce36a9eacec1becb552f2033bb3584e6f640a/ipython-9.9.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d9/33/1f075bf72b0b747cb3288d011319aaf64083cf2efef8354174e3ed4540e2/ipython_pygments_lexers-1.1.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/f9/e7/19b8cfc8963b2e10a01a4db7bb27ec5fa39ecd024bc62f8e2d1de5625a9d/jax-0.8.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/1c/71/82a04ce93baeca5b3d10340f574e0668d327b7d0d18e32d9080917c507f6/jaxlib-0.8.1-cp313-cp313-win_amd64.whl
+      - pypi: https://files.pythonhosted.org/packages/d5/e6/5fd0f6fff79eb47469ff9c4fa27125b661517a2fbf8884689b02e9fdfaa8/jax-0.7.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/90/9b/2049f4e5e5527cee1cf26a9f037b91abac85503074b5420678bc199b1af7/jaxlib-0.7.2-cp313-cp313-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/b8/97/88264b1af140f66ba7ca6eb2f3a108be233ee278bb3f1d5c750243e7458a/jaxtyping-0.3.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c0/5a/9cac0c82afec3d09ccd97c8b6502d48f165f9124db81b4bcb90b4af974ee/jedi-0.19.2-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl
@@ -1039,14 +1039,14 @@ packages:
   version: 3.20.0
   sha256: 339b4732ffda5cd79b13f4e2711a31b0365ce445d95d243bb996273d072546a2
   requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/6b/c2/5157167a7ba03d4ca65bb1e7d830b31f7d45ee26dcc786786694ce47582e/flax-0.12.1-py3-none-any.whl
+- pypi: https://files.pythonhosted.org/packages/e6/cf/d118be069d0fbbfbb6c5591069233678b573e49d81e2a387afb0297528a0/flax-0.12.0-py3-none-any.whl
   name: flax
-  version: 0.12.1
-  sha256: 5e4d00d77e8a0d8a52eaab9d1837b2206dcc2f068feedd2d0b0187dabaad5d0a
+  version: 0.12.0
+  sha256: 13dee5f2658e8b51e22cef54b788ddbad1b6e14a9d7c5b6d1ae9c3a0110d645e
   requires_dist:
   - numpy>=1.23.2 ; python_full_version >= '3.11'
   - numpy>=1.26.0 ; python_full_version >= '3.12'
-  - jax>=0.8.1
+  - jax>=0.7.1
   - msgpack
   - optax
   - orbax-checkpoint
@@ -1058,29 +1058,27 @@ packages:
   - clu ; extra == 'testing'
   - clu<=0.0.9 ; python_full_version < '3.10' and extra == 'testing'
   - einops ; extra == 'testing'
-  - gymnasium[atari] ; extra == 'testing'
+  - gymnasium[accept-rom-license,atari] ; extra == 'testing'
   - jaxlib ; extra == 'testing'
   - jaxtyping ; extra == 'testing'
   - jraph>=0.0.6.dev0 ; extra == 'testing'
   - ml-collections ; extra == 'testing'
   - mypy ; extra == 'testing'
   - opencv-python ; extra == 'testing'
-  - protobuf<6 ; python_full_version >= '3.13' and extra == 'testing'
   - pytest ; extra == 'testing'
   - pytest-cov ; extra == 'testing'
   - pytest-custom-exit-code ; extra == 'testing'
   - pytest-xdist ; extra == 'testing'
   - pytype ; extra == 'testing'
   - sentencepiece==0.2.0 ; extra == 'testing'
-  - tensorflow-text>=2.11.0 ; python_full_version < '3.13' and sys_platform != 'darwin' and extra == 'testing'
+  - tensorflow-text>=2.11.0 ; sys_platform != 'darwin' and extra == 'testing'
   - tensorflow-datasets ; extra == 'testing'
-  - tensorflow>=2.12.0 ; python_full_version < '3.13' and extra == 'testing'
-  - tensorflow>=2.20.0 ; python_full_version >= '3.13' and extra == 'testing'
+  - tensorflow>=2.12.0 ; extra == 'testing'
   - torch ; extra == 'testing'
   - treescope>=0.1.1 ; python_full_version >= '3.10' and extra == 'testing'
   - cloudpickle>=3.0.0 ; extra == 'testing'
   - ale-py>=0.10.2 ; extra == 'testing'
-  - sphinx==6.2.1 ; extra == 'docs'
+  - sphinx>=4.3.0 ; extra == 'docs'
   - sphinx-book-theme ; extra == 'docs'
   - pygments>=2.6.1 ; extra == 'docs'
   - ipykernel ; extra == 'docs'
@@ -1091,7 +1089,7 @@ packages:
   - sphinx-design ; extra == 'docs'
   - jupytext==1.13.8 ; extra == 'docs'
   - dm-haiku>=0.0.14 ; extra == 'docs'
-  - docutils ; extra == 'docs'
+  - docutils==0.16 ; extra == 'docs'
   - matplotlib ; extra == 'docs'
   - scikit-learn ; extra == 'docs'
   - ml-collections ; extra == 'docs'
@@ -1453,49 +1451,49 @@ packages:
   requires_dist:
   - pygments
   requires_python: '>=3.8'
-- pypi: https://files.pythonhosted.org/packages/f9/e7/19b8cfc8963b2e10a01a4db7bb27ec5fa39ecd024bc62f8e2d1de5625a9d/jax-0.8.1-py3-none-any.whl
+- pypi: https://files.pythonhosted.org/packages/d5/e6/5fd0f6fff79eb47469ff9c4fa27125b661517a2fbf8884689b02e9fdfaa8/jax-0.7.2-py3-none-any.whl
   name: jax
-  version: 0.8.1
-  sha256: 4cbdc5548f3095cdd69d38e4337950b2fc1f250a740a0234d190e4a319077564
+  version: 0.7.2
+  sha256: e7e32f9be51ae5cc6854225958c57de8cca2187d279844338465b15e8a1fe7f2
   requires_dist:
-  - jaxlib<=0.8.1,>=0.8.1
+  - jaxlib<=0.7.2,>=0.7.2
   - ml-dtypes>=0.5.0
   - numpy>=2.0
   - opt-einsum
   - scipy>=1.13
-  - jaxlib==0.8.1 ; extra == 'minimum-jaxlib'
-  - jaxlib==0.8.0 ; extra == 'ci'
-  - jaxlib<=0.8.1,>=0.8.1 ; extra == 'tpu'
-  - libtpu==0.0.30.* ; extra == 'tpu'
+  - jaxlib==0.7.2 ; extra == 'minimum-jaxlib'
+  - jaxlib==0.7.1 ; extra == 'ci'
+  - jaxlib<=0.7.2,>=0.7.2 ; extra == 'tpu'
+  - libtpu==0.0.23 ; extra == 'tpu'
   - requests ; extra == 'tpu'
-  - jaxlib<=0.8.1,>=0.8.1 ; extra == 'cuda'
-  - jax-cuda12-plugin[with-cuda]<=0.8.1,>=0.8.1 ; extra == 'cuda'
-  - jaxlib<=0.8.1,>=0.8.1 ; extra == 'cuda12'
-  - jax-cuda12-plugin[with-cuda]<=0.8.1,>=0.8.1 ; extra == 'cuda12'
-  - jaxlib<=0.8.1,>=0.8.1 ; extra == 'cuda13'
-  - jax-cuda13-plugin[with-cuda]<=0.8.1,>=0.8.1 ; extra == 'cuda13'
-  - jaxlib<=0.8.1,>=0.8.1 ; extra == 'cuda12-local'
-  - jax-cuda12-plugin<=0.8.1,>=0.8.1 ; extra == 'cuda12-local'
-  - jaxlib<=0.8.1,>=0.8.1 ; extra == 'cuda13-local'
-  - jax-cuda13-plugin<=0.8.1,>=0.8.1 ; extra == 'cuda13-local'
-  - jaxlib<=0.8.1,>=0.8.1 ; extra == 'rocm'
-  - jax-rocm60-plugin<=0.8.1,>=0.8.1 ; extra == 'rocm'
+  - jaxlib<=0.7.2,>=0.7.2 ; extra == 'cuda'
+  - jax-cuda12-plugin[with-cuda]<=0.7.2,>=0.7.2 ; extra == 'cuda'
+  - jaxlib<=0.7.2,>=0.7.2 ; extra == 'cuda12'
+  - jax-cuda12-plugin[with-cuda]<=0.7.2,>=0.7.2 ; extra == 'cuda12'
+  - jaxlib<=0.7.2,>=0.7.2 ; extra == 'cuda13'
+  - jax-cuda13-plugin[with-cuda]<=0.7.2,>=0.7.2 ; extra == 'cuda13'
+  - jaxlib<=0.7.2,>=0.7.2 ; extra == 'cuda12-local'
+  - jax-cuda12-plugin<=0.7.2,>=0.7.2 ; extra == 'cuda12-local'
+  - jaxlib<=0.7.2,>=0.7.2 ; extra == 'cuda13-local'
+  - jax-cuda13-plugin<=0.7.2,>=0.7.2 ; extra == 'cuda13-local'
+  - jaxlib<=0.7.2,>=0.7.2 ; extra == 'rocm'
+  - jax-rocm60-plugin<=0.7.2,>=0.7.2 ; extra == 'rocm'
   - kubernetes ; extra == 'k8s'
   - xprof ; extra == 'xprof'
   requires_python: '>=3.11'
-- pypi: https://files.pythonhosted.org/packages/1c/71/82a04ce93baeca5b3d10340f574e0668d327b7d0d18e32d9080917c507f6/jaxlib-0.8.1-cp313-cp313-win_amd64.whl
+- pypi: https://files.pythonhosted.org/packages/3e/0b/a33add48e904dd88a52d4653cc8290da0f2d3dc132c60c5dbda6783f4e4a/jaxlib-0.7.2-cp313-cp313-manylinux_2_27_x86_64.whl
   name: jaxlib
-  version: 0.8.1
-  sha256: 8e118e1fbe714f37a94ba26777c17faab7dca4a33646a3d98cd1d99673bbd6b1
+  version: 0.7.2
+  sha256: 49d99620486effda87400024723a452306566996e3de719ee633f05220d1ee77
   requires_dist:
   - scipy>=1.13
   - numpy>=2.0
   - ml-dtypes>=0.5.0
   requires_python: '>=3.11'
-- pypi: https://files.pythonhosted.org/packages/7d/61/ab5c98641e15f9844dd49efbf6f22c6a9c5d17304319e5be8c51a1dfd088/jaxlib-0.8.1-cp313-cp313-manylinux_2_27_x86_64.whl
+- pypi: https://files.pythonhosted.org/packages/90/9b/2049f4e5e5527cee1cf26a9f037b91abac85503074b5420678bc199b1af7/jaxlib-0.7.2-cp313-cp313-win_amd64.whl
   name: jaxlib
-  version: 0.8.1
-  sha256: d245bd6a279c72ca5f796df84cdd64d7c9c8abc4b8d89adf4acf45898dab958b
+  version: 0.7.2
+  sha256: 59081f79245a40a6a2590e660fb2981ac541112893a6617121822a6afdbb5ead
   requires_dist:
   - scipy>=1.13
   - numpy>=2.0
