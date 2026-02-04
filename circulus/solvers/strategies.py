@@ -48,8 +48,10 @@ class SymbolicHandleWrapper:
     A plain Python class to manage the lifecycle of the C pointer.
     Equinox won't intercept attribute access on this class.
     """
-    def __init__(self, handle):
+    def __init__(self, handle, free_callable):
         self.handle = handle
+        self.free_callable = free_callable
+
 
     def __del__(self):
         # Guard against globals being None during interpreter shutdown
@@ -60,7 +62,7 @@ class SymbolicHandleWrapper:
             # Assuming handle is a JAX array wrapping the pointer
             # We only free if it's concrete (not a Tracer)
             # Note: In standard Python usage, this will be concrete.
-            klujax.free_symbolic(self.handle)
+            self.free_callable(self.handle)
         except Exception:
             pass
 
@@ -286,11 +288,6 @@ class KLUSplitSolver(CircuitLinearSolver):
 
     g_leak: float = 1e-9
 
-    @property
-    def symbolic_handle(self):
-        """Convenience accessor to get the raw pointer."""
-        return self._handle_wrapper.handle
-
     def cleanup(self):
         del self._handle_wrapper
 
@@ -307,7 +304,7 @@ class KLUSplitSolver(CircuitLinearSolver):
         )
 
         # 3. Call KLU Wrapper
-        solution = klujax.solve_with_symbol(self.u_rows, self.u_cols, coalesced_vals, residual, self.symbolic_handle)
+        solution = klujax.solve_with_symbol(self.u_rows, self.u_cols, coalesced_vals, residual, self._handle_wrapper.handle)
         return lx.Solution(value=solution, result=lx.RESULTS.successful, state=None, stats={})
 
     @classmethod
@@ -349,7 +346,8 @@ class KLUSplitSolver(CircuitLinearSolver):
         u_cols = (unique_hashes % sys_size).astype(np.int32)
         n_unique = int(len(unique_hashes))
 
-        symbolic = SymbolicHandleWrapper(klujax.analyze(u_rows, u_cols, sys_size))
+        symbolic = SymbolicHandleWrapper(klujax.analyze(u_rows, u_cols, sys_size),
+                                         free_callable=klujax.free_symbolic)
 
         return cls(
             u_rows=jnp.array(u_rows),
@@ -379,7 +377,7 @@ class KlursSplitSolver(KLUSplitSolver):
 
         # 3. Call klurs Wrapper
         #solution = klurs.solve_with_symbol(self.u_rows, self.u_cols, coalesced_vals, residual, self.symbolic_handle)
-        solution = klurs.solve_with_symbol(self.symbolic_handle, coalesced_vals, residual)
+        solution = klurs.solve_with_symbol(self._handle_wrapper.handle, coalesced_vals, residual)
         return lx.Solution(value=solution, result=lx.RESULTS.successful, state=None, stats={})
 
     # def __del__(self):
@@ -440,7 +438,8 @@ class KlursSplitSolver(KLUSplitSolver):
         u_cols = (unique_hashes % sys_size).astype(np.int32)
         n_unique = int(len(unique_hashes))
 
-        symbolic = SymbolicHandleWrapper(klurs.analyze(u_rows, u_cols, sys_size))
+        symbolic = SymbolicHandleWrapper(klurs.analyze(u_rows, u_cols, sys_size),
+                                         free_callable=klurs.free_symbolic)
 
         return cls(
             u_rows=jnp.array(u_rows),
@@ -486,11 +485,6 @@ class KLUSplitFactorSolver(KLUSplitSolver):
 
     g_leak: float = 1e-9
 
-    @property
-    def symbolic_handle(self):
-        """Convenience accessor to get the raw pointer."""
-        return self._handle_wrapper.handle
-
     def cleanup(self):
         del self._handle_wrapper
 
@@ -504,15 +498,15 @@ class KLUSplitFactorSolver(KLUSplitSolver):
             raw_vals, self.map_idx, num_segments=self.n_unique
         )
 
-        numeric = klujax.factor(self.u_rows, self.u_cols, coalesced_vals, self.symbolic_handle)
-        solution = klujax.solve_with_numeric(numeric, residual, self.symbolic_handle)
+        numeric = klujax.factor(self.u_rows, self.u_cols, coalesced_vals, self._handle_wrapper.handle)
+        solution = klujax.solve_with_numeric(numeric, residual, self._handle_wrapper.handle)
         # Free the numeric handle to prevent memory leaks in the C++ backend
         klujax.free_numeric(numeric)
         return lx.Solution(value=solution.reshape(residual.shape), result=lx.RESULTS.successful, state=None, stats={})
 
     def solve_with_frozen_jacobian(self, residual: jax.Array, numeric: jax.Array) -> lx.Solution:
         """Solve using pre-computed numeric factorization (for frozen Jacobian Newton)."""
-        solution = klujax.solve_with_numeric(numeric, residual, self.symbolic_handle)
+        solution = klujax.solve_with_numeric(numeric, residual, self._handle_wrapper.handle)
         return lx.Solution(value=solution.reshape(residual.shape), result=lx.RESULTS.successful, state=None, stats={})
     
     def factor_jacobian(self, all_vals: jax.Array) -> jax.Array:
