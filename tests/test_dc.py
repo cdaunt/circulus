@@ -16,7 +16,7 @@ def assemble_total_f(component_groups, y, t=0.0):
         physics_fn = partial(group.physics_func, t=t)
 
         def get_f_only(v, p):
-            return physics_fn(v, p)[0]
+            return physics_fn(y=v, args=p)[0]
 
         f_loc = jax.vmap(get_f_only)(v_locs, group.params)
         total_f = total_f.at[group.eq_indices].add(f_loc)

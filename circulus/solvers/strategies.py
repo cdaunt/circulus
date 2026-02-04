@@ -43,6 +43,27 @@ except ImportError:
 # Import physics assembly kernels (lazy import handled in methods if needed)
 from circulus.solvers.assembly import _assemble_system_complex, _assemble_system_real
 
+class SymbolicHandleWrapper:
+    """
+    A plain Python class to manage the lifecycle of the C pointer.
+    Equinox won't intercept attribute access on this class.
+    """
+    def __init__(self, handle):
+        self.handle = handle
+
+    def __del__(self):
+        # Guard against globals being None during interpreter shutdown
+        if klujax is None or self.handle is None:
+            return
+            
+        try:
+            # Assuming handle is a JAX array wrapping the pointer
+            # We only free if it's concrete (not a Tracer)
+            # Note: In standard Python usage, this will be concrete.
+            klujax.free_symbolic(self.handle)
+        except Exception:
+            pass
+
 # ==============================================================================
 # 1. ABSTRACT BASE CLASS
 # ==============================================================================
@@ -258,12 +279,20 @@ class KLUSplitSolver(CircuitLinearSolver):
     u_rows: jax.Array
     u_cols: jax.Array
     map_idx: jax.Array
-    symbolic_handle: jax.Array
 
     n_unique: int = eqx.field(static=True)
     sys_size: int = eqx.field(static=True)
+    _handle_wrapper: SymbolicHandleWrapper = eqx.field(static=True)
 
     g_leak: float = 1e-9
+
+    @property
+    def symbolic_handle(self):
+        """Convenience accessor to get the raw pointer."""
+        return self._handle_wrapper.handle
+
+    def cleanup(self):
+        del self._handle_wrapper
 
     def _solve_impl(self, all_vals: jax.Array, residual: jax.Array) -> lx.Solution:
         # 1. Prepare raw value vector including Ground and Leakage entries
@@ -280,25 +309,6 @@ class KLUSplitSolver(CircuitLinearSolver):
         # 3. Call KLU Wrapper
         solution = klujax.solve_with_symbol(self.u_rows, self.u_cols, coalesced_vals, residual, self.symbolic_handle)
         return lx.Solution(value=solution, result=lx.RESULTS.successful, state=None, stats={})
-    
-    def __del__(self):
-        self.cleanup()
-
-    def cleanup(self):
-        """Free the C++ symbolic handle. Call when done with the solver."""
-        # Check if handle exists and is not None
-        if hasattr(self, 'symbolic_handle') and self.symbolic_handle is not None:
-            # We must be careful not to free Tracers during JIT compilation.
-            # Tracers are instances of jax.core.Tracer.
-            # If we are inside JIT, calling free_symbolic creates a side-effect node
-            # which is fine (it gets DCE'd if unused), but for __del__ we want immediate host cleanup.
-            try:
-                # Eagerly call free if it's a concrete array
-                if isinstance(self.symbolic_handle, jax.Array):
-                     klujax.free_symbolic(self.symbolic_handle)
-            except Exception:
-                # Fallback or silence errors during shutdown
-                pass
 
     @classmethod
     def from_circuit(cls, component_groups: Dict[str, Any], num_vars: int, is_complex: bool = False) -> 'KLUSolver':
@@ -339,14 +349,14 @@ class KLUSplitSolver(CircuitLinearSolver):
         u_cols = (unique_hashes % sys_size).astype(np.int32)
         n_unique = int(len(unique_hashes))
 
-        symbolic = klujax.analyze(u_rows, u_cols, sys_size)
+        symbolic = SymbolicHandleWrapper(klujax.analyze(u_rows, u_cols, sys_size))
 
         return cls(
             u_rows=jnp.array(u_rows),
             u_cols=jnp.array(u_cols),
             map_idx=jnp.array(map_indices),
             n_unique=n_unique,
-            symbolic_handle=symbolic,
+            _handle_wrapper=symbolic,
             ground_indices=jnp.array(ground_idxs),
             sys_size=sys_size,
             is_complex=is_complex
@@ -372,24 +382,24 @@ class KlursSplitSolver(KLUSplitSolver):
         solution = klurs.solve_with_symbol(self.symbolic_handle, coalesced_vals, residual)
         return lx.Solution(value=solution, result=lx.RESULTS.successful, state=None, stats={})
 
-    def __del__(self):
-        self.cleanup()
+    # def __del__(self):
+    #     self.cleanup()
 
-    def cleanup(self):
-        """Free the C++ symbolic handle. Call when done with the solver."""
-        # Check if handle exists and is not None
-        if hasattr(self, 'symbolic_handle') and self.symbolic_handle is not None:
-            # We must be careful not to free Tracers during JIT compilation.
-            # Tracers are instances of jax.core.Tracer.
-            # If we are inside JIT, calling free_symbolic creates a side-effect node
-            # which is fine (it gets DCE'd if unused), but for __del__ we want immediate host cleanup.
-            try:
-                # Eagerly call free if it's a concrete array
-                if isinstance(self.symbolic_handle, jax.Array):
-                     klurs.free_symbolic(self.symbolic_handle)
-            except Exception:
-                # Fallback or silence errors during shutdown
-                pass
+    # def cleanup(self):
+    #     """Free the C++ symbolic handle. Call when done with the solver."""
+    #     # Check if handle exists and is not None
+    #     if hasattr(self, 'symbolic_handle') and self.symbolic_handle is not None:
+    #         # We must be careful not to free Tracers during JIT compilation.
+    #         # Tracers are instances of jax.core.Tracer.
+    #         # If we are inside JIT, calling free_symbolic creates a side-effect node
+    #         # which is fine (it gets DCE'd if unused), but for __del__ we want immediate host cleanup.
+    #         try:
+    #             # Eagerly call free if it's a concrete array
+    #             if isinstance(self.symbolic_handle, jax.Array):
+    #                  klurs.free_symbolic(self.symbolic_handle)
+    #         except Exception:
+    #             # Fallback or silence errors during shutdown
+    #             pass
 
     @classmethod
     def from_circuit(cls, component_groups: Dict[str, Any], num_vars: int, is_complex: bool = False) -> 'KLUSolver':
@@ -430,14 +440,14 @@ class KlursSplitSolver(KLUSplitSolver):
         u_cols = (unique_hashes % sys_size).astype(np.int32)
         n_unique = int(len(unique_hashes))
 
-        symbolic = klurs.analyze(u_rows, u_cols, sys_size)
+        symbolic = SymbolicHandleWrapper(klurs.analyze(u_rows, u_cols, sys_size))
 
         return cls(
             u_rows=jnp.array(u_rows),
             u_cols=jnp.array(u_cols),
             map_idx=jnp.array(map_indices),
             n_unique=n_unique,
-            symbolic_handle=symbolic,
+            _handle_wrapper=symbolic,
             ground_indices=jnp.array(ground_idxs),
             sys_size=sys_size,
             is_complex=is_complex
@@ -465,14 +475,24 @@ class KLUSplitFactorSolver(KLUSplitSolver):
     u_rows: jax.Array
     u_cols: jax.Array
     map_idx: jax.Array
-    symbolic_handle: jax.Array
-    
 
     n_unique: int = eqx.field(static=True)
     sys_size: int = eqx.field(static=True)
 
     g_leak: float = 1e-9
     #numeric_handle: Optional[jax.Array] = None
+
+    _handle_wrapper: SymbolicHandleWrapper = eqx.field(static=True)
+
+    g_leak: float = 1e-9
+
+    @property
+    def symbolic_handle(self):
+        """Convenience accessor to get the raw pointer."""
+        return self._handle_wrapper.handle
+
+    def cleanup(self):
+        del self._handle_wrapper
 
     def _solve_impl(self, all_vals: jax.Array, residual: jax.Array) -> lx.Solution:
         """Regular solve - does full factor + solve."""
@@ -508,24 +528,24 @@ class KLUSplitFactorSolver(KLUSplitSolver):
         return klujax.factor(self.u_rows, self.u_cols, coalesced_vals, self.symbolic_handle)
     
 
-    def __del__(self):
-        self.cleanup()
+    # def __del__(self):
+    #     self.cleanup()
 
-    def cleanup(self):
-        """Free the C++ symbolic handle. Call when done with the solver."""
-        # Check if handle exists and is not None
-        if hasattr(self, 'symbolic_handle') and self.symbolic_handle is not None:
-            # We must be careful not to free Tracers during JIT compilation.
-            # Tracers are instances of jax.core.Tracer.
-            # If we are inside JIT, calling free_symbolic creates a side-effect node
-            # which is fine (it gets DCE'd if unused), but for __del__ we want immediate host cleanup.
-            try:
-                # Eagerly call free if it's a concrete array
-                if isinstance(self.symbolic_handle, jax.Array):
-                     klujax.free_symbolic(self.symbolic_handle)
-            except Exception:
-                # Fallback or silence errors during shutdown
-                pass
+    # def cleanup(self):
+    #     """Free the C++ symbolic handle. Call when done with the solver."""
+    #     # Check if handle exists and is not None
+    #     if hasattr(self, 'symbolic_handle') and self.symbolic_handle is not None:
+    #         # We must be careful not to free Tracers during JIT compilation.
+    #         # Tracers are instances of jax.core.Tracer.
+    #         # If we are inside JIT, calling free_symbolic creates a side-effect node
+    #         # which is fine (it gets DCE'd if unused), but for __del__ we want immediate host cleanup.
+    #         try:
+    #             # Eagerly call free if it's a concrete array
+    #             if isinstance(self.symbolic_handle, jax.Array):
+    #                  klujax.free_symbolic(self.symbolic_handle)
+    #         except Exception:
+    #             # Fallback or silence errors during shutdown
+    #             pass
 
 
 

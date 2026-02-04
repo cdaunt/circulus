@@ -266,7 +266,7 @@ def compile_netlist(netlist: dict, models_map: dict):
             # The bridge expects (instance, vars, t)
             # The solver usually does: func(params, vars, t)
             # We just need to ensure the solver argument order matches.
-            physics_func=comp_cls.solver_bridge, 
+            physics_func=comp_cls.solver_call, 
             
             jac_rows=jac_rows,
             jac_cols=jac_cols,

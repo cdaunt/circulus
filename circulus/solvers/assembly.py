@@ -14,7 +14,7 @@ def _assemble_system_real(y_guess, component_groups, t1, dt):
         v_locs = y_guess[group.var_indices]
         
         # Physics & Derivatives
-        def physics_at_t1(v, p): return group.physics_func(v, p, t=t1)
+        def physics_at_t1(v, p): return group.physics_func(y=v, args=p, t=t1)
         (f_l, q_l) = jax.vmap(physics_at_t1)(v_locs, group.params)
         (df_l, dq_l) = jax.vmap(jax.jacfwd(physics_at_t1))(v_locs, group.params)
         
@@ -37,7 +37,7 @@ def _assemble_residual_only_real(y_guess, component_groups, t1, dt):
         group = component_groups[k]
         v = y_guess[group.var_indices]
 
-        def physics_at_t1(v, p): return group.physics_func(v, p, t=t1)
+        def physics_at_t1(v, p): return group.physics_func(y=v, args=p, t=t1)
 
         # Only primal evaluation - NO JACOBIAN
         f_l, q_l = jax.vmap(physics_at_t1)(v, group.params)
@@ -66,7 +66,7 @@ def _assemble_system_complex(y_guess, component_groups, t1, dt):
         # 1. Split Physics (Real -> Complex -> Real)
         def physics_split(vr, vi, p):
             v = vr + 1j * vi
-            f, q = group.physics_func(v, p, t=t1)
+            f, q = group.physics_func(y=v, args=p, t=t1)
             return f.real, f.imag, q.real, q.imag
 
         # 2. Primal & Residuals
@@ -105,7 +105,7 @@ def _assemble_residual_only_complex(y_guess, component_groups, t1, dt):
 
         def physics_split(vr, vi, p):
             v = vr + 1j * vi
-            f, q = group.physics_func(v, p, t=t1)
+            f, q = group.physics_func(y=v, args=p, t=t1)
             return f.real, f.imag, q.real, q.imag
 
         # Only primal evaluation - NO JACOBIAN
