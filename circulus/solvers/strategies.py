@@ -377,7 +377,7 @@ class KlursSplitSolver(KLUSplitSolver):
 
         # 3. Call klurs Wrapper
         #solution = klurs.solve_with_symbol(self.u_rows, self.u_cols, coalesced_vals, residual, self.symbolic_handle)
-        solution = klurs.solve_with_symbol(self._handle_wrapper.handle, coalesced_vals, residual)
+        solution = klurs.solve_with_symbol(self.u_rows, self.u_cols, coalesced_vals, residual, self._handle_wrapper.handle)
         return lx.Solution(value=solution, result=lx.RESULTS.successful, state=None, stats={})
 
     # def __del__(self):
@@ -438,8 +438,8 @@ class KlursSplitSolver(KLUSplitSolver):
         u_cols = (unique_hashes % sys_size).astype(np.int32)
         n_unique = int(len(unique_hashes))
 
-        symbolic = SymbolicHandleWrapper(klurs.analyze(u_rows, u_cols, sys_size),
-                                         free_callable=klurs.free_symbolic)
+        raw_symbol = klurs.analyze(u_rows, u_cols, sys_size)
+        symbolic = SymbolicHandleWrapper(raw_symbol, free_callable=klurs.free_symbolic)
 
         return cls(
             u_rows=jnp.array(u_rows),
