@@ -46,3 +46,4 @@ def update_group_params(groups_dict: dict,
     new_g = eqx.tree_at(lambda g: g.params, g, new_batched_comp)
     
     return {**groups_dict, group_name: new_g}
+

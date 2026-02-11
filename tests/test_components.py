@@ -24,7 +24,7 @@ jax.config.update("jax_enable_x64", True)
 
 # Helper to call the physics method in a standardized way
 def run_phys(component, v_dict, s_dict={}, t=0.0):
-    # Create namedtuples on the fly to simulate the solver_bridge's unpacking
+    # Create namedtuples on the fly to simulate the solver_call's unpacking
     if v_dict:
         Ports = namedtuple("Ports", v_dict.keys())
         v = Ports(**v_dict)
@@ -44,7 +44,7 @@ def run_phys(component, v_dict, s_dict={}, t=0.0):
 def test_resistor():
     r = Resistor(R=10.0)
     v_dict = {'p1': 5.0, 'p2': 0.0}
-    f, q = run_phys(r, v_dict)
+    f, q = r(**v_dict)
     
     expected_i = (v_dict['p1'] - v_dict['p2']) / (r.R + 1e-12)
     assert jnp.isclose(f['p1'], expected_i)
@@ -54,7 +54,7 @@ def test_resistor():
 def test_capacitor():
     c = Capacitor(C=1e-11)
     v_dict = {'p1': 2.0, 'p2': 1.0}
-    f, q = run_phys(c, v_dict)
+    f, q = c(**v_dict)
 
     assert not f # f should be an empty dict, meaning zero resistive current
     
@@ -66,14 +66,15 @@ def test_voltage_source_delay():
     vs = VoltageSource(V=5.0, delay=0.5)
     v_dict = {'p1': 0.0, 'p2': 0.0}
     s_dict = {'i_src': 0.0}
+    input_dict = {**v_dict, **s_dict}
 
     # Before delay
-    f0, q0 = run_phys(vs, v_dict, s_dict, t=0.0)
+    f0, q0 = vs(**input_dict, t=0.0)
     assert jnp.isclose(f0['i_src'], 0.0) # Constraint should be (0-0) - 0 = 0
     assert not q0
 
     # After delay
-    f1, q1 = run_phys(vs, v_dict, s_dict, t=1.0)
+    f1, q1 = vs(**input_dict, t=1.0)
     expected_constraint = (v_dict['p1'] - v_dict['p2']) - vs.V
     assert jnp.isclose(f1['i_src'], expected_constraint)
     assert not q1
@@ -82,8 +83,9 @@ def test_inductor():
     ind = Inductor(L=1e-9)
     v_dict = {'p1': 0.5, 'p2': 0.0}
     s_dict = {'i_L': 0.1}
+    input_dict = {**v_dict, **s_dict}
     
-    f, q = run_phys(ind, v_dict, s_dict)
+    f, q = ind(**input_dict)
     
     # Check f (resistive part)
     assert jnp.isclose(f['p1'], s_dict['i_L'])
@@ -97,7 +99,7 @@ def test_inductor():
 def test_diode_forward_bias():
     d = Diode()
     v_dict = {'p1': 0.7, 'p2': 0.0}
-    f, q = run_phys(d, v_dict)
+    f, q = d(**v_dict)
     assert f['p1'] > 0.0
     assert jnp.isclose(f['p1'], -f['p2'])
     assert not q
@@ -105,7 +107,7 @@ def test_diode_forward_bias():
 def test_current_source():
     cs = CurrentSource(I=2.0)
     v_dict = {'p1': 0.0, 'p2': 0.0}
-    f, q = run_phys(cs, v_dict)
+    f, q = cs(**v_dict)
     assert jnp.isclose(f['p1'], cs.I)
     assert jnp.isclose(f['p2'], -cs.I)
     assert not q
@@ -114,7 +116,9 @@ def test_vcvs():
     vcvs = VCVS(A=10.0)
     v_dict = {'out_p': 1.0, 'out_m': 0.0, 'ctrl_p': 0.2, 'ctrl_m': 0.0}
     s_dict = {'i_src': 0.0}
-    f, q = run_phys(vcvs, v_dict, s_dict)
+    
+    input_dict = {**v_dict, **s_dict}
+    f, q = vcvs(**input_dict)
     
     expected_constraint = (v_dict['out_p'] - v_dict['out_m']) - vcvs.A * (v_dict['ctrl_p'] - v_dict['ctrl_m'])
     assert jnp.isclose(f['i_src'], expected_constraint)
@@ -126,7 +130,8 @@ def test_ideal_opamp():
     opamp = IdealOpAmp(A=1e6)
     v_dict = {'out_p': 1.0, 'out_m': 0.0, 'in_p': 0.1, 'in_m': 0.0}
     s_dict = {'i_src': 0.0}
-    f, q = run_phys(opamp, v_dict, s_dict)
+    input_dict = {**v_dict, **s_dict}
+    f, q = opamp(**input_dict)
     
     expected_constraint = (v_dict['out_p'] - v_dict['out_m']) - opamp.A * (v_dict['in_p'] - v_dict['in_m'])
     assert jnp.isclose(f['i_src'], expected_constraint)
@@ -136,16 +141,17 @@ def test_ideal_opamp():
 
 # --- Base Component Tests ---
 
-def test_solver_bridge_resistor():
-    r = Resistor(R=100.0)
+def test_solver_call_resistor():
+    params = dict(R=100.0)
+    #Resistor.R = r
+    
     # vars_vec = [v_p1, v_p2]
     vars_vec = jnp.array([5.0, 1.0])
     
-    f_vec, q_vec = Resistor.solver_bridge(vars_vec, r, t=0.0)
+    f_vec, q_vec = Resistor.solver_call(t=0, y=vars_vec, args=params)
     
     # Expected current
-    i = (5.0 - 1.0) / (100.0 + 1e-12)
-    
+    i = (5.0 - 1.0) / (params['R'] + 1e-12)
     # f_vec should be [i, -i]
     assert f_vec.shape == (2,)
     assert jnp.allclose(f_vec, jnp.array([i, -i]))
@@ -154,12 +160,12 @@ def test_solver_bridge_resistor():
     assert q_vec.shape == (2,)
     assert jnp.allclose(q_vec, jnp.zeros(2))
 
-def test_solver_bridge_capacitor():
-    c = Capacitor(C=1e-9)
+def test_solver_call_capacitor():
+    params = dict(C=1e-9)
     # vars_vec = [v_p1, v_p2]
     vars_vec = jnp.array([3.0, 0.0])
     
-    f_vec, q_vec = Capacitor.solver_bridge(vars_vec, c, t=0.0)
+    f_vec, q_vec = Capacitor.solver_call(y=vars_vec, args=params, t=0.0)
     
     # Expected charge
     q_val = 1e-9 * (3.0 - 0.0)
