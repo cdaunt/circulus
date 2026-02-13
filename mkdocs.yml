@@ -64,6 +64,12 @@ plugins:
     - mkdocs-jupyter: 
         include_source: True  # Optional: Shows the 'source' of the notebook
         ignore_h1_titles: True
+        remove_tag_config:
+            remove_input_tags:
+            - remove-input      # The tag you added to hide code but keep output
+            - hide-input        # Optional: tag to just collapse it
+            remove_cell_tags:
+            - remove-cell       # Tag to remove both code AND output
     - literate-nav:
         nav_file: SUMMARY.md
     - mkdocstrings

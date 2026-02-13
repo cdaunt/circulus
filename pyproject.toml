@@ -4,7 +4,6 @@ requires-python = ">=3.12"
 dependencies = [
     "numpy",
     "ruff",
-    "klujax>=0.4.5,<0.5", 
     "jax>=0.7.1,<0.8", 
     "jaxlib>=0.7.1,<0.8",
     "diffrax>=0.7.0,<0.8", 
@@ -32,7 +31,9 @@ dev = [
   "mkdocstrings-python==1.16.8",
   "mkdocs-gen-files",
   "mkdocs-literate-nav",
-  "pymdown-extensions==10.14.3"
+  "pymdown-extensions==10.14.3",
+  "schemdraw",
+  "papermill"
 ]
 
 [tool.pixi.workspace]
@@ -62,7 +63,7 @@ filterwarnings = [
 #test = ["test"]
 #
 [tool.pixi.dependencies]
-python = "==3.13"
+python = "==3.13.12"
 tqdm = ">=4.67.1,<5"
 
 
@@ -72,7 +73,8 @@ dev = {features = ["dev"], solve-group = "default"}
 
 [tool.pixi.feature.dev.tasks]
 copy_readme = "cp ReadMe.md docs/index.md"
-copy-examples = "rm -rf docs/examples/*.ipynb && mkdir -p docs/examples && cp -r examples/* docs/examples/"
+clean_old_docs = "rm -rf docs/examples/*.ipynb || true"
+copy-examples = {cmd = ["mkdir","-p","docs/examples", "&&", "cp", "-r", "examples/*", "docs/examples/"], depends-on = ["clean_old_docs",] }
 install_ipkernel  = "python -m ipykernel install --user --name circulus"
 docs-serve = { cmd = ["mkdocs", "serve"], depends-on = ["copy_readme", "copy-examples", "install_ipkernel"] }
 pytest_run = "pytest tests"
