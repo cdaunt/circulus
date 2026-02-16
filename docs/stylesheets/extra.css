@@ -1,0 +1,9 @@
+/* Light mode - black logo */
+[data-md-color-scheme="white"] img[src="images/logo.svg"] {
+    filter: brightness(0);
+}
+
+/* Dark mode - white logo */
+[data-md-color-scheme="slate"] img[src="images/logo.svg"] {
+    filter: brightness(0) invert(1);
+}
