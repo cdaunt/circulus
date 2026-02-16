@@ -31,9 +31,17 @@ dev = [
   "mkdocstrings-python==1.16.8",
   "mkdocs-gen-files",
   "mkdocs-literate-nav",
-  "pymdown-extensions==10.14.3",
+  "pymdown-extensions",
   "schemdraw",
-  "papermill"
+  "papermill",
+  "mkdocs_matplotlib",
+  #"mkdocs-bibtex",
+  "mkautodoc>=0.2.0",
+  "mkdocs-autorefs>=1.3.0",
+  "mkdocs-bibtex>=4.4.0",
+  "mkdocs-material>=9.6.0",
+  "mkdocs>=1.6.1",
+  "mkdocstrings[python]>=0.27.0",
 ]
 
 [tool.pixi.workspace]
@@ -76,5 +84,5 @@ copy_readme = "cp ReadMe.md docs/index.md"
 clean_old_docs = "rm -rf docs/examples/*.ipynb || true"
 copy-examples = {cmd = ["mkdir","-p","docs/examples", "&&", "cp", "-r", "examples/*", "docs/examples/"], depends-on = ["clean_old_docs",] }
 install_ipkernel  = "python -m ipykernel install --user --name circulus"
-docs-serve = { cmd = ["mkdocs", "serve"], depends-on = ["copy_readme", "copy-examples", "install_ipkernel"] }
+docs-serve = { cmd = ["mkdocs", "serve", "-w", "docs"], depends-on = ["copy_readme", "copy-examples", "install_ipkernel"] }
 pytest_run = "pytest tests"

@@ -2,7 +2,7 @@
 
 Circulus uses a functional, JAX-first approach to component definition. Instead of inheriting from complex base classes, you define components as pure Python functions decorated with specific handlers.
 
-This architecture ensures your components are automatically compatible with JIT compilation (```jax.jit```), vectorization (```jax.vmap```), and back-propagation (```jax.grad```).
+This architecture ensures your components are automatically compatible with JIT compilation (jax.jit), vectorization (jax.vmap), and back-propagation (jax.grad).
 
 ### The Core Concept
 
@@ -29,23 +29,23 @@ def MyComponent(signals, s, [t], **params):
 
 The function must return a tuple of two dictionaries: ```(f_dict, q_dict)```.
 
-* ```f_dict``` (The Flow/Balance Vector):
+    * ```f_dict``` (The Flow/Balance Vector):
 
-    * For Ports: Represents the "Flow" (Current) entering the node.
+        * For Ports: Represents the "Flow" (Current) entering the node.
 
-    * For States: Represents the algebraic constraint (should sum to 0).
+        * For States: Represents the algebraic constraint (should sum to 0).
 
-* ```q_dict``` (The Storage Vector):
+    * ```q_dict``` (The Storage Vector):
 
-    * Represents the time-dependent quantity (Charge, Flux) stored in a variable.
+        * Represents the time-dependent quantity (Charge, Flux) stored in a variable.
 
-    * The solver computes $\frac{d}{dt}(q\_dict)$.
+        * The solver computes $\frac{d}{dt}(q\_dict)$.
 
 1. Electronic Components (Time-Invariant)
 
 Most passive components (Resistors, Transistors, Diodes) do not depend explicitly on time t. For these, use the @component decorator.
 
-**Example: A Simple Resistor**
+Example: A Simple Resistor
 
 ```python
 import jax.numpy as jnp
@@ -74,9 +74,9 @@ def Resistor(signals: Signals, s: States, R: float = 1e3):
 ```
 
 
-**Example: A Capacitor (Time-Derivative)**
+Example: A Capacitor (Time-Derivative)
 
-For reactive components, use the second return dictionary (```q_dict```) to define what is being differentiated.
+For reactive components, use the second return dictionary (q_dict) to define what is being differentiated.
 
 ```python
 @component(ports=("p", "n"))
@@ -98,16 +98,15 @@ def Capacitor(signals: Signals, s: States, C: float = 1e-6):
 
 2. Time-Dependent Sources
 
-If your component varies with time (e.g., AC source, Pulse generator), use the @source decorator. This injects ```t``` as the third argument.
+If your component varies with time (e.g., AC source, Pulse generator), use the @source decorator. This injects t as the third argument.
 
-**Example: AC Voltage Source**
+Example: AC Voltage Source
 
 Voltage sources require an Internal State variable (i_src) to represent the current flowing through the source. This is because the voltage is fixed, so the current is the unknown variable the solver must find.
 
-
-```python
 from circulus.base_component import source
 
+```python
 @source(ports=("p", "n"), states=("i_src",))
 def ACSource(signals: Signals, s: States, t: float, V: float = 1.0, freq: float = 60.0):
     # 1. Calculate Target Voltage based on time 't'
@@ -133,7 +132,7 @@ def ACSource(signals: Signals, s: States, t: float, V: float = 1.0, freq: float 
 
 Circulus can simulate photonic circuits by treating them as complex-valued resistor networks. You typically start with an S-Matrix, convert it to an Admittance (Y) Matrix, and calculate currents via $I = Y \cdot V$.
 
-**Example: Optical Waveguide**
+Example: Optical Waveguide
 
 ```python
 from circulus.s_transforms import s_to_y
@@ -203,16 +202,15 @@ When you write:
 ```python
 @component(ports=("a", "b"))
 def MyResistor(signals, s, R=100.0):
-...
-
+```
 
 The decorator performs the following steps:
 
-1. Introspection: It analyzes the function signature to identify parameters (R) and their default values (100.0).
+Introspection: It analyzes the function signature to identify parameters (R) and their default values (100.0).
 
-2. Class Generation: It constructs a new eqx.Module class named MyResistor.
+Class Generation: It constructs a new eqx.Module class named MyResistor.
 
-3. Field Registration: The parameters (R) become fields of this class. This allows JAX to differentiate with respect to R automatically.
+Field Registration: The parameters (R) become fields of this class. This allows JAX to differentiate with respect to R automatically.
 
-4. Static Optimization: It creates a static _fast_physics method that unrolls dictionary lookups into raw array operations. This is what the solver calls inside jax.jit or jax.vmap.
+Static Optimization: It creates a static _fast_physics method that unrolls dictionary lookups into raw array operations. This is what the solver calls inside jax.jit or jax.vmap.
 
