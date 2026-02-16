@@ -53,7 +53,7 @@ plugins:
     - mkdocs-jupyter: 
         #include_source: True  # Optional: Shows the 'source' of the notebook
         ignore_h1_titles: True
-        execute: false
+        execute: True
         include_source: False
         remove_tag_config:
             remove_input_tags:
