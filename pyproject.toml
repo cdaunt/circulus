@@ -75,4 +75,5 @@ copy-examples = {cmd = ["mkdir","-p","docs/examples", "&&", "cp", "-r", "example
 install_ipkernel  = "python -m ipykernel install --user --name circulus"
 docs-serve = { cmd = ["mkdocs", "serve", "-w", "docs"], depends-on = ["copy_readme", "copy-examples", "install_ipkernel"] }
 pytest_run = "pytest tests"
-lint = "ruff lint"
+lint_format = "ruff format"
+lint_check = "ruff -v check"

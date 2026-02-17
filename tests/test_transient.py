@@ -9,6 +9,7 @@ from circulus.solvers.transient import VectorizedTransientSolver
 
 solvers = [st.KLUSolver, st.SparseSolver, st.DenseSolver, st.KLUSplitSolver]
 
+
 @pytest.mark.parametrize("solver", solvers, ids=lambda x: x.__name__)
 def test_short_transient_runs_float(simple_lrc_netlist, solver):
     net_dict, models_map = simple_lrc_netlist
@@ -29,12 +30,20 @@ def test_short_transient_runs_float(simple_lrc_netlist, solver):
     saveat = diffrax.SaveAt(ts=jnp.linspace(0, t_max, 5))
 
     sol = diffrax.diffeqsolve(
-        term, solver, t0=0.0, t1=t_max, dt0=1e-3 * t_max,
-        y0=y_op, args=(groups, sys_size), saveat=saveat, max_steps=1000
+        term,
+        solver,
+        t0=0.0,
+        t1=t_max,
+        dt0=1e-3 * t_max,
+        y0=y_op,
+        args=(groups, sys_size),
+        saveat=saveat,
+        max_steps=1000,
     )
 
     assert sol.ys.shape == (5, sys_size)
     assert jnp.isfinite(sol.ys).all()
+
 
 @pytest.mark.parametrize("solver", solvers, ids=lambda x: x.__name__)
 def test_short_transient_runs_complex(simple_optical_netlist, solver):
@@ -47,7 +56,7 @@ def test_short_transient_runs_complex(simple_optical_netlist, solver):
     y_guess_flat = jnp.zeros(sys_size * 2, dtype=jnp.float64)
     y_op_flat = linear_strat.solve_dc(groups, y_guess_flat)
 
-    assert y_op_flat.shape[0] == 2*sys_size
+    assert y_op_flat.shape[0] == 2 * sys_size
 
     solver = VectorizedTransientSolver(linear_solver=linear_strat)
     term = diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y))
@@ -66,8 +75,8 @@ def test_short_transient_runs_complex(simple_optical_netlist, solver):
         saveat=saveat,
         max_steps=100000,
         throw=False,
-        stepsize_controller=diffrax.PIDController(rtol=1e-4, atol=1e-6)
+        stepsize_controller=diffrax.PIDController(rtol=1e-4, atol=1e-6),
     )
 
-    assert sol.ys.shape == (500, 2*sys_size)
+    assert sol.ys.shape == (500, 2 * sys_size)
     assert jnp.isfinite(sol.ys).all()

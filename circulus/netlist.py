@@ -21,8 +21,9 @@ import matplotlib.pyplot as plt
 import matplotlib
 
 
-
-Connections: TypeAlias = dict[InstancePort, Union[InstancePort, Tuple[InstancePort, ...]]]
+Connections: TypeAlias = dict[
+    InstancePort, Union[InstancePort, Tuple[InstancePort, ...]]
+]
 
 CirculusNetlist = Annotated[
     TypedDict(
@@ -52,8 +53,8 @@ Attributes:
 
 Netlist = CirculusNetlist
 
-#Monkeypatch sax.Netlist to be CirculusNetlist so that all functions using sax.Netlist
-#May need to make this explicit in the future
+# Monkeypatch sax.Netlist to be CirculusNetlist so that all functions using sax.Netlist
+# May need to make this explicit in the future
 sax_netlist.Netlist = CirculusNetlist  # type: ignore[assignment]
 
 
@@ -65,31 +66,31 @@ def build_net_map(netlist: dict) -> Tuple[Dict[str, int], int]:
         num_nets: Total number of unique electrical nodes (excluding Ground)
     """
     g = nx.Graph()
-    
+
     # Add connections
     for src, targets in netlist.get("connections", {}).items():
         if isinstance(targets, str):
             targets = [targets]
         for tgt in targets:
             g.add_edge(src, tgt)
-            
+
     # Find connected components (nets)
     components = list(nx.connected_components(g))
-    components.sort(key=lambda x: natsorted(list(x))[0]) # Deterministic sort
+    components.sort(key=lambda x: natsorted(list(x))[0])  # Deterministic sort
 
     port_to_idx = {}
-    current_idx = 1 # Start at 1, 0 is reserved for Ground
+    current_idx = 1  # Start at 1, 0 is reserved for Ground
 
     for comp in components:
-        is_ground = any('GND' in node for node in comp)
+        is_ground = any("GND" in node for node in comp)
         net_id = 0 if is_ground else current_idx
-        
+
         for node in comp:
             port_to_idx[node] = net_id
-            
+
         if not is_ground:
             current_idx += 1
-            
+
     return port_to_idx, current_idx
 
 
@@ -143,24 +144,26 @@ def draw_circuit_graph(
     # 2. Add Instance Nodes
     instances = netlist.get("instances", {})
     for name in instances:
-        if name == 'GND':
-            G.add_node(name, color='black', size=1500, label=name)
+        if name == "GND":
+            G.add_node(name, color="black", size=1500, label=name)
         else:
-            G.add_node(name, color='red', size=2000, label=name)
+            G.add_node(name, color="red", size=2000, label=name)
 
     # 3. Add Port Nodes & Internal Connections
     net_groups = {}
 
     for port_str, net_idx in port_map.items():
-        if ',' not in port_str:
+        if "," not in port_str:
             continue
 
-        inst_name, pin_name = port_str.split(',', 1)
+        inst_name, pin_name = port_str.split(",", 1)
 
-        G.add_node(port_str, color='skyblue', size=300, label=pin_name, parent=inst_name)
+        G.add_node(
+            port_str, color="skyblue", size=300, label=pin_name, parent=inst_name
+        )
 
         if inst_name in G.nodes:
-            G.add_edge(inst_name, port_str, weight=10, type='internal')
+            G.add_edge(inst_name, port_str, weight=10, type="internal")
 
         if net_idx not in net_groups:
             net_groups[net_idx] = []
@@ -172,15 +175,17 @@ def draw_circuit_graph(
     for net_idx, ports in net_groups.items():
         if len(ports) > 1:
             for i in range(len(ports) - 1):
-                u, v = ports[i], ports[i+1]
-                G.add_edge(u, v, weight=1, type='external')
+                u, v = ports[i], ports[i + 1]
+                G.add_edge(u, v, weight=1, type="external")
                 edge_labels[(u, v)] = str(net_idx)
 
     # 5. Build a smart initial position: instances spread out, ports near their parent
     def make_initial_pos(seed):
         rng = np.random.default_rng(seed)
         pos = {}
-        instance_nodes = [n for n, d in G.nodes(data=True) if d.get('color') in ['red', 'black']]
+        instance_nodes = [
+            n for n, d in G.nodes(data=True) if d.get("color") in ["red", "black"]
+        ]
 
         # Place instances on a rough grid / random spread
         for name in instance_nodes:
@@ -188,8 +193,8 @@ def draw_circuit_graph(
 
         # Place each port with a small random offset from its parent
         for n, d in G.nodes(data=True):
-            if d.get('color') == 'skyblue':
-                parent = d.get('parent')
+            if d.get("color") == "skyblue":
+                parent = d.get("parent")
                 if parent and parent in pos:
                     pos[n] = pos[parent] + rng.uniform(-0.1, 0.1, size=2)
                 else:
@@ -202,6 +207,7 @@ def draw_circuit_graph(
 
         def segments_intersect(p1, p2, p3, p4):
             """Returns True if segment p1-p2 intersects p3-p4 (ignoring shared endpoints)."""
+
             def cross(o, a, b):
                 return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
@@ -210,8 +216,9 @@ def draw_circuit_graph(
             d3 = cross(p1, p2, p3)
             d4 = cross(p1, p2, p4)
 
-            if ((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0)) and \
-               ((d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0)):
+            if ((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0)) and (
+                (d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0)
+            ):
                 return True
             return False
 
@@ -232,18 +239,18 @@ def draw_circuit_graph(
 
     # 7. Run layout multiple times and keep the best result
     best_pos = None
-    best_crossings = float('inf')
+    best_crossings = float("inf")
 
     for attempt in range(layout_attempts):
         seed = attempt  # deterministic across runs with same layout_attempts
         init_pos = make_initial_pos(seed)
         candidate_pos = nx.spring_layout(
             G,
-            pos=init_pos,    # warm start near the desired structure
-            fixed=None,      # let everything move, but start well
+            pos=init_pos,  # warm start near the desired structure
+            fixed=None,  # let everything move, but start well
             k=0.5,
-            iterations=80,   # more iterations since we have a good warm start
-            weight='weight',
+            iterations=80,  # more iterations since we have a good warm start
+            weight="weight",
             seed=seed,
         )
         crossings = count_crossings(candidate_pos)
@@ -256,33 +263,51 @@ def draw_circuit_graph(
     # 8. Drawing Configuration
     fig = plt.figure(figsize=(10, 8))
 
-    instance_nodes = [n for n, d in G.nodes(data=True) if d.get('color') in ['red', 'black']]
-    port_nodes = [n for n, d in G.nodes(data=True) if d.get('color') == 'skyblue']
+    instance_nodes = [
+        n for n, d in G.nodes(data=True) if d.get("color") in ["red", "black"]
+    ]
+    port_nodes = [n for n, d in G.nodes(data=True) if d.get("color") == "skyblue"]
 
-    nx.draw_networkx_nodes(G, pos, nodelist=instance_nodes,
-                           node_color=[G.nodes[n]['color'] for n in instance_nodes],
-                           node_size=[G.nodes[n]['size'] for n in instance_nodes])
+    nx.draw_networkx_nodes(
+        G,
+        pos,
+        nodelist=instance_nodes,
+        node_color=[G.nodes[n]["color"] for n in instance_nodes],
+        node_size=[G.nodes[n]["size"] for n in instance_nodes],
+    )
 
-    nx.draw_networkx_labels(G, pos, labels={n: n for n in instance_nodes},
-                            font_color='white', font_weight='bold')
+    nx.draw_networkx_labels(
+        G,
+        pos,
+        labels={n: n for n in instance_nodes},
+        font_color="white",
+        font_weight="bold",
+    )
 
-    nx.draw_networkx_nodes(G, pos, nodelist=port_nodes,
-                           node_color='skyblue', node_size=300)
+    nx.draw_networkx_nodes(
+        G, pos, nodelist=port_nodes, node_color="skyblue", node_size=300
+    )
 
-    port_labels = {n: G.nodes[n]['label'] for n in port_nodes}
-    nx.draw_networkx_labels(G, pos, labels=port_labels, font_size=8, font_color='black')
+    port_labels = {n: G.nodes[n]["label"] for n in port_nodes}
+    nx.draw_networkx_labels(G, pos, labels=port_labels, font_size=8, font_color="black")
 
-    internal_edges = [(u, v) for u, v, d in G.edges(data=True) if d.get('type') == 'internal']
+    internal_edges = [
+        (u, v) for u, v, d in G.edges(data=True) if d.get("type") == "internal"
+    ]
     nx.draw_networkx_edges(G, pos, edgelist=internal_edges, width=2.0, alpha=0.5)
 
-    external_edges = [(u, v) for u, v, d in G.edges(data=True) if d.get('type') == 'external']
-    nx.draw_networkx_edges(G, pos, edgelist=external_edges, width=1.5, style='dashed', edge_color='gray')
+    external_edges = [
+        (u, v) for u, v, d in G.edges(data=True) if d.get("type") == "external"
+    ]
+    nx.draw_networkx_edges(
+        G, pos, edgelist=external_edges, width=1.5, style="dashed", edge_color="gray"
+    )
 
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='blue')
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color="blue")
 
     ax = plt.gca()
     ax.set_title(f"Circuit Connectivity Graph")
-    ax.axis('off')
+    ax.axis("off")
     fig.tight_layout()
 
     if show:
@@ -290,7 +315,8 @@ def draw_circuit_graph(
 
     return fig
 
-#being explicit here
+
+# being explicit here
 Port = sax.Port
 Ports = sax.Ports
 Net = sax.Net
