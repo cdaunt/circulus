@@ -58,18 +58,7 @@ filterwarnings = [
 
 [tool.pixi.pypi-dependencies]
 
-#[tool.pixi.tasks]
-#lint = "ruff lint"
 
-#[tool.pixi.feature.test.dependencies]
-#pytest = "*"
-#
-#[tool.pixi.feature.test.tasks]
-#test = "pytest"
-#
-#[tool.pixi.environments]
-#test = ["test"]
-#
 [tool.pixi.dependencies]
 python = "==3.13.12"
 tqdm = ">=4.67.1,<5"
@@ -86,3 +75,4 @@ copy-examples = {cmd = ["mkdir","-p","docs/examples", "&&", "cp", "-r", "example
 install_ipkernel  = "python -m ipykernel install --user --name circulus"
 docs-serve = { cmd = ["mkdocs", "serve", "-w", "docs"], depends-on = ["copy_readme", "copy-examples", "install_ipkernel"] }
 pytest_run = "pytest tests"
+lint = "ruff lint"
