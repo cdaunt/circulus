@@ -1,6 +1,5 @@
 import jax
 import jax.numpy as jnp
-import pytest
 from collections import namedtuple
 
 # Import components to be tested
@@ -133,6 +132,59 @@ def test_vcvs():
         v_dict["ctrl_p"] - v_dict["ctrl_m"]
     )
     assert jnp.isclose(f["i_src"], expected_constraint)
+    assert f["ctrl_p"] == 0.0
+    assert f["ctrl_m"] == 0.0
+    assert not q
+
+def test_ccvs():
+    ccvs = CCVS(R=5.0)
+    i_ctrl = 2.0
+    v_dict = {"out_p": 10.0, "out_m": 0.0, "in_p": 0.0, "in_m": 0.0}
+    s_dict = {"i_src": 1.0, "i_ctrl": i_ctrl}
+    f, q = ccvs(**{**v_dict, **s_dict})
+
+    # Output constraint: v_out - R * i_ctrl == 0
+    assert jnp.isclose(f["i_src"], 0.0)
+    # Input short-circuit constraint: v_in == 0
+    assert jnp.isclose(f["i_ctrl"], 0.0)
+    # Port flows
+    assert jnp.isclose(f["out_p"],  s_dict["i_src"])
+    assert jnp.isclose(f["out_m"], -s_dict["i_src"])
+    assert jnp.isclose(f["in_p"],   i_ctrl)
+    assert jnp.isclose(f["in_m"],  -i_ctrl)
+    assert not q
+
+
+def test_cccs():
+    alpha = 4.0
+    i_ctrl = 0.5
+    cccs = CCCS(alpha=alpha)
+    v_dict = {"out_p": 1.0, "out_m": 0.0, "in_p": 0.0, "in_m": 0.0}
+    s_dict = {"i_ctrl": i_ctrl}
+    f, q = cccs(**{**v_dict, **s_dict})
+
+    # Output current: alpha * i_ctrl
+    assert jnp.isclose(f["out_p"],  alpha * i_ctrl)
+    assert jnp.isclose(f["out_m"], -alpha * i_ctrl)
+    # Input short-circuit constraint: v_in == 0
+    assert jnp.isclose(f["i_ctrl"], 0.0)
+    # Input port flows
+    assert jnp.isclose(f["in_p"],  i_ctrl)
+    assert jnp.isclose(f["in_m"], -i_ctrl)
+    assert not q
+
+
+def test_vccs():
+    G = 0.02
+    v_ctrl = 1.5
+    vccs = VCCS(G=G)
+    v_dict = {"out_p": 5.0, "out_m": 0.0, "ctrl_p": v_ctrl, "ctrl_m": 0.0}
+    f, q = vccs(**v_dict)
+
+    # Output current: G * v_ctrl
+    assert jnp.isclose(f["out_p"],  G * v_ctrl)
+    assert jnp.isclose(f["out_m"], -G * v_ctrl)
+    # Control side draws no current
     assert f["ctrl_p"] == 0.0
     assert f["ctrl_m"] == 0.0
     assert not q
