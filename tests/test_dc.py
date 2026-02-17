@@ -4,7 +4,7 @@ from functools import partial
 import pytest
 
 from circulus.compiler import compile_netlist
-from circulus.solvers import strategies as st
+from circulus.solvers import linear as st
 
 solvers = [st.KLUSolver, st.SparseSolver, st.DenseSolver, st.KLUSplitSolver, st.KlursSplitSolver]
 

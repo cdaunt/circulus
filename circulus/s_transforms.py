@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import inspect
 from sax import sdense, get_ports
-from circulus.base_component import component, Signals, States
+from circulus.components.base_component import component, Signals, States
 
 
 @jax.jit

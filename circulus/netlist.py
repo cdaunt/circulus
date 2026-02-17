@@ -18,6 +18,7 @@ import sax.saxtypes.netlist as sax_netlist
 from natsort import natsorted
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 
 
 
@@ -92,16 +93,46 @@ def build_net_map(netlist: dict) -> Tuple[Dict[str, int], int]:
     return port_to_idx, current_idx
 
 
-def draw_circuit_graph(netlist, show=True, layout_attempts=10):
-    """
-    Visualizes the circuit netlist as a graph.
-    - Instances are large Red nodes.
-    - Ports are small SkyBlue nodes attached to instances.
-    - Wires are edges between Ports, labeled with the Net Index.
+def draw_circuit_graph(
+    netlist: dict[str, dict],
+    show: bool = True,
+    layout_attempts: int = 10,
+) -> matplotlib.figure.Figure:
+    """Visualize a circuit netlist as a connectivity graph.
 
-    Improvements:
-    - Ports are initialized near their parent instance to encourage tight clustering.
-    - Layout is attempted multiple times; the result with fewest edge crossings is used.
+    Nodes are split into two categories:
+      - Instance nodes: large circles (red for components, black for GND)
+        representing circuit components.
+      - Port nodes: small skyblue circles representing the pins on each
+        component. Each port is drawn close to its parent instance.
+
+    Edges are split into two categories:
+      - Internal edges: solid lines connecting each port to its parent instance.
+      - External edges (wires): dashed gray lines connecting ports that share
+        the same net, labelled with the net index.
+
+    The layout is computed by running ``networkx.spring_layout`` up to
+    ``layout_attempts`` times with different seeds. Each candidate layout is
+    scored by counting proper edge-segment crossings, and the layout with the
+    fewest crossings is used. Port nodes are warm-started near their parent
+    instance to encourage tight visual clustering regardless of which seed wins.
+
+    Args:
+        netlist: Circuit description dict. Must contain an ``"instances"`` key
+            mapping component names to their data. Connectivity is derived via
+            ``build_net_map``, which returns a port map of the form
+            ``"InstanceName,PinName" -> net_index``.
+        show: If ``True``, call ``plt.show()`` before returning. Set to
+            ``False`` when embedding the figure in a larger application or
+            when running in a non-interactive environment.
+        layout_attempts: Number of spring-layout seeds to try. The candidate
+            with the fewest edge crossings is kept. Higher values improve
+            crossing minimisation at the cost of extra compute time.
+            Defaults to ``10``; values between ``20`` and ``30`` are
+            reasonable for larger netlists.
+
+    Returns:
+        The :class:`matplotlib.figure.Figure` containing the rendered graph.
     """
 
     # 1. Get Connectivity Data

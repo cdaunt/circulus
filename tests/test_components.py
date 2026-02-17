@@ -4,7 +4,7 @@ import pytest
 from collections import namedtuple
 
 # Import components to be tested
-from circulus.components import (
+from circulus.components.electronic import (
     Resistor,
     Capacitor,
     Inductor,
@@ -17,7 +17,7 @@ from circulus.components import (
     CCCS,
     IdealOpAmp,
 )
-from circulus.base_component import CircuitComponent
+from circulus.components.base_component import CircuitComponent
 
 # Enable x64 for precision
 jax.config.update("jax_enable_x64", True)

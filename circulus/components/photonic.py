@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 import jax.nn as jnn
-from circulus.base_component import component, source, Signals, States
+from circulus.components.base_component import component, source, Signals, States
 from circulus.s_transforms import s_to_y
 
 # ===========================================================================

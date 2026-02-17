@@ -2,12 +2,15 @@ import diffrax
 import jax
 import jax.numpy as jnp
 import optimistix as optx
-from circulus.solvers.strategies import CircuitLinearSolver
+from circulus.solvers.linear import CircuitLinearSolver
 from circulus.solvers.assembly import (_assemble_system_complex, 
                                        _assemble_system_real, 
                                        _assemble_residual_only_real, 
                                        _assemble_residual_only_complex)
 from klujax import free_numeric
+from diffrax import ConstantStepSize
+from typing import Callable
+from jax.typing import ArrayLike
 
 def _compute_history(component_groups, y_c, t, num_vars):
     """Computes total charge Q at time t (Initial Condition)."""
@@ -203,3 +206,90 @@ class FactorizedTransientSolver(VectorizedTransientSolver):
         )
 
         return y_next, y_error, {"y0": y0, "y1": y_next}, (y0, dt), result
+
+
+def setup_transient(groups: list, 
+                    linear_strategy: CircuitLinearSolver, 
+                    transient_solver=None) -> Callable[..., diffrax.Solution]: # Replace Any with diffrax.Solution if available
+    
+    """Configures and returns a function for executing transient analysis.
+
+    This function acts as a factory, preparing a transient solver that is
+    pre-configured with the circuit's linear strategy. It returns a callable
+    that executes the time-domain simulation using `diffrax.diffeqsolve`.
+
+    Args:
+        groups (list): A list of component groups that define the circuit.
+        linear_strategy (CircuitLinearSolver): The configured linear solver
+            strategy, typically obtained from `analyze_circuit`.
+        transient_solver (optional): The transient solver class to use. 
+            If None, `VectorizedTransientSolver` will be used.
+
+    Returns:
+        Callable[..., Any]: A function that executes the transient analysis.
+        This returned function accepts the following arguments:
+
+            t0 (float): The start time of the simulation.
+            t1 (float): The end time of the simulation.
+            dt0 (float): The initial time step for the solver.
+            y0 (ArrayLike): The initial state vector of the system.
+            saveat (diffrax.SaveAt, optional): Specifies time points at which
+                to save the solution. Defaults to None.
+            max_steps (int, optional): The maximum number of steps the solver
+                can take. Defaults to 100000.
+            throw (bool, optional): If True, the solver will raise an error on
+                failure. Defaults to False.
+            term (diffrax.AbstractTerm, optional): The term defining the ODE.
+                Defaults to a zero-value ODETerm.
+            stepsize_controller (diffrax.AbstractStepSizeController, optional):
+                The step size controller. Defaults to `ConstantStepSize()`.
+            **kwargs: Additional keyword arguments to pass directly to
+                `diffrax.diffeqsolve`.
+    """
+
+    
+
+
+    if transient_solver is None:
+        transient_solver = VectorizedTransientSolver
+
+    tsolver = transient_solver(linear_solver=linear_strategy)
+    
+    sys_size = linear_strategy.sys_size // 2 if linear_strategy.is_complex else linear_strategy.sys_size
+    
+
+    def _execute_transient(*, 
+                           t0: float, 
+                           t1: float, 
+                           dt0: float, 
+                           y0: ArrayLike, 
+                           saveat: diffrax.SaveAt = None,
+                           max_steps: int = 100000,
+                           throw: bool = False,
+                           **kwargs) -> diffrax.Solution:
+        """Executes the transient simulation for the pre-configured circuit."""
+
+        term = kwargs.pop('term', 
+                          diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y)))
+        solver = kwargs.pop('solver', tsolver)
+        args = kwargs.pop('args', (groups, sys_size))   
+        stepsize_controller = kwargs.pop('stepsize_controller', ConstantStepSize())
+
+        sol = diffrax.diffeqsolve(
+            terms=term,
+            solver=solver,
+            t0=t0,
+            t1=t1,
+            dt0=dt0, 
+            y0=y0,
+            args=args,
+            saveat=saveat,
+            max_steps=max_steps,
+            throw=throw,
+            stepsize_controller=stepsize_controller,
+            **kwargs
+        )
+
+        return sol
+    
+    return _execute_transient

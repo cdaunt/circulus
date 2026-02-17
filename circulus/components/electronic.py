@@ -4,7 +4,7 @@ import jax.nn as jnn
 from typing import Callable, Any
 
 # Adjust this import based on where you saved the decorator code
-from circulus.base_component import component, source, Signals, States
+from circulus.components.base_component import component, source, Signals, States
 
 # ===========================================================================
 # Passive Components (Time-Invariant)

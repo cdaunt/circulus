@@ -43,6 +43,7 @@ except ImportError:
 # Import physics assembly kernels (lazy import handled in methods if needed)
 from circulus.solvers.assembly import _assemble_system_complex, _assemble_system_real
 
+
 class SymbolicHandleWrapper:
     """
     A plain Python class to manage the lifecycle of the C pointer.
@@ -872,3 +873,54 @@ class SparseSolver(CircuitLinearSolver):
             ground_indices=jnp.array(ground_idxs),
             is_complex=is_complex
         )
+    
+backends = {'default': KLUSolver,
+            'klu': KLUSolver,
+            'klu_split': KLUSplitSolver,
+            'dense': DenseSolver,
+            'sparse': SparseSolver}
+
+
+def analyze_circuit(groups: list, 
+                    num_vars: int, 
+                    backend: str = 'default', 
+                    is_complex: bool = False) -> CircuitLinearSolver:
+    """Initializes a linear solver strategy for circuit analysis.
+
+    This function serves as a factory and wrapper to select and configure the
+    appropriate numerical backend for solving the linear system of equations
+    derived from a circuit's topology.
+
+    Args:
+        groups (list): A list of component groups that define the circuit's
+            structure and properties.
+        num_vars (int): The total number of variables in the linear system.
+        backend (str, optional): The name of the solver backend to use. 
+            Supported backends are 'klu', 'klu_split', 'dense', and 'sparse'.
+            Defaults to 'default', which uses the 'klu' solver.
+        is_complex (bool, optional): A flag indicating whether the circuit
+            analysis involves complex numbers. Defaults to False.
+
+    Returns:
+        CircuitLinearSolver: An instance of a circuit linear solver strategy
+        configured for the specified backend and circuit parameters.
+
+    Raises:
+        ValueError: If the specified backend is not supported.
+    """
+    solver_class = backends.get(backend)
+    if solver_class is None:
+        raise ValueError(
+            f"Unknown backend: '{backend}'. "
+            f"Available backends are {list(backends.keys())}"
+        )
+
+    linear_strategy = solver_class.from_circuit(
+        groups, num_vars, is_complex=is_complex
+    )
+
+    return linear_strategy
+
+
+
+
