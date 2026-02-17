@@ -3,7 +3,7 @@
 <img src="images/logo.svg" alt="logo" width="500">
 
 ## **A Differentiable, Functional Circuit Simulator based on JAX**
-Circulus is a differentiable circuit simulation framework built on [JAX](https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html) and [Diffrax](https://docs.kidger.site/diffrax/). It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.
+Circulus is a differentiable circuit simulation framework built on [JAX](https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html), [Optimistix](https://github.com/patrick-kidger/optimistix) and [Diffrax](https://docs.kidger.site/diffrax/). It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.
 
 By using JAX as its backend, Circulus provides:
 
@@ -22,7 +22,7 @@ Standard tools (SPICE, Spectre, Ngspice) rely on established matrix stamping met
 | Model Definition    | Hardcoded C++ / Verilog-A | Simple python functions |
 | Derivatives   | Hardcoded (C) or Compiler-Generated (Verilog-A) | Automatic Differentiation (AD)|
 | Solver Logic |	Fixed-step or heuristic-based |	Adaptive ODE stepping via Diffrax |
-| Matrix Solver |	Monolithic CPU Sparse (KLU)	| Pluggable (KLUJAX, Dense, or Custom) |
+| Matrix Solver |	Monolithic CPU Sparse (KLU)	| Pluggable ([KLUJAX](https://github.com/flaport/klujax), Dense, or Custom) |
 | Hardware Target |	CPU-bound	| Agnostic (CPU/GPU/TPU) |
 
 

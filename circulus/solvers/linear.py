@@ -26,8 +26,7 @@ import equinox as eqx
 import optimistix as optx
 import lineax as lx
 import klujax
-from typing import Any, Dict, Optional, Tuple, Union
-from scipy.sparse import coo_matrix
+from typing import Any, Dict
 
 try:
     import klujax_cpp
@@ -37,7 +36,8 @@ except ImportError:
 try:
     import klujax_rs as klurs
 except ImportError:
-    klurs = None
+    #Silently falling back to klujax until package is ready
+    klurs = klujax
 
 
 # Import physics assembly kernels (lazy import handled in methods if needed)

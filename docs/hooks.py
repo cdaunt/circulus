@@ -10,9 +10,6 @@ from textwrap import dedent
 from typing import Any
 import json
 
-import matplotlib.pyplot as plt
-
-import sax
 
 STYLE_CODE = """
 import matplotlib.pyplot as plt
@@ -132,9 +129,9 @@ def on_pre_page(page: Any, config: Any, files: Any, **kwargs: Any) -> Any:
     return page
 
 
-def on_page_read_source(page: Any, config: Any, **kwargs: Any) -> str | None:
-    """Called to read the raw source of a page."""
-    return None
+# def on_page_read_source(page: Any, config: Any, **kwargs: Any) -> str | None:
+#     """Called to read the raw source of a page."""
+#     return None
 
 
 def on_page_markdown(

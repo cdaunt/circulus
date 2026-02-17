@@ -51,10 +51,9 @@ platforms = ["linux-64", "win-64"]
 [tool.pytest.ini_options]
 filterwarnings = [
     "ignore::numpy.exceptions.ComplexWarning",
-    "ignore:Complex dtype support in Diffrax:UserWarning"
+    "ignore:Complex dtype support in Diffrax:UserWarning",
+    "ignore:datetime.datetime.utcnow\\(\\) is deprecated:DeprecationWarning:papermill",
 ]
-
-
 
 [tool.pixi.pypi-dependencies]
 
@@ -77,3 +76,46 @@ docs-serve = { cmd = ["mkdocs", "serve", "-w", "docs"], depends-on = ["copy_read
 pytest_run = "pytest tests"
 lint_format = "ruff format"
 lint_check = "ruff -v check"
+
+
+[tool.ruff]
+fix = true
+target-version = "py311"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]  # see https://docs.astral.sh/ruff/rules
+ignore = [
+  "COM812",  # missing-trailing-comma
+  "D105",  # undocumented-magic-method
+  "D203",  # incorrect-blank-line-before-class
+  "D213",  # multi-line-summary-second-line
+  "E741",  # ambiguous-variable-name
+  "ERA001",  # commented-out-code
+  "FIX001",  # line-contains-fixme
+  "FIX002",  # line-contains-todo
+  "FIX004",  # line-contains-hack
+  "N803",  # invalid-argument-name
+  "N806",  # non-lowercase-variable-in-function
+  "PD901",  # pandas-df-variable-name
+  "PLC0414",  # useless-import-alias
+  "PLC0415",  # import-outside-top-level
+  "PLR0913",  # too-many-arguments
+  "PLR2004",  # magic-value-comparison
+  "PLW2901",  # redefined-loop-name
+  "RET504",  # unnecessary-assign
+  "RUF002",  # ambiguous-unicode-character-docstring
+  "S324",  # hashlib-insecure-hash-function
+  "TC001",  # typing-only-first-party-import
+  "TC002",  # typing-only-third-party-import
+  "TC003",  # typing-only-standard-library-import
+  "TC006",  # runtime-cast-value
+  "TD001",  # invalid-todo-tag
+  "TD002",  # missing-todo-author
+  "TD003",  # missing-todo-link
+  "TID252",  # relative-imports
+  "TRY003",  # raise-vanilla-args
+  "UP013"  # convert-typed-dict-functional-to-class
+]
+select = ["ALL"]
