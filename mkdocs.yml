@@ -6,9 +6,6 @@ theme:
         - header.autohide  # header disappears as you scroll
     logo: images/logo.svg
     palette:
-        # Light mode / dark mode
-        # We deliberately don't automatically use `media` to check a user's preferences. We default to light mode as
-        # (a) it looks more professional, and (b) is more obvious about the fact that it offers a (dark mode) toggle.
         - scheme: slate
           toggle:
              icon: material/weather-sunny
@@ -22,7 +19,7 @@ theme:
 
     icon:
         repo: fontawesome/brands/github  # GitHub logo in top right
-    favicon: "_static/favicon.png"
+
     #custom_dir: "docs/_overrides"  # Overriding part of the HTML
 
 site_name: Circulus
