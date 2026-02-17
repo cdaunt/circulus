@@ -11,7 +11,7 @@ def test_compile_netlist_basic(simple_lrc_netlist):
 
     # There should be a group for each non-ground component
     group_names = set(groups.keys())
-    assert {"resistor", "capacitor", "inductor", "source_voltage"} <= group_names
+    assert {'resistor', 'capacitor', 'inductor', 'source_voltage'} <= group_names
 
     # Sys size should include node count + internal variables (V1 and L1 each add 1 internal)
     expected_internals = 2
