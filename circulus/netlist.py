@@ -16,6 +16,7 @@ from sax.saxtypes.singlemode import InstancePort
 from sax.saxtypes import Instances, Ports, Placements
 import sax.saxtypes.netlist as sax_netlist
 from natsort import natsorted
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -91,114 +92,171 @@ def build_net_map(netlist: dict) -> Tuple[Dict[str, int], int]:
     return port_to_idx, current_idx
 
 
-def draw_circuit_graph(netlist, show=True):
+def draw_circuit_graph(netlist, show=True, layout_attempts=10):
     """
     Visualizes the circuit netlist as a graph.
     - Instances are large Red nodes.
     - Ports are small SkyBlue nodes attached to instances.
     - Wires are edges between Ports, labeled with the Net Index.
+
+    Improvements:
+    - Ports are initialized near their parent instance to encourage tight clustering.
+    - Layout is attempted multiple times; the result with fewest edge crossings is used.
     """
-    
+
     # 1. Get Connectivity Data
-    # port_map maps "Instance,Pin" -> NetIndex (int)
     port_map, num_vars = build_net_map(netlist)
 
     G = nx.Graph()
-    
+
     # 2. Add Instance Nodes
-    # We iterate over the 'instances' dict to find all components
     instances = netlist.get("instances", {})
     for name in instances:
-        if name == 'GND': 
-            # Treat GND specially if desired, or as a standard instance
+        if name == 'GND':
             G.add_node(name, color='black', size=1500, label=name)
         else:
             G.add_node(name, color='red', size=2000, label=name)
 
     # 3. Add Port Nodes & Internal Connections
-    # Group ports by Net ID to draw wires later
-    net_groups = {} 
-    
+    net_groups = {}
+
     for port_str, net_idx in port_map.items():
         if ',' not in port_str:
             continue
-            
+
         inst_name, pin_name = port_str.split(',', 1)
-        
-        # Add Port Node (Small)
-        # We use the full string as ID, but maybe label it just with pin name
-        G.add_node(port_str, color='skyblue', size=300, label=pin_name)
-        
-        # Internal Edge: Connect Port to its Parent Instance
-        # High weight ensures they stay close in the layout
+
+        G.add_node(port_str, color='skyblue', size=300, label=pin_name, parent=inst_name)
+
         if inst_name in G.nodes:
-            G.add_edge(inst_name, port_str, weight=5, type='internal')
-        
-        # Organize for external wiring
+            G.add_edge(inst_name, port_str, weight=10, type='internal')
+
         if net_idx not in net_groups:
             net_groups[net_idx] = []
         net_groups[net_idx].append(port_str)
 
     # 4. Add Wire Edges (External Connections)
     edge_labels = {}
-    
+
     for net_idx, ports in net_groups.items():
-        # If a net has multiple ports, connect them.
-        # We connect them sequentially to form a path (P1-P2-P3) 
-        # which looks cleaner than a fully connected clique.
         if len(ports) > 1:
             for i in range(len(ports) - 1):
                 u, v = ports[i], ports[i+1]
                 G.add_edge(u, v, weight=1, type='external')
                 edge_labels[(u, v)] = str(net_idx)
 
-    # 5. Drawing Configuration
-    fig = plt.figure(figsize=(10, 8))
-    
-    # Compute Layout
-    # k controls the distance between nodes. 
-    pos = nx.spring_layout(G, k=0.5, iterations=50)
+    # 5. Build a smart initial position: instances spread out, ports near their parent
+    def make_initial_pos(seed):
+        rng = np.random.default_rng(seed)
+        pos = {}
+        instance_nodes = [n for n, d in G.nodes(data=True) if d.get('color') in ['red', 'black']]
 
-    # Separate nodes by type for styling
+        # Place instances on a rough grid / random spread
+        for name in instance_nodes:
+            pos[name] = rng.uniform(-1, 1, size=2)
+
+        # Place each port with a small random offset from its parent
+        for n, d in G.nodes(data=True):
+            if d.get('color') == 'skyblue':
+                parent = d.get('parent')
+                if parent and parent in pos:
+                    pos[n] = pos[parent] + rng.uniform(-0.1, 0.1, size=2)
+                else:
+                    pos[n] = rng.uniform(-1, 1, size=2)
+        return pos
+
+    # 6. Count edge crossings for a given layout (2D segments intersection test)
+    def count_crossings(pos):
+        """Count the number of pairs of edges whose drawn segments cross."""
+
+        def segments_intersect(p1, p2, p3, p4):
+            """Returns True if segment p1-p2 intersects p3-p4 (ignoring shared endpoints)."""
+            def cross(o, a, b):
+                return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+            d1 = cross(p3, p4, p1)
+            d2 = cross(p3, p4, p2)
+            d3 = cross(p1, p2, p3)
+            d4 = cross(p1, p2, p4)
+
+            if ((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0)) and \
+               ((d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0)):
+                return True
+            return False
+
+        edges = list(G.edges())
+        crossings = 0
+        for i in range(len(edges)):
+            for j in range(i + 1, len(edges)):
+                u1, v1 = edges[i]
+                u2, v2 = edges[j]
+                # Skip pairs that share a node (adjacent edges always "meet", not cross)
+                if u1 in (u2, v2) or v1 in (u2, v2):
+                    continue
+                p1, p2 = pos[u1], pos[v1]
+                p3, p4 = pos[u2], pos[v2]
+                if segments_intersect(p1, p2, p3, p4):
+                    crossings += 1
+        return crossings
+
+    # 7. Run layout multiple times and keep the best result
+    best_pos = None
+    best_crossings = float('inf')
+
+    for attempt in range(layout_attempts):
+        seed = attempt  # deterministic across runs with same layout_attempts
+        init_pos = make_initial_pos(seed)
+        candidate_pos = nx.spring_layout(
+            G,
+            pos=init_pos,    # warm start near the desired structure
+            fixed=None,      # let everything move, but start well
+            k=0.5,
+            iterations=80,   # more iterations since we have a good warm start
+            weight='weight',
+            seed=seed,
+        )
+        crossings = count_crossings(candidate_pos)
+        if crossings < best_crossings:
+            best_crossings = crossings
+            best_pos = candidate_pos
+
+    pos = best_pos
+
+    # 8. Drawing Configuration
+    fig = plt.figure(figsize=(10, 8))
+
     instance_nodes = [n for n, d in G.nodes(data=True) if d.get('color') in ['red', 'black']]
     port_nodes = [n for n, d in G.nodes(data=True) if d.get('color') == 'skyblue']
 
-    # Draw Instances
-    nx.draw_networkx_nodes(G, pos, nodelist=instance_nodes, 
-                           node_color=[G.nodes[n]['color'] for n in instance_nodes], 
+    nx.draw_networkx_nodes(G, pos, nodelist=instance_nodes,
+                           node_color=[G.nodes[n]['color'] for n in instance_nodes],
                            node_size=[G.nodes[n]['size'] for n in instance_nodes])
-    
-    nx.draw_networkx_labels(G, pos, labels={n: n for n in instance_nodes}, 
+
+    nx.draw_networkx_labels(G, pos, labels={n: n for n in instance_nodes},
                             font_color='white', font_weight='bold')
 
-    # Draw Ports
-    nx.draw_networkx_nodes(G, pos, nodelist=port_nodes, 
+    nx.draw_networkx_nodes(G, pos, nodelist=port_nodes,
                            node_color='skyblue', node_size=300)
-    
-    # Draw Port Labels
+
     port_labels = {n: G.nodes[n]['label'] for n in port_nodes}
     nx.draw_networkx_labels(G, pos, labels=port_labels, font_size=8, font_color='black')
-    
-    # Draw Internal Edges (Instance -> Port) - Solid, Thicker
+
     internal_edges = [(u, v) for u, v, d in G.edges(data=True) if d.get('type') == 'internal']
     nx.draw_networkx_edges(G, pos, edgelist=internal_edges, width=2.0, alpha=0.5)
 
-    # Draw External Edges (Wires) - Dashed or different style
     external_edges = [(u, v) for u, v, d in G.edges(data=True) if d.get('type') == 'external']
     nx.draw_networkx_edges(G, pos, edgelist=external_edges, width=1.5, style='dashed', edge_color='gray')
 
-    # Draw Net Index Labels on Wires
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='blue')
 
     ax = plt.gca()
-
-    ax.set_title("Circuit Connectivity Graph")
+    ax.set_title(f"Circuit Connectivity Graph")
     ax.axis('off')
     fig.tight_layout()
 
     if show:
         plt.show()
-    
+
     return fig
 
 #being explicit here
