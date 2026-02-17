@@ -1,4 +1,7 @@
+"""Circulus utilities."""
+
 from typing import TYPE_CHECKING
+
 import equinox as eqx
 import jax.numpy as jnp
 
@@ -14,7 +17,6 @@ def update_params_dict(
     new_value: float,
 ) -> dict[str, "ComponentGroup"]:
     """Updates a parameter for a specific instance within a component group."""
-
     g = groups_dict[group_name]
 
     instance_idx = g.index_map[instance_name]
@@ -37,7 +39,6 @@ def update_group_params(
     groups_dict: dict, group_name: str, param_key: str, new_value: float
 ) -> dict[str, "ComponentGroup"]:
     """Updates a parameter for ALL instances in a component group."""
-
     g = groups_dict[group_name]
 
     # Handle Equinox Component (Batched)

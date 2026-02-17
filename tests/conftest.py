@@ -1,7 +1,8 @@
 import sys
 from pathlib import Path
-import pytest
+
 import jax
+import pytest
 
 # Ensure project root is on sys.path so tests can import the local package
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,9 +17,9 @@ jax.config.update("jax_enable_x64", True)
 def simple_lrc_netlist():
     """Returns (net_dict, models_map) for a small LRC example."""
     from circulus.components.electronic import (
-        Resistor,
         Capacitor,
         Inductor,
+        Resistor,
         VoltageSource,
     )
 
@@ -55,7 +56,7 @@ def simple_lrc_netlist():
 @pytest.fixture
 def simple_optical_netlist():
     from circulus.components.electronic import Resistor
-    from circulus.components.photonic import OpticalWaveguide, OpticalSourcePulse
+    from circulus.components.photonic import OpticalSourcePulse, OpticalWaveguide
 
     models_map = {
         "waveguide": OpticalWaveguide,

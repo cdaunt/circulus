@@ -307,7 +307,7 @@ class KLUSplitSolver(CircuitLinearSolver):
 
     @classmethod
     def from_circuit(
-        cls, component_groups: dict[str, Any], num_vars: int, is_complex: bool = False
+        cls, component_groups: dict[str, Any], num_vars: int, *, is_complex: bool = False
     ) -> "KLUSolver":
         """Factory method to pre-hash indices for sparse coalescence."""
         all_rows, all_cols = [], []
@@ -344,7 +344,7 @@ class KLUSplitSolver(CircuitLinearSolver):
 
         u_rows = (unique_hashes // sys_size).astype(np.int32)
         u_cols = (unique_hashes % sys_size).astype(np.int32)
-        n_unique = int(len(unique_hashes))
+        n_unique = len(unique_hashes)
 
         symbolic = klujax.analyze(u_rows, u_cols, sys_size)
 
@@ -730,7 +730,7 @@ class SparseSolver(CircuitLinearSolver):
 
     @classmethod
     def from_circuit(
-        cls, component_groups: dict[str, Any], num_vars: int, is_complex: bool = False
+        cls, component_groups: dict[str, Any], num_vars: int, *, is_complex: bool = False
     ) -> "SparseSolver":
         """Factory method to prepare indices and diagonal mask."""
         all_rows, all_cols = [], []

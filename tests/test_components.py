@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 
-from circulus.components.base_component import CircuitComponent, States, Signals, PhysicsReturn
+from circulus.components.base_component import CircuitComponent, PhysicsReturn, Signals, States
 
 # Import components to be tested
 from circulus.components.electronic import (
@@ -236,7 +236,7 @@ def test_subclass_init_creates_namedtuples()-> None:
         ports = ("a", "b")
         states = ("s1",)
 
-        def physics(self, v: Signals, s: States, t: float) -> PhysicsReturn: 
+        def physics(self, v: Signals, s: States, t: float) -> PhysicsReturn:
             return {}, {}
 
     assert MyComp._VarsType_P is not None  # noqa: SLF001

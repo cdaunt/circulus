@@ -69,18 +69,12 @@ def sax_component(fn):  # noqa: ANN001, ANN201
         RuntimeError: If the dry run fails for any reason.
 
     """
-    # -----------------------------------------------------------------------
-    # 1. Introspect for default values (needed for the dry run)
-    # -----------------------------------------------------------------------
     sig = inspect.signature(fn)
     defaults = {
         param.name: param.default if param.default is not inspect.Parameter.empty else 1.0
         for param in sig.parameters.values()
     }
 
-    # -----------------------------------------------------------------------
-    # 2. Dry Run: Discovery
-    # -----------------------------------------------------------------------
     try:
         dummy_s_dict = fn(**defaults)
         detected_ports = get_ports(dummy_s_dict)
@@ -88,9 +82,6 @@ def sax_component(fn):  # noqa: ANN001, ANN201
         msg = f"Failed to dry-run SAX component '{fn.__name__}': {exc}"
         raise RuntimeError(msg) from exc
 
-    # -----------------------------------------------------------------------
-    # 3. Define the Physics Wrapper
-    # -----------------------------------------------------------------------
     def physics_wrapper(signals: Signals, s: States, **kwargs) -> tuple[dict, dict]:  # noqa: ANN003
         s_dict = fn(**kwargs)
         s_matrix, _ = sdense(s_dict)
@@ -105,7 +96,4 @@ def sax_component(fn):  # noqa: ANN001, ANN201
     physics_wrapper.__doc__ = fn.__doc__
     physics_wrapper.__signature__ = sig
 
-    # -----------------------------------------------------------------------
-    # 4. Apply the Circulus component decorator
-    # -----------------------------------------------------------------------
     return component(ports=detected_ports)(physics_wrapper)

@@ -1,4 +1,5 @@
 from matplotlib.figure import Figure
+
 from circulus.netlist import draw_circuit_graph
 
 

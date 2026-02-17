@@ -280,6 +280,7 @@ def _build_component(  # noqa: C901
             reserved arguments, if any parameter lacks a default value, if a
             non-source component declares a ``t`` parameter, or if the dry-run
             raises an exception.
+
     """
     reserved = ("signals", "s", "t") if uses_time else ("signals", "s")
 
@@ -349,7 +350,7 @@ def _build_component(  # noqa: C901
 
     if uses_time:
         def _invoke_physics(
-            self: CircuitComponent,  # noqa: ARG001
+            self: CircuitComponent,
             signals: Any,
             s: Any,
             t: float,
@@ -359,7 +360,7 @@ def _build_component(  # noqa: C901
             return _user_fn(signals, s, t, **kw)
     else:
         def _invoke_physics(
-            self: CircuitComponent,  # noqa: ARG001
+            self: CircuitComponent,
             signals: Any,
             s: Any,
             t: float,

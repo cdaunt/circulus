@@ -223,12 +223,9 @@ def compile_netlist(netlist: dict, models_map: dict) -> tuple[dict, int, dict]: 
             constructor signature of its component class.
 
     """
-    # --- 1. Resolve Connectivity (Using your existing function) ---
-    # This returns {'R1,p1': 1, 'V1,p1': 1, 'GND,p1': 0 ...}
     port_to_node_map, num_nodes = build_net_map(netlist)
 
     # Buckets: Key = (comp_type_name, tree_structure), Value = list of instances
-    # We include tree_structure to separate instances with different static fields (e.g. callables)
     buckets = defaultdict(list)
     sys_size = num_nodes
 
@@ -254,10 +251,9 @@ def compile_netlist(netlist: dict, models_map: dict) -> tuple[dict, int, dict]: 
             comp_obj = comp_cls(**settings)
         except TypeError as e:
             msg = f"Settings error for {name}: {e}"
-            raise TypeError(msg)
+            raise TypeError(msg)  # noqa: B904
 
         # B. Get Port Indices
-        # We look up "InstanceName,PortName" in your map
         port_indices = []
         for port in comp_cls.ports:
             key = f"{name},{port}"
@@ -265,8 +261,6 @@ def compile_netlist(netlist: dict, models_map: dict) -> tuple[dict, int, dict]: 
             if key in port_to_node_map:
                 port_indices.append(port_to_node_map[key])
             else:
-                # Error: The component has a port defined in Python (e.g. 'body')
-                # but it wasn't listed in the netlist connections.
                 msg = f"Port '{port}' on '{name}' is unconnected.\nYour netlist connections must include '{key}'"
                 raise ValueError(msg)
 
@@ -281,7 +275,6 @@ def compile_netlist(netlist: dict, models_map: dict) -> tuple[dict, int, dict]: 
             }
         )
 
-    # --- 3. Vectorize ---
     compiled_groups = {}
 
     # Helper to generate unique names for split groups
@@ -329,10 +322,7 @@ def compile_netlist(netlist: dict, models_map: dict) -> tuple[dict, int, dict]: 
             name=group_name,
             var_indices=var_indices_arr,
             eq_indices=var_indices_arr,
-            params=batched_params,  # This is the 'self' for the bridge
-            # The bridge expects (instance, vars, t)
-            # The solver usually does: func(params, vars, t)
-            # We just need to ensure the solver argument order matches.
+            params=batched_params,
             physics_func=comp_cls.solver_call,
             jac_rows=jac_rows,
             jac_cols=jac_cols,

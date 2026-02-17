@@ -1,6 +1,7 @@
 """MkDocs hooks for SAX-specific preprocessing."""
 
 import hashlib
+import json
 import re
 import shutil
 import subprocess
@@ -8,8 +9,6 @@ import tempfile
 from pathlib import Path
 from textwrap import dedent
 from typing import Any
-import json
-
 
 STYLE_CODE = """
 import matplotlib.pyplot as plt
@@ -35,7 +34,6 @@ plt.rcParams.update({
 
 def on_page_read_source(page: Any, config: Any, **kwargs: Any) -> str | None:
     """Inject style settings into notebooks before execution."""
-
     # Only act on Jupyter Notebooks
     if page.file.src_path.endswith(".ipynb"):
         try:
@@ -285,6 +283,5 @@ def _svgbob_source(
     return None
 
 
-def _insert_cross_refs(lines: list[str]) -> None:  # noqa: C901
+def _insert_cross_refs(lines: list[str]) -> None:
     """Insert cross-references in the markdown lines."""
-    pass

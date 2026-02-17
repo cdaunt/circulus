@@ -7,7 +7,7 @@ however, connections for node based simulators need to be handled slightly diffe
 
 from __future__ import annotations
 
-from typing import Annotated, NotRequired, TypeAlias, Union
+from typing import Annotated, NotRequired, TypeAlias
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -23,7 +23,7 @@ from sax.saxtypes.singlemode import InstancePort
 from typing_extensions import TypedDict
 
 Connections: TypeAlias = dict[
-    InstancePort, Union[InstancePort, tuple[InstancePort, ...]]
+    InstancePort, InstancePort | tuple[InstancePort, ...]
 ]
 
 CirculusNetlist = Annotated[
@@ -139,12 +139,10 @@ def draw_circuit_graph(  # noqa: C901, PLR0912, PLR0915
         The :class:`matplotlib.figure.Figure` containing the rendered graph.
 
     """
-    # 1. Get Connectivity Data
     port_map, _= build_net_map(netlist)
 
     G = nx.Graph()
 
-    # 2. Add Instance Nodes
     instances = netlist.get("instances", {})
     for name in instances:
         if name == "GND":
@@ -152,7 +150,7 @@ def draw_circuit_graph(  # noqa: C901, PLR0912, PLR0915
         else:
             G.add_node(name, color="red", size=2000, label=name)
 
-    # 3. Add Port Nodes & Internal Connections
+
     net_groups = {}
 
     for port_str, net_idx in port_map.items():
@@ -172,7 +170,6 @@ def draw_circuit_graph(  # noqa: C901, PLR0912, PLR0915
             net_groups[net_idx] = []
         net_groups[net_idx].append(port_str)
 
-    # 4. Add Wire Edges (External Connections)
     edge_labels = {}
 
     for net_idx, ports in net_groups.items():
@@ -182,7 +179,6 @@ def draw_circuit_graph(  # noqa: C901, PLR0912, PLR0915
                 G.add_edge(u, v, weight=1, type="external")
                 edge_labels[(u, v)] = str(net_idx)
 
-    # 5. Build a smart initial position: instances spread out, ports near their parent
     def make_initial_pos(seed: int) -> dict:
         rng = np.random.default_rng(seed)
         pos = {}
@@ -204,7 +200,6 @@ def draw_circuit_graph(  # noqa: C901, PLR0912, PLR0915
                     pos[n] = rng.uniform(-1, 1, size=2)
         return pos
 
-    # 6. Count edge crossings for a given layout (2D segments intersection test)
     def count_crossings(pos: dict[str, np.ndarray]) -> int:
 
         def segments_intersect(
@@ -219,7 +214,7 @@ def draw_circuit_graph(  # noqa: C901, PLR0912, PLR0915
             d3 = cross(p1, p2, p3)
             d4 = cross(p1, p2, p4)
 
-            return bool(((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0)) 
+            return bool(((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0))
                         and ((d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0)))
 
         edges = list(G.edges())
@@ -237,7 +232,6 @@ def draw_circuit_graph(  # noqa: C901, PLR0912, PLR0915
                     crossings += 1
         return crossings
 
-    # 7. Run layout multiple times and keep the best result
     best_pos = None
     best_crossings = float("inf")
 
@@ -260,7 +254,6 @@ def draw_circuit_graph(  # noqa: C901, PLR0912, PLR0915
 
     pos = best_pos
 
-    # 8. Drawing Configuration
     fig = plt.figure(figsize=(10, 8))
 
     instance_nodes = [

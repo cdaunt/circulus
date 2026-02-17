@@ -100,7 +100,7 @@ def VoltageSourceAC(
 
 
 @component(ports=("p1", "p2"))
-def CurrentSource(signals: Signals, s: States, I: float = 0.0) -> PhysicsReturn:  # noqa: ARG001
+def CurrentSource(signals: Signals, s: States, I: float = 0.0) -> PhysicsReturn:
     """Constant current source."""
     return {"p1": I, "p2": -I}, {}
 
