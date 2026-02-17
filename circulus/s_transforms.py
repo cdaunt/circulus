@@ -1,86 +1,111 @@
+"""Utilities for converting between S-parameters.
+
+Utilities for converting between S-parameter and admittance representations,
+and for wrapping SAX model functions as Circulus components.
+"""
+
+import inspect
+
 import jax
 import jax.numpy as jnp
-import inspect
-from sax import sdense, get_ports
-from circulus.components.base_component import component, Signals, States
+from sax import get_ports, sdense
+
+from circulus.components.base_component import Signals, States, component
 
 
 @jax.jit
 def s_to_y(S: jax.Array, z0: float = 1.0) -> jax.Array:
-    """
-    Utility: Converts an S-parameter matrix to an Admittance (Y) matrix.
-    Formula: Y = (1/z0) * (I - S) * (I + S)^-1
+    """Convert an S-parameter matrix to an admittance (Y) matrix.
 
-    Note: The conversion of s to y requires the use of dense matrices. If models can be defined in terms of
-    y matrices alone, they should
+    Uses the formula ``Y = (1/z0) * (I - S) * (I + S)^-1``. Requires dense
+    matrix inversion; if a component can be defined directly in terms of a
+    Y-matrix it should be, to avoid the overhead of this conversion.
+
+    Args:
+        S: S-parameter matrix of shape ``(..., n, n)``.
+        z0: Reference impedance in ohms. Defaults to ``1.0``.
+
+    Returns:
+        Y-matrix of the same shape and dtype as ``S``.
+
     """
     n = S.shape[-1]
-    I = jnp.eye(n, dtype=S.dtype)
-    return (1.0 / z0) * (I - S) @ jnp.linalg.inv(I + S)
+    eye = jnp.eye(n, dtype=S.dtype)
+    return (1.0 / z0) * (eye - S) @ jnp.linalg.inv(eye + S)
 
 
-def sax_component(fn):
+def sax_component(fn):  # noqa: ANN001, ANN201
+    """Decorator to convert a SAX model function into a Circulus component.
+
+    Inspects ``fn`` at decoration time to discover its port interface via a
+    dry run, then wraps its S-matrix output in an admittance-based physics
+    function compatible with the Circulus nodal solver.
+
+    The conversion proceeds in three stages:
+
+    1. **Discovery** — ``fn`` is called once with its default (or dummy)
+       parameter values and :func:`sax.get_ports` extracts the sorted port
+       names from the resulting S-parameter dict.
+    2. **Physics wrapper** — a closure is built that calls ``fn`` at runtime,
+       converts the S-dict to a dense matrix via :func:`sax.sdense`, converts
+       it to an admittance matrix via :func:`s_to_y`, and returns
+       ``I = Y @ V`` as a port current dict.
+    3. **Component registration** — the wrapper is passed to
+       :func:`~circulus.components.base_component.component` with the
+       discovered ports, producing a :class:`~circulus.components.base_component.CircuitComponent`
+       subclass.
+
+    Args:
+        fn: A SAX model function whose keyword arguments are scalar
+            parameters and whose return value is a SAX S-parameter dict.
+            All parameters must have defaults, or will be substituted with
+            ``1.0`` during the dry run.
+
+    Returns:
+        A :class:`~circulus.components.base_component.CircuitComponent`
+        subclass named after ``fn``.
+
+    Raises:
+        RuntimeError: If the dry run fails for any reason.
+
     """
-    Decorator to convert a SAX model function into a Circulus component.
-
-    1. Uses sax.get_ports during definition to establish the component interface.
-    2. Uses sax.sdense during runtime to generate the S-matrix.
-    """
-
     # -----------------------------------------------------------------------
     # 1. Introspect for default values (needed for the dry run)
     # -----------------------------------------------------------------------
     sig = inspect.signature(fn)
-    defaults = {}
-    for param in sig.parameters.values():
-        if param.default is not inspect.Parameter.empty:
-            defaults[param.name] = param.default
-        else:
-            defaults[param.name] = 1.0  # Dummy value for dry run
+    defaults = {
+        param.name: param.default if param.default is not inspect.Parameter.empty else 1.0
+        for param in sig.parameters.values()
+    }
 
     # -----------------------------------------------------------------------
     # 2. Dry Run: Discovery
     # -----------------------------------------------------------------------
     try:
-        # Run model once with dummy/default values
         dummy_s_dict = fn(**defaults)
-
-        # Use SAX's native helper to get sorted port names
         detected_ports = get_ports(dummy_s_dict)
-
-    except Exception as e:
-        raise RuntimeError(f"Failed to dry-run SAX component '{fn.__name__}': {e}")
+    except Exception as exc:
+        msg = f"Failed to dry-run SAX component '{fn.__name__}': {exc}"
+        raise RuntimeError(msg) from exc
 
     # -----------------------------------------------------------------------
     # 3. Define the Physics Wrapper
     # -----------------------------------------------------------------------
-    def physics_wrapper(signals: Signals, s: States, **kwargs):
-        # A. Call the SAX model
+    def physics_wrapper(signals: Signals, s: States, **kwargs) -> tuple[dict, dict]:  # noqa: ANN003
         s_dict = fn(**kwargs)
-
-        # B. Convert to Dense Matrix
-        #    sdense automatically sorts ports alphabetically, matching get_ports.
-        S_matrix, _ = sdense(s_dict)
-
-        # C. Convert S -> Y (Admittance)
-        Y_matrix = s_to_y(S_matrix)
-
-        # D. Solve I = Y * V
-        #    Construct voltage vector in the exact order found by get_ports
+        s_matrix, _ = sdense(s_dict)
+        y_matrix = s_to_y(s_matrix)
         v_vec = jnp.array(
             [getattr(signals, p) for p in detected_ports], dtype=jnp.complex128
         )
-
-        #    Calculate currents
-        i_vec = Y_matrix @ v_vec
-
-        # E. Map back to dictionary
+        i_vec = y_matrix @ v_vec
         return {p: i_vec[i] for i, p in enumerate(detected_ports)}, {}
 
-    # Copy metadata
     physics_wrapper.__name__ = fn.__name__
     physics_wrapper.__doc__ = fn.__doc__
     physics_wrapper.__signature__ = sig
 
+    # -----------------------------------------------------------------------
     # 4. Apply the Circulus component decorator
+    # -----------------------------------------------------------------------
     return component(ports=detected_ports)(physics_wrapper)

@@ -1,21 +1,26 @@
+"""Transient solvers to be used with Diffrax."""
+
+from collections.abc import Callable
+from typing import Any
+
 import diffrax
 import jax
 import jax.numpy as jnp
 import optimistix as optx
-from circulus.solvers.linear import CircuitLinearSolver
-from circulus.solvers.assembly import (
-    _assemble_system_complex,
-    _assemble_system_real,
-    _assemble_residual_only_real,
-    _assemble_residual_only_complex,
-)
-from klujax import free_numeric
-from diffrax import ConstantStepSize
-from typing import Callable
+from diffrax import AbstractSolver, ConstantStepSize
 from jax.typing import ArrayLike
+from klujax import free_numeric
+
+from circulus.solvers.assembly import (
+    assemble_residual_only_complex,
+    assemble_residual_only_real,
+    assemble_system_complex,
+    assemble_system_real,
+)
+from circulus.solvers.linear import CircuitLinearSolver
 
 
-def _compute_history(component_groups, y_c, t, num_vars):
+def _compute_history(component_groups, y_c, t, num_vars) -> ArrayLike:
     """Computes total charge Q at time t (Initial Condition)."""
     is_complex = jnp.iscomplexobj(y_c)
     total_q = jnp.zeros(
@@ -42,9 +47,9 @@ def _compute_history(component_groups, y_c, t, num_vars):
 # ==============================================================================
 
 
-class VectorizedTransientSolver(diffrax.AbstractSolver):
-    """
-    Transient solver that works strictly on FLAT (Real) vectors.
+class VectorizedTransientSolver(AbstractSolver):
+    """Transient solver that works strictly on FLAT (Real) vectors.
+
     Delegates complexity handling to the 'linear_solver' strategy.
     """
 
@@ -53,13 +58,13 @@ class VectorizedTransientSolver(diffrax.AbstractSolver):
     term_structure = diffrax.AbstractTerm
     interpolation_cls = diffrax.LocalLinearInterpolation
 
-    def order(self, terms):
+    def order(self, terms) -> int:  # noqa: D102
         return 1
 
     def init(self, terms, t0, t1, y0, args):
         return (y0, 1.0)
 
-    def step(self, terms, t0, t1, y0, args, solver_state, options):
+    def step(self, terms, t0, t1, y0, args, solver_state, options):  # noqa: ANN201, D102
         component_groups, num_vars = args
         dt = t1 - t0
         y_prev_step, dt_prev = solver_state
@@ -75,33 +80,28 @@ class VectorizedTransientSolver(diffrax.AbstractSolver):
         # 2. Compute History
         #    _compute_history expects a Complex vector if physics is complex.
         #    We reconstruct it temporarily here.
-        if is_complex:
-            y_c = y0[:num_vars] + 1j * y0[num_vars:]
-        else:
-            y_c = y0
+        y_c = y0[:num_vars] + 1j * y0[num_vars:] if is_complex else y0
 
         q_prev = _compute_history(component_groups, y_c, t0, num_vars)
 
         # Assemble Jacobian at y_pred for solver setup (e.g. factorization)
         # if is_complex:
-        #     _, _, init_vals = _assemble_system_complex(y_pred, component_groups, t1, dt)
+        #     _, _, init_vals = assemble_system_complex(y_pred, component_groups, t1, dt)
         # else:
-        #     _, _, init_vals = _assemble_system_real(y_pred, component_groups, t1, dt)
+        #     _, _, init_vals = assemble_system_real(y_pred, component_groups, t1, dt)
 
         # solver_callable = self.linear_solver.get_transient_callable(init_vals)
 
         # 3. Define One Newton Step
 
-        def newton_update_step(y, _):
-            # A. Assemble Physics
-            #    Both assemblers now expect FLAT vectors 'y'.
+        def newton_update_step(y, _) -> float:
             if is_complex:
-                total_f, total_q, all_vals = _assemble_system_complex(
+                total_f, total_q, all_vals = assemble_system_complex(
                     y, component_groups, t1, dt
                 )
                 ground_indices = [0, num_vars]  # Real and Imag ground nodes
             else:
-                total_f, total_q, all_vals = _assemble_system_real(
+                total_f, total_q, all_vals = assemble_system_real(
                     y, component_groups, t1, dt
                 )
                 ground_indices = [0]
@@ -115,7 +115,7 @@ class VectorizedTransientSolver(diffrax.AbstractSolver):
 
             # D. Solve Linear System
             #    Strategy handles the flat 2N system automatically
-            sol = self.linear_solver._solve_impl(all_vals, -residual)
+            sol = self.linear_solver._solve_impl(all_vals, -residual)  # noqa: SLF001
             delta = sol.value
 
             # E. Damping
@@ -148,10 +148,29 @@ class VectorizedTransientSolver(diffrax.AbstractSolver):
 
 
 class FactorizedTransientSolver(VectorizedTransientSolver):
-    # Frozen Jacobian converges linearly, so we need more steps.
+    """Transient solver using a Modified Newton (frozen-Jacobian) scheme.
+
+    At each timestep the system Jacobian is assembled and factored once at a
+    predicted state, then reused across all Newton iterations. Compared to a
+    full Newton-Raphson solver this trades quadratic convergence for a much
+    cheaper per-iteration cost — one triangular solve instead of a full
+    factorisation — making it efficient for circuits where the Jacobian varies
+    slowly between steps.
+
+    Convergence is linear rather than quadratic, so ``newton_max_steps`` is set
+    higher than a standard Newton solver would require. Adaptive damping
+    ``min(1, 0.5 / max|δy|)`` is applied at each iteration to stabilise
+    convergence in stiff or strongly nonlinear regions.
+
+    Both real and complex assembly paths are supported; the complex path
+    concatenates real and imaginary parts into a single real-valued vector,
+    allowing purely real linear algebra kernels to be reused for
+    frequency-domain-style analyses.
+    """
+
     newton_max_steps: int = 100
 
-    def step(self, terms, t0, t1, y0, args, solver_state, options):
+    def step(self, terms, t0, t1, y0, args, solver_state, options):  # noqa: ANN201
         component_groups, num_vars = args
         dt = t1 - t0
         y_prev_step, dt_prev = solver_state
@@ -163,21 +182,18 @@ class FactorizedTransientSolver(VectorizedTransientSolver):
         y_pred = y0 + rate * dt
 
         # 2. Compute History
-        if is_complex:
-            y_c = y0[:num_vars] + 1j * y0[num_vars:]
-        else:
-            y_c = y0
+        y_c = y0[:num_vars] + 1j * y0[num_vars:] if is_complex else y0
 
         q_prev = _compute_history(component_groups, y_c, t0, num_vars)
 
         # 3. Assemble and Factor ONCE
         if is_complex:
-            _, _, frozen_jac_vals = _assemble_system_complex(
+            _, _, frozen_jac_vals = assemble_system_complex(
                 y_pred, component_groups, t1, dt
             )
             ground_indices = [0, num_vars]
         else:
-            _, _, frozen_jac_vals = _assemble_system_real(
+            _, _, frozen_jac_vals = assemble_system_real(
                 y_pred, component_groups, t1, dt
             )
             ground_indices = [0]
@@ -186,13 +202,13 @@ class FactorizedTransientSolver(VectorizedTransientSolver):
         numeric_handle = self.linear_solver.factor_jacobian(frozen_jac_vals)
 
         # 4. Newton iterations with frozen Jacobian
-        def newton_update_step(y, _):
+        def newton_update_step(y, _) -> float:
             if is_complex:
-                total_f, total_q = _assemble_residual_only_complex(
+                total_f, total_q = assemble_residual_only_complex(
                     y, component_groups, t1, dt
                 )
             else:
-                total_f, total_q = _assemble_residual_only_real(
+                total_f, total_q = assemble_residual_only_real(
                     y, component_groups, t1, dt
                 )
 
@@ -238,8 +254,10 @@ class FactorizedTransientSolver(VectorizedTransientSolver):
 
 
 def setup_transient(
-    groups: list, linear_strategy: CircuitLinearSolver, transient_solver=None
-) -> Callable[..., diffrax.Solution]:  # Replace Any with diffrax.Solution if available
+    groups: list,
+    linear_strategy: CircuitLinearSolver,
+    transient_solver:AbstractSolver=None
+) -> Callable[..., diffrax.Solution]:
     """Configures and returns a function for executing transient analysis.
 
     This function acts as a factory, preparing a transient solver that is
@@ -273,8 +291,8 @@ def setup_transient(
                 The step size controller. Defaults to `ConstantStepSize()`.
             **kwargs: Additional keyword arguments to pass directly to
                 `diffrax.diffeqsolve`.
-    """
 
+    """
     if transient_solver is None:
         transient_solver = VectorizedTransientSolver
 
@@ -295,10 +313,9 @@ def setup_transient(
         saveat: diffrax.SaveAt = None,
         max_steps: int = 100000,
         throw: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> diffrax.Solution:
         """Executes the transient simulation for the pre-configured circuit."""
-
         term = kwargs.pop("term", diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y)))
         solver = kwargs.pop("solver", tsolver)
         args = kwargs.pop("args", (groups, sys_size))

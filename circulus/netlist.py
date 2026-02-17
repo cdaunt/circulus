@@ -1,28 +1,29 @@
-### SAX netlists will be used as much as possible in circulus;
-###however, connections for node based simulators need to be handled differently.
+"""Circulus netlists.
+
+SAX netlists will be used as much as possible in circulus; 
+however, connections for node based simulators need to be handled slightly differently.
+"""
+
 
 from __future__ import annotations
 
+from typing import Annotated, NotRequired, TypeAlias, Union
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import networkx as nx
-
-from typing import Dict, Tuple
-from typing import Annotated, NotRequired, TypeAlias, Union, Tuple
-from typing_extensions import TypedDict
-
+import numpy as np
 import sax
+import sax.saxtypes.netlist as sax_netlist
+from natsort import natsorted
+from sax.saxtypes import Instances, Placements, Ports
 from sax.saxtypes.core import bval
 from sax.saxtypes.settings import Settings
 from sax.saxtypes.singlemode import InstancePort
-from sax.saxtypes import Instances, Ports, Placements
-import sax.saxtypes.netlist as sax_netlist
-from natsort import natsorted
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib
-
+from typing_extensions import TypedDict
 
 Connections: TypeAlias = dict[
-    InstancePort, Union[InstancePort, Tuple[InstancePort, ...]]
+    InstancePort, Union[InstancePort, tuple[InstancePort, ...]]
 ]
 
 CirculusNetlist = Annotated[
@@ -58,12 +59,13 @@ Netlist = CirculusNetlist
 sax_netlist.Netlist = CirculusNetlist  # type: ignore[assignment]
 
 
-def build_net_map(netlist: dict) -> Tuple[Dict[str, int], int]:
-    """
-    Maps every port (e.g. 'R1,p1') to a generic Node Index (integer).
+def build_net_map(netlist: dict) -> tuple[dict[str, int], int]:
+    """Maps every port (e.g. 'R1,p1') to a generic Node Index (integer).
+
     Returns:
         port_to_idx: dict mapping 'Instance,Pin' -> int index
-        num_nets: Total number of unique electrical nodes (excluding Ground)
+        num_nets: Total number of unique electrical nodes (excluding Ground).
+
     """
     g = nx.Graph()
 
@@ -94,11 +96,12 @@ def build_net_map(netlist: dict) -> Tuple[Dict[str, int], int]:
     return port_to_idx, current_idx
 
 
-def draw_circuit_graph(
+def draw_circuit_graph(  # noqa: C901, PLR0912, PLR0915
     netlist: dict[str, dict],
-    show: bool = True,
     layout_attempts: int = 10,
-) -> matplotlib.figure.Figure:
+    *,
+    show: bool = True,
+) -> mpl.figure.Figure:
     """Visualize a circuit netlist as a connectivity graph.
 
     Nodes are split into two categories:
@@ -134,10 +137,10 @@ def draw_circuit_graph(
 
     Returns:
         The :class:`matplotlib.figure.Figure` containing the rendered graph.
-    """
 
+    """
     # 1. Get Connectivity Data
-    port_map, num_vars = build_net_map(netlist)
+    port_map, _= build_net_map(netlist)
 
     G = nx.Graph()
 
@@ -180,7 +183,7 @@ def draw_circuit_graph(
                 edge_labels[(u, v)] = str(net_idx)
 
     # 5. Build a smart initial position: instances spread out, ports near their parent
-    def make_initial_pos(seed):
+    def make_initial_pos(seed: int) -> dict:
         rng = np.random.default_rng(seed)
         pos = {}
         instance_nodes = [
@@ -202,25 +205,22 @@ def draw_circuit_graph(
         return pos
 
     # 6. Count edge crossings for a given layout (2D segments intersection test)
-    def count_crossings(pos):
-        """Count the number of pairs of edges whose drawn segments cross."""
+    def count_crossings(pos: dict[str, np.ndarray]) -> int:
 
-        def segments_intersect(p1, p2, p3, p4):
-            """Returns True if segment p1-p2 intersects p3-p4 (ignoring shared endpoints)."""
+        def segments_intersect(
+            p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray
+        ) -> bool:
 
-            def cross(o, a, b):
-                return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+            def cross(o: np.ndarray, a: np.ndarray, b: np.ndarray) -> float:
+                return float((a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]))
 
             d1 = cross(p3, p4, p1)
             d2 = cross(p3, p4, p2)
             d3 = cross(p1, p2, p3)
             d4 = cross(p1, p2, p4)
 
-            if ((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0)) and (
-                (d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0)
-            ):
-                return True
-            return False
+            return bool(((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0)) 
+                        and ((d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0)))
 
         edges = list(G.edges())
         crossings = 0
@@ -306,7 +306,7 @@ def draw_circuit_graph(
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color="blue")
 
     ax = plt.gca()
-    ax.set_title(f"Circuit Connectivity Graph")
+    ax.set_title("Circuit Connectivity Graph")
     ax.axis("off")
     fig.tight_layout()
 

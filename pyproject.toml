@@ -81,6 +81,7 @@ lint_check = "ruff -v check"
 [tool.ruff]
 fix = true
 target-version = "py311"
+line-length = 132
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -88,6 +89,7 @@ docstring-code-format = true
 [tool.ruff.lint]  # see https://docs.astral.sh/ruff/rules
 ignore = [
   "COM812",  # missing-trailing-comma
+  "D401",  # Imperitive mood
   "D105",  # undocumented-magic-method
   "D203",  # incorrect-blank-line-before-class
   "D213",  # multi-line-summary-second-line
@@ -116,6 +118,42 @@ ignore = [
   "TD003",  # missing-todo-link
   "TID252",  # relative-imports
   "TRY003",  # raise-vanilla-args
-  "UP013"  # convert-typed-dict-functional-to-class
+  "UP013", # convert-typed-dict-functional-to-class
+  "ANN401"
 ]
 select = ["ALL"]
+
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = [
+  "ANN",  # flake8-annotations
+  "ARG001",  # unused-function-argument
+  "D",  # pydocstyle
+  "E402",  # module-import-not-at-top-of-file
+  "E501",  # line-too-long
+  "F821",  # undefined-name
+  "FBT003",  # boolean-positional-value-in-call
+  "N816",  # mixed-case-variable-in-global-scope
+  "PLC2401",  # non-ascii-name
+  "S101",  # assert
+  "SLF001",  # private-member-access
+  "T201"  # print
+]
+"docs/hooks.py" = [
+  "INP001",  # implicit-namespace-package
+  "ARG001",  # unused-function-argument
+  "ANN401",  # any-type
+  "FBT001"  # boolean-type-hint-positional-argument
+]
+"tests/*" = [
+  "D",  # pydocstyle
+  "INP001",  # implicit-namespace-package
+  "PT011",  # pytest-raises-too-broad
+  "S101",  # assert
+  "T201"  # print
+]
+"circulus/components/*.py" = [
+ "N802",
+"ARG001"
+]
+

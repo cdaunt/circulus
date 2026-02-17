@@ -1,49 +1,30 @@
 import jax
 import jax.numpy as jnp
-from collections import namedtuple
+
+from circulus.components.base_component import CircuitComponent, States, Signals, PhysicsReturn
 
 # Import components to be tested
 from circulus.components.electronic import (
-    Resistor,
-    Capacitor,
-    Inductor,
-    VoltageSource,
-    Diode,
-    CurrentSource,
-    VCVS,
-    VCCS,
-    CCVS,
     CCCS,
+    CCVS,
+    VCCS,
+    VCVS,
+    Capacitor,
+    CurrentSource,
+    Diode,
     IdealOpAmp,
+    Inductor,
+    Resistor,
+    VoltageSource,
 )
-from circulus.components.base_component import CircuitComponent
 
 # Enable x64 for precision
-jax.config.update("jax_enable_x64", True)
-
-
-# Helper to call the physics method in a standardized way
-def run_phys(component, v_dict, s_dict={}, t=0.0):
-    # Create namedtuples on the fly to simulate the solver_call's unpacking
-    if v_dict:
-        Ports = namedtuple("Ports", v_dict.keys())
-        v = Ports(**v_dict)
-    else:
-        v = ()
-
-    if s_dict:
-        States = namedtuple("States", s_dict.keys())
-        s = States(**s_dict)
-    else:
-        s = ()
-
-    return component.physics(v, s, t)
-
+jax.config.update("jax_enable_x64", True)  # noqa: FBT003
 
 # --- Component Tests ---
 
 
-def test_resistor():
+def test_resistor()-> None:
     r = Resistor(R=10.0)
     v_dict = {"p1": 5.0, "p2": 0.0}
     f, q = r(**v_dict)
@@ -54,7 +35,7 @@ def test_resistor():
     assert not q
 
 
-def test_capacitor():
+def test_capacitor()-> None:
     c = Capacitor(C=1e-11)
     v_dict = {"p1": 2.0, "p2": 1.0}
     f, q = c(**v_dict)
@@ -66,7 +47,7 @@ def test_capacitor():
     assert jnp.isclose(q["p2"], -expected_q)
 
 
-def test_voltage_source_delay():
+def test_voltage_source_delay()-> None:
     vs = VoltageSource(V=5.0, delay=0.5)
     v_dict = {"p1": 0.0, "p2": 0.0}
     s_dict = {"i_src": 0.0}
@@ -84,7 +65,7 @@ def test_voltage_source_delay():
     assert not q1
 
 
-def test_inductor():
+def test_inductor()-> None:
     ind = Inductor(L=1e-9)
     v_dict = {"p1": 0.5, "p2": 0.0}
     s_dict = {"i_L": 0.1}
@@ -102,7 +83,7 @@ def test_inductor():
     assert jnp.isclose(q["i_L"], expected_flux_linkage)
 
 
-def test_diode_forward_bias():
+def test_diode_forward_bias()-> None:
     d = Diode()
     v_dict = {"p1": 0.7, "p2": 0.0}
     f, q = d(**v_dict)
@@ -111,7 +92,7 @@ def test_diode_forward_bias():
     assert not q
 
 
-def test_current_source():
+def test_current_source()-> None:
     cs = CurrentSource(I=2.0)
     v_dict = {"p1": 0.0, "p2": 0.0}
     f, q = cs(**v_dict)
@@ -120,7 +101,7 @@ def test_current_source():
     assert not q
 
 
-def test_vcvs():
+def test_vcvs()-> None:
     vcvs = VCVS(A=10.0)
     v_dict = {"out_p": 1.0, "out_m": 0.0, "ctrl_p": 0.2, "ctrl_m": 0.0}
     s_dict = {"i_src": 0.0}
@@ -137,7 +118,7 @@ def test_vcvs():
     assert not q
 
 
-def test_ccvs():
+def test_ccvs() -> None:
     ccvs = CCVS(R=5.0)
     i_ctrl = 2.0
     v_dict = {"out_p": 10.0, "out_m": 0.0, "in_p": 0.0, "in_m": 0.0}
@@ -156,7 +137,7 @@ def test_ccvs():
     assert not q
 
 
-def test_cccs():
+def test_cccs()-> None:
     alpha = 4.0
     i_ctrl = 0.5
     cccs = CCCS(alpha=alpha)
@@ -175,7 +156,7 @@ def test_cccs():
     assert not q
 
 
-def test_vccs():
+def test_vccs()-> None:
     G = 0.02
     v_ctrl = 1.5
     vccs = VCCS(G=G)
@@ -191,7 +172,7 @@ def test_vccs():
     assert not q
 
 
-def test_ideal_opamp():
+def test_ideal_opamp()-> None:
     opamp = IdealOpAmp(A=1e6)
     v_dict = {"out_p": 1.0, "out_m": 0.0, "in_p": 0.1, "in_m": 0.0}
     s_dict = {"i_src": 0.0}
@@ -210,8 +191,8 @@ def test_ideal_opamp():
 # --- Base Component Tests ---
 
 
-def test_solver_call_resistor():
-    params = dict(R=100.0)
+def test_solver_call_resistor()-> None:
+    params = {"R": 100.0}
     # Resistor.R = r
 
     # vars_vec = [v_p1, v_p2]
@@ -230,8 +211,8 @@ def test_solver_call_resistor():
     assert jnp.allclose(q_vec, jnp.zeros(2))
 
 
-def test_solver_call_capacitor():
-    params = dict(C=1e-9)
+def test_solver_call_capacitor()-> None:
+    params = {"C": 1e-9}
     # vars_vec = [v_p1, v_p2]
     vars_vec = jnp.array([3.0, 0.0])
 
@@ -249,20 +230,21 @@ def test_solver_call_capacitor():
     assert jnp.allclose(q_vec, jnp.array([q_val, -q_val]))
 
 
-def test_subclass_init_creates_namedtuples():
+def test_subclass_init_creates_namedtuples()-> None:
     # Define a dummy component
     class MyComp(CircuitComponent):
         ports = ("a", "b")
         states = ("s1",)
 
-        def physics(self, v, s, t):
+        def physics(self, v: Signals, s: States, t: float) -> PhysicsReturn: 
             return {}, {}
 
-    assert MyComp._VarsType_P is not None
-    assert MyComp._VarsType_S is not None
+    assert MyComp._VarsType_P is not None  # noqa: SLF001
+    assert MyComp._VarsType_S is not None  # noqa: SLF001
 
-    p = MyComp._VarsType_P(1, 2)
-    assert p.a == 1 and p.b == 2
+    p = MyComp._VarsType_P(1, 2) # noqa: SLF001
+    assert p.a == 1
+    assert p.b == 2
 
-    s = MyComp._VarsType_S(10)
+    s = MyComp._VarsType_S(10) # noqa: SLF001
     assert s.s1 == 10

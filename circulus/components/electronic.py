@@ -1,38 +1,38 @@
-import jax
-import jax.numpy as jnp
+"""Electronic components."""
+
 import jax.nn as jnn
-from typing import Callable, Any
+import jax.numpy as jnp
 
-# Adjust this import based on where you saved the decorator code
-from circulus.components.base_component import component, source, Signals, States
-
-# ===========================================================================
-# Passive Components (Time-Invariant)
-# ===========================================================================
+from circulus.components.base_component import (
+    PhysicsReturn,
+    Signals,
+    States,
+    component,
+    source,
+)
 
 
 @component(ports=("p1", "p2"))
-def Resistor(signals: Signals, s: States, R: float = 1e3):
-    """Ohm's Law: I = V/R"""
+def Resistor(signals: Signals, s: States, R: float = 1e3) -> PhysicsReturn:
+    """Ohm's Law: I = V/R."""
     i = (signals.p1 - signals.p2) / (R + 1e-12)
     return {"p1": i, "p2": -i}, {}
 
 
 @component(ports=("p1", "p2"))
-def Capacitor(signals: Signals, s: States, C: float = 1e-12):
-    """
-    Q = C * V.
+def Capacitor(signals: Signals, s: States, C: float = 1e-12) -> PhysicsReturn:
+    """Q = C * V.
     Returns Charge (q) so the solver computes I = dq/dt.
-    """
+    """  # noqa: D205
     v_drop = signals.p1 - signals.p2
     q_val = C * v_drop
     return {}, {"p1": q_val, "p2": -q_val}
 
 
 @component(ports=("p1", "p2"), states=("i_L",))
-def Inductor(signals: Signals, s: States, L: float = 1e-9):
-    """
-    V = L * di/dt  ->  di_L/dt = V / L
+def Inductor(signals: Signals, s: States, L: float = 1e-9) -> PhysicsReturn:
+    """V = L * di/dt  ->  di_L/dt = V / L.
+
     We treat Flux (phi) = L * i_L.
     """
     v_drop = signals.p1 - signals.p2
@@ -58,7 +58,7 @@ def Inductor(signals: Signals, s: States, L: float = 1e-9):
 @source(ports=("p1", "p2"), states=("i_src",))
 def VoltageSource(
     signals: Signals, s: States, t: float, V: float = 0.0, delay: float = 0.0
-):
+) -> PhysicsReturn:
     """Step voltage source."""
     v_val = jnp.where(t >= delay, V, 0.0)
     constraint = (signals.p1 - signals.p2) - v_val
@@ -73,7 +73,7 @@ def SmoothPulse(
     V: float = 1.0,
     delay: float = 1e-9,
     tr: float = 1e-10,
-):
+) -> PhysicsReturn:
     """Sigmoid-smoothed pulse."""
     k = 10.0 / tr
     v_val = V * jnn.sigmoid(k * (t - delay))
@@ -90,7 +90,7 @@ def VoltageSourceAC(
     freq: float = 1e6,
     phase: float = 0.0,
     delay: float = 0.0,
-):
+) -> PhysicsReturn:
     """Sinusoidal voltage source."""
     omega = 2.0 * jnp.pi * freq
     v_ac = V * jnp.sin(omega * t + phase)
@@ -100,7 +100,7 @@ def VoltageSourceAC(
 
 
 @component(ports=("p1", "p2"))
-def CurrentSource(signals: Signals, s: States, I: float = 0.0):
+def CurrentSource(signals: Signals, s: States, I: float = 0.0) -> PhysicsReturn:  # noqa: ARG001
     """Constant current source."""
     return {"p1": I, "p2": -I}, {}
 
@@ -113,7 +113,19 @@ def CurrentSource(signals: Signals, s: States, I: float = 0.0):
 @component(ports=("p1", "p2"))
 def Diode(
     signals: Signals, s: States, Is: float = 1e-12, n: float = 1.0, Vt: float = 25.85e-3
-):
+) -> PhysicsReturn:
+    """Ideal diode using the Shockley equation ``I = Is * (exp(Vd / n*Vt) - 1)``.
+
+    Junction voltage is clipped to ``[-5, 5]`` V for numerical stability.
+
+    Args:
+        signals: Port voltages at anode (``p1``) and cathode (``p2``).
+        s: Unused.
+        Is: Saturation current in amperes. Defaults to ``1e-12``.
+        n: Ideality factor. Defaults to ``1.0``.
+        Vt: Thermal voltage in volts. Defaults to ``25.85e-3``.
+
+    """
     vd = signals.p1 - signals.p2
     # Clip for numerical stability
     vd_safe = jnp.clip(vd, -5.0, 5.0)
@@ -129,7 +141,21 @@ def ZenerDiode(
     Is: float = 1e-12,
     n: float = 1.0,
     Vt: float = 25.85e-3,
-):
+) -> PhysicsReturn:
+    """Zener diode with forward Shockley conduction and reverse breakdown.
+
+    Breakdown is modelled as a reverse exponential that activates when
+    ``Vd < -Vz``.
+
+    Args:
+        signals: Port voltages at anode (``p1``) and cathode (``p2``).
+        s: Unused.
+        Vz: Zener breakdown voltage in volts. Defaults to ``5.0``.
+        Is: Saturation current in amperes. Defaults to ``1e-12``.
+        n: Ideality factor. Defaults to ``1.0``.
+        Vt: Thermal voltage in volts. Defaults to ``25.85e-3``.
+
+    """
     vd = signals.p1 - signals.p2
     i_fwd = Is * (jnp.exp(vd / (n * Vt)) - 1.0)
     # Zener breakdown modeled as reverse exponential
@@ -143,8 +169,30 @@ def ZenerDiode(
 # ===========================================================================
 
 
-def _nmos_current(v_d, v_g, v_s, Kp, W, L, Vth, lam):
-    """Helper for NMOS DC physics."""
+def _nmos_current(v_d:float,
+                  v_g:float,
+                  v_s:float,
+                  Kp:float,
+                  W:float,
+                  L:float,
+                  Vth:float,
+                  lam:float ) -> float:
+    """Compute NMOS drain current for cutoff, linear, and saturation regions.
+
+    Args:
+        v_d: Drain voltage.
+        v_g: Gate voltage.
+        v_s: Source voltage.
+        Kp: Process transconductance parameter in A/V².
+        W: Gate width in metres.
+        L: Gate length in metres.
+        Vth: Threshold voltage in volts.
+        lam: Channel-length modulation coefficient in V⁻¹.
+
+    Returns:
+        Drain current ``i_ds`` in amperes.
+
+    """
     vgs = v_g - v_s
     vds = v_d - v_s
 
@@ -168,7 +216,21 @@ def NMOS(
     L: float = 1e-6,
     Vth: float = 1.0,
     lam: float = 0.0,
-):
+) -> PhysicsReturn:
+    """N-channel MOSFET with square-law DC model and channel-length modulation.
+
+    Gate current is zero (infinite input impedance).
+
+    Args:
+        signals: Port voltages at drain (``d``), gate (``g``), and source (``s``).
+        s: Unused.
+        Kp: Process transconductance parameter in A/V². Defaults to ``2e-5``.
+        W: Gate width in metres. Defaults to ``10e-6``.
+        L: Gate length in metres. Defaults to ``1e-6``.
+        Vth: Threshold voltage in volts. Defaults to ``1.0``.
+        lam: Channel-length modulation coefficient in V⁻¹. Defaults to ``0``.
+
+    """
     i_ds = _nmos_current(signals.d, signals.g, signals.s, Kp, W, L, Vth, lam)
     return {"d": i_ds, "g": 0.0, "s": -i_ds}, {}
 
@@ -182,7 +244,21 @@ def PMOS(
     L: float = 1e-6,
     Vth: float = -1.0,
     lam: float = 0.0,
-):
+) -> PhysicsReturn:
+    """P-channel MOSFET with square-law DC model, formulated in terms of ``Vsg`` and ``Vsd``.
+
+    Gate current is zero (infinite input impedance).
+
+    Args:
+        signals: Port voltages at drain (``d``), gate (``g``), and source (``s``).
+        s: Unused.
+        Kp: Process transconductance parameter in A/V². Defaults to ``1e-5``.
+        W: Gate width in metres. Defaults to ``20e-6``.
+        L: Gate length in metres. Defaults to ``1e-6``.
+        Vth: Threshold voltage in volts (negative for PMOS). Defaults to ``-1.0``.
+        lam: Channel-length modulation coefficient in V⁻¹. Defaults to ``0``.
+
+    """
     vsg = signals.s - signals.g
     vsd = signals.s - signals.d
 
@@ -212,8 +288,25 @@ def NMOSDynamic(
     Cox: float = 1e-3,
     Cgd_ov: float = 1e-15,
     Cgs_ov: float = 1e-15,
-):
-    """NMOS with Meyer Capacitance Model."""
+) -> PhysicsReturn:
+    """NMOS with square-law DC model and Meyer gate capacitance model.
+
+    Gate charge is split into bias-dependent intrinsic charge (Meyer) and
+    linear overlap contributions at the drain and source.
+
+    Args:
+        signals: Port voltages at drain (``d``), gate (``g``), and source (``s``).
+        s: Unused.
+        Kp: Process transconductance parameter in A/V². Defaults to ``2e-5``.
+        W: Gate width in metres. Defaults to ``10e-6``.
+        L: Gate length in metres. Defaults to ``1e-6``.
+        Vth: Threshold voltage in volts. Defaults to ``1.0``.
+        lam: Channel-length modulation coefficient in V⁻¹. Defaults to ``0``.
+        Cox: Gate oxide capacitance per unit area in F/m². Defaults to ``1e-3``.
+        Cgd_ov: Gate-drain overlap capacitance in farads. Defaults to ``1e-15``.
+        Cgs_ov: Gate-source overlap capacitance in farads. Defaults to ``1e-15``.
+
+    """
     # 1. DC Current
     i_ds = _nmos_current(signals.d, signals.g, signals.s, Kp, W, L, Vth, lam)
     f_dict = {"d": i_ds, "g": 0.0, "s": -i_ds}
@@ -251,8 +344,22 @@ def NMOSDynamic(
 # ===========================================================================
 
 
-def _junction_charge(v, Cj0, Vj, m):
-    """JAX-compatible junction capacitance integration."""
+def _junction_charge(v, Cj0, Vj, m) -> float:
+    """Integrate the SPICE depletion capacitance model to obtain junction charge.
+
+    Uses linear extrapolation beyond ``fc * Vj`` (``fc = 0.5``) to avoid
+    NaN from the power-law term under forward bias.
+
+    Args:
+        v: Junction voltage in volts.
+        Cj0: Zero-bias junction capacitance in farads.
+        Vj: Built-in junction potential in volts.
+        m: Junction grading coefficient.
+
+    Returns:
+        Junction charge in coulombs.
+
+    """
     fc = 0.5
     v_thresh = fc * Vj
     # Standard SPICE depletion charge model
@@ -278,7 +385,22 @@ def BJT_NPN(
     BetaF: float = 100.0,
     BetaR: float = 1.0,
     Vt: float = 25.85e-3,
-):
+) -> PhysicsReturn:
+    """NPN BJT using the transport form of the Ebers-Moll DC model.
+
+    Junction voltages are clipped to ``[-5, 2]`` V before exponentiation.
+    For transient simulations with junction charge dynamics use
+    :func:`BJT_NPN_Dynamic` instead.
+
+    Args:
+        signals: Port voltages at collector (``c``), base (``b``), and emitter (``e``).
+        s: Unused.
+        Is: Saturation current in amperes. Defaults to ``1e-12``.
+        BetaF: Forward common-emitter current gain. Defaults to ``100``.
+        BetaR: Reverse common-emitter current gain. Defaults to ``1``.
+        Vt: Thermal voltage in volts. Defaults to ``25.85e-3``.
+
+    """
     vbe = signals.b - signals.e
     vbc = signals.b - signals.c
 
@@ -314,8 +436,48 @@ def BJT_NPN_Dynamic(
     Mjc: float = 0.33,
     Tf: float = 0.0,
     Tr: float = 0.0,
-):
-    # 1. DC Currents
+) -> PhysicsReturn:
+    """NPN BJT with the Ebers-Moll DC model and first-order junction charge dynamics.
+
+    DC currents follow the transport form of the Ebers-Moll equations. Junction
+    voltages are clipped to ``[-5, 2]`` V before exponentiation to prevent
+    overflow during transient solver iterations.
+
+    Charge dynamics combine two contributions at each junction:
+
+    - **Depletion charge** — modelled as a nonlinear junction capacitance via
+      :func:`_junction_charge`, using the standard abrupt/graded junction
+      formula with ideality parameters ``Vj`` and ``Mj``.
+    - **Diffusion charge** — proportional to the junction current scaled by the
+      transit time (``Tf`` for BE, ``Tr`` for BC``), representing minority
+      carrier storage in the base.
+
+    Args:
+        signals: Port voltages at collector (``c``), base (``b``), and
+            emitter (``e``).
+        s: Unused; present to satisfy the component protocol.
+        Is: Saturation current in amperes. Defaults to ``1e-12``.
+        BetaF: Forward common-emitter current gain. Defaults to ``100``.
+        BetaR: Reverse common-emitter current gain. Defaults to ``1``.
+        Vt: Thermal voltage in volts. Defaults to ``25.85e-3`` (room temperature).
+        Cje: Zero-bias BE junction capacitance in farads. Defaults to ``1e-12``.
+        Cjc: Zero-bias BC junction capacitance in farads. Defaults to ``1e-12``.
+        Vje: BE built-in junction potential in volts. Defaults to ``0.75``.
+        Vjc: BC built-in junction potential in volts. Defaults to ``0.75``.
+        Mje: BE junction grading coefficient. Defaults to ``0.33``.
+        Mjc: BC junction grading coefficient. Defaults to ``0.33``.
+        Tf: Forward transit time in seconds. Defaults to ``0`` (no BE diffusion charge).
+        Tr: Reverse transit time in seconds. Defaults to ``0`` (no BC diffusion charge).
+
+    Returns:
+        A two-tuple ``(f, q)`` where:
+
+        - **f** — DC current dict ``{"c": i_c, "b": i_b, "e": i_e}``.
+        - **q** — Junction charge dict ``{"c": Q_collector, "b": Q_base, "e": Q_emitter}``,
+          where ``Q_base = Q_be_total + Q_bc_total``, ``Q_collector = -Q_bc_total``,
+          and ``Q_emitter = -Q_be_total``.
+
+    """
     vbe = signals.b - signals.e
     vbc = signals.b - signals.c
 
@@ -357,7 +519,7 @@ def BJT_NPN_Dynamic(
 
 
 @component(ports=("out_p", "out_m", "ctrl_p", "ctrl_m"), states=("i_src",))
-def VCVS(signals: Signals, s: States, A: float = 1.0):
+def VCVS(signals: Signals, s: States, A: float = 1.0) -> PhysicsReturn:
     """Voltage Controlled Voltage Source."""
     constraint = (signals.out_p - signals.out_m) - A * (signals.ctrl_p - signals.ctrl_m)
     return {
@@ -370,14 +532,15 @@ def VCVS(signals: Signals, s: States, A: float = 1.0):
 
 
 @component(ports=("out_p", "out_m", "ctrl_p", "ctrl_m"))
-def VCCS(signals: Signals, s: States, G: float = 0.0):
+def VCCS(signals: Signals, s: States, G: float = 0.0) -> PhysicsReturn:
     """Voltage Controlled Current Source."""
     i = G * (signals.ctrl_p - signals.ctrl_m)
     return {"out_p": i, "out_m": -i, "ctrl_p": 0.0, "ctrl_m": 0.0}, {}
 
 
 @component(ports=("out_p", "out_m", "in_p", "in_m"), states=("i_src",))
-def IdealOpAmp(signals: Signals, s: States, A: float = 1e6):
+def IdealOpAmp(signals: Signals, s: States, A: float = 1e6) -> PhysicsReturn:
+    """Ideal Op Amp."""
     constraint = (signals.out_p - signals.out_m) - A * (signals.in_p - signals.in_m)
     return {
         "out_p": s.i_src,
@@ -391,7 +554,8 @@ def IdealOpAmp(signals: Signals, s: States, A: float = 1e6):
 @component(ports=("p1", "p2", "cp", "cm"))
 def VoltageControlledSwitch(
     signals: Signals, s: States, Ron: float = 1.0, Roff: float = 1e6, Vt: float = 0.0
-):
+) -> PhysicsReturn:
+    """Voltage Controlled Switch."""
     v_ctrl = signals.cp - signals.cm
     k = 10.0
     sig = jnn.sigmoid(k * (v_ctrl - Vt))
@@ -405,9 +569,8 @@ def VoltageControlledSwitch(
 
 
 @component(ports=("out_p", "out_m", "in_p", "in_m"), states=("i_src", "i_ctrl"))
-def CCVS(signals: Signals, s: States, R: float = 1.0):
-    """
-    Current Controlled Voltage Source (Transresistance).
+def CCVS(signals: Signals, s: States, R: float = 1.0) -> PhysicsReturn:
+    """Current Controlled Voltage Source (Transresistance).
 
     Physics:
     1. Input side (in_p, in_m) acts as a short circuit (0V drop) to measure current 'i_ctrl'.
@@ -435,9 +598,8 @@ def CCVS(signals: Signals, s: States, R: float = 1.0):
 
 
 @component(ports=("out_p", "out_m", "in_p", "in_m"), states=("i_ctrl",))
-def CCCS(signals: Signals, s: States, alpha: float = 1.0):
-    """
-    Current Controlled Current Source (Current Gain).
+def CCCS(signals: Signals, s: States, alpha: float = 1.0) -> PhysicsReturn:
+    """Current Controlled Current Source (Current Gain).
 
     Physics:
     1. Input side (in_p, in_m) acts as a short circuit to measure 'i_ctrl'.
