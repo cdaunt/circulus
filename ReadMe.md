@@ -122,6 +122,9 @@ net_dict = {
 jax.config.update("jax_enable_x64", True)
 
 
+jax.config.update("jax_enable_x64", True)
+
+
 models_map = {
     'resistor': Resistor,
     'capacitor': Capacitor,
@@ -130,22 +133,37 @@ models_map = {
     'ground': lambda: 0
 }
 
+print("Compiling...")
 groups, sys_size, port_map = compile_netlist(net_dict, models_map)
-linear_strat = DenseSolver.from_circuit(groups, sys_size, is_complex=False)
+
+print(port_map)
+
+print(f"Total System Size: {sys_size}")
+for g_name, g in groups.items():
+    print(f"Group: {g_name}")
+    print(f"  Count: {g.var_indices.shape[0]}")
+    print(f"  Var Indices Shape: {g.var_indices.shape}")
+    print(f"  Sample Var Indices:{g.var_indices}")
+    print(f"  Jacobian Rows Length: {len(g.jac_rows)}")
+
+print("2. Solving DC Operating Point...")
+linear_strat = analyze_circuit(groups, sys_size, is_complex=False)
 
 y_guess = jnp.zeros(sys_size)
 y_op = linear_strat.solve_dc(groups,y_guess)
 
-solver = VectorizedTransientSolver(linear_solver=linear_strat)
+transient_sim = setup_transient(groups=groups, linear_strategy=linear_strat)
 term = diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y))
 
-t_max = 5E-9
+
+t_max = 3E-9
 saveat = diffrax.SaveAt(ts=jnp.linspace(0, t_max, 500))
 print("3. Running Simulation...")
-sol = diffrax.diffeqsolve(
-    term, solver, t0=0.0, t1=t_max, dt0=1e-3*t_max, 
-    y0=y_op, args=(groups, sys_size),
+sol = transient_sim(
+    t0=0.0, t1=t_max, dt0=1e-3*t_max, 
+    y0=y_op,
     saveat=saveat, max_steps=100000,
+    progress_meter=diffrax.TqdmProgressMeter(refresh_steps=100)
 )
 
 ts = sol.ts
@@ -153,6 +171,7 @@ v_src = sol.ys[:, port_map["V1,p1"]]
 v_cap = sol.ys[:, port_map["C1,p1"]]
 i_ind = sol.ys[:, 5]
 
+print("4. Plotting...")
 fig, ax1 = plt.subplots(figsize=(8, 5))
 ax1.plot(ts, v_src, 'k--', label='Source V')
 ax1.plot(ts, v_cap, 'b-', label='Capacitor V')
@@ -165,7 +184,12 @@ ax2.plot(ts, i_ind, 'r:', label='Inductor I')
 ax2.set_ylabel('Current (A)')
 ax2.legend(loc='upper right')
 
-plt.title("Differentiable Simulation with Implicit Internals")
+ax2_ticks = ax2.get_yticks()
+ax1_ticks = ax1.get_yticks()
+ax2.set_yticks(jnp.linspace(ax2_ticks[0], ax2_ticks[-1], len(ax1_ticks)))
+ax1.set_yticks(jnp.linspace(ax1_ticks[0], ax1_ticks[-1], len(ax1_ticks)))
+
+plt.title("Impulse Response of LCR circuit")
 plt.grid(True)
 plt.show()
 ```
