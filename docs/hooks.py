@@ -32,13 +32,14 @@ plt.rcParams.update({
 })
 """
 
+
 def on_page_read_source(page: Any, config: Any, **kwargs: Any) -> str | None:
     """Inject style settings into notebooks before execution."""
-    
+
     # Only act on Jupyter Notebooks
     if page.file.src_path.endswith(".ipynb"):
         try:
-            with open(page.file.abs_src_path, encoding='utf-8') as f:
+            with open(page.file.abs_src_path, encoding="utf-8") as f:
                 nb = json.load(f)
 
             # Create a new code cell with the style configuration
@@ -46,9 +47,9 @@ def on_page_read_source(page: Any, config: Any, **kwargs: Any) -> str | None:
                 "cell_type": "code",
                 "execution_count": None,
                 # "remove_cell" tag helps some themes hide this setup block
-                "metadata": {"tags": ["remove_cell", "remove_input"]}, 
+                "metadata": {"tags": ["remove_cell", "remove_input"]},
                 "outputs": [],
-                "source": [line + "\n" for line in STYLE_CODE.splitlines()]
+                "source": [line + "\n" for line in STYLE_CODE.splitlines()],
             }
 
             # Insert this cell at the very top of the notebook
@@ -58,7 +59,7 @@ def on_page_read_source(page: Any, config: Any, **kwargs: Any) -> str | None:
         except Exception as e:
             print(f"Error injecting style into {page.file.src_path}: {e}")
             return None
-            
+
     return None
 
 
