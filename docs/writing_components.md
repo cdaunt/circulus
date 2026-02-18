@@ -1,6 +1,6 @@
 ## Writing Components
 
-circulax uses a functional, JAX-first approach to component definition. Instead of inheriting from complex base classes, you define components as pure Python functions decorated with specific handlers.
+Circulax uses a functional, JAX-first approach to component definition. Instead of inheriting from complex base classes, you define components as pure Python functions decorated with specific handlers.
 
 This architecture ensures your components are automatically compatible with JIT compilation (jax.jit), vectorization (jax.vmap), and back-propagation (jax.grad).
 
@@ -130,7 +130,7 @@ def ACSource(signals: Signals, s: States, t: float, V: float = 1.0, freq: float 
 
 ## Photonic Components (Frequency Domain)
 
-circulax can simulate photonic circuits by treating them as complex-valued resistor networks. You typically start with an S-Matrix, convert it to an Admittance (Y) Matrix, and calculate currents via $I = Y \cdot V$.
+Circulax can simulate photonic circuits by treating them as complex-valued resistor networks. You typically start with an S-Matrix, convert it to an Admittance (Y) Matrix, and calculate currents via $I = Y \cdot V$.
 
 Example: Optical Waveguide
 
