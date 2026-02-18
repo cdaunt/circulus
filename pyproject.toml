@@ -26,7 +26,8 @@ dependencies = [
     "sax>=0.15.15,<0.16",
     "matplotlib",
     "typing-extensions>=4.13.2",
-    "lineax"
+    "lineax",
+    "klujax>=0.4.8"
 ]
 
 [project.optional-dependencies]
