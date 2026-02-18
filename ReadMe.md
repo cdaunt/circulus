@@ -31,7 +31,7 @@ Circulus strictly separates Physics, Topology, and Analysis, enabling the interc
 
 ### **Physics Layer**
 Components are defined as simple Python functions wrapped with the ```@component``` decorator. This functional interface abstracts away the boilerplate, allowing users to define physics using simple voltage/current/field/flux relationships.
-    
+
 ```python
 from circulus.base_component import component, Signals, States
 import jax.numpy as jnp
@@ -47,7 +47,7 @@ def Resistor(signals: Signals, s: States, R: float = 1e3):
 @component(ports=("p1", "p2"))
 def Capacitor(signals: Signals, s: States, C: float = 1e-12):
     """
-    Q = C * V. 
+    Q = C * V.
     Returns Charge (q) so the solver computes I = dq/dt.
     """
     v_drop = signals.p1 - signals.p2
@@ -157,7 +157,7 @@ t_max = 3E-9
 saveat = diffrax.SaveAt(ts=jnp.linspace(0, t_max, 500))
 print("3. Running Simulation...")
 sol = transient_sim(
-    t0=0.0, t1=t_max, dt0=1e-3*t_max, 
+    t0=0.0, t1=t_max, dt0=1e-3*t_max,
     y0=y_op,
     saveat=saveat, max_steps=100000,
     progress_meter=diffrax.TqdmProgressMeter(refresh_steps=100)

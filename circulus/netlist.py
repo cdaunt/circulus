@@ -1,6 +1,6 @@
 """Circulus netlists.
 
-SAX netlists will be used as much as possible in circulus; 
+SAX netlists will be used as much as possible in circulus;
 however, connections for node based simulators need to be handled slightly differently.
 """
 

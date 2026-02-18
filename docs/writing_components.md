@@ -59,17 +59,17 @@ def Resistor(signals: Signals, s: States, R: float = 1e3):
     # 1. Calculate the physics
     v_drop = signals.p - signals.n
     i = v_drop / (R + 1e-12)  # Add epsilon for stability
-    
+
     # 2. Assign currents to ports
     # Current leaves 'p' and enters 'n' (Passive convention)
     f_dict = {
-        "p": i, 
+        "p": i,
         "n": -i
     }
-    
+
     # Resistors have no memory (no d/dt terms)
     q_dict = {}
-    
+
     return f_dict, q_dict
 ```
 
@@ -85,10 +85,10 @@ def Capacitor(signals: Signals, s: States, C: float = 1e-6):
     I = C * dV/dt  =>  I = dQ/dt
     """
     v_drop = signals.p - signals.n
-    
+
     # We define Charge (q)
     q_val = C * v_drop
-    
+
     # The solver treats q_dict as the "Mass Matrix" side.
     # The entries in q_dict are differentiated with respect to time.
     # p: I_p = d(q_val)/dt
@@ -111,17 +111,17 @@ from circulus.base_component import source
 def ACSource(signals: Signals, s: States, t: float, V: float = 1.0, freq: float = 60.0):
     # 1. Calculate Target Voltage based on time 't'
     target_v = V * jnp.sin(2 * jnp.pi * freq * t)
-    
+
     # 2. Define the Constraint Equation
     # We want: (vp - vn) = target_v
     # Therefore: (vp - vn) - target_v = 0
     constraint = (signals.p - signals.n) - target_v
-    
+
     return {
         # KCL: The unknown current 'i_src' leaves p and enters n
         "p": s.i_src,
         "n": -s.i_src,
-        
+
         # Constraint: The solver adjusts 'i_src' until this equation equals 0
         "i_src": constraint
     }, {}
@@ -142,26 +142,26 @@ def Waveguide(signals: Signals, s: States, length_um: float = 100.0, neff: float
     # 1. Physics: Calculate Phase Shift
     # Note: Use jnp (JAX numpy) for all math
     phi = 2.0 * jnp.pi * neff * length_um / wl
-    
+
     # 2. Construct S-Matrix (Transmission)
     # T = exp(-j * phi)
     T = jnp.exp(-1j * phi)
-    
-    # S = [[0, T], 
+
+    # S = [[0, T],
     #      [T, 0]]
     S = jnp.array([
-        [0.0, T], 
+        [0.0, T],
         [T, 0.0]
     ], dtype=jnp.complex128)
-    
+
     # 3. Convert to Admittance (Y)
     Y = s_to_y(S)
-    
+
     # 4. Calculate Currents: I = Y @ V
     # IMPORTANT: Cast inputs to complex128!
     v_vec = jnp.array([signals.in, signals.out], dtype=jnp.complex128)
     i_vec = Y @ v_vec
-    
+
     return {"in": i_vec[0], "out": i_vec[1]}, {}
 ```
 
@@ -213,4 +213,3 @@ Class Generation: It constructs a new eqx.Module class named MyResistor.
 Field Registration: The parameters (R) become fields of this class. This allows JAX to differentiate with respect to R automatically.
 
 Static Optimization: It creates a static _fast_physics method that unrolls dictionary lookups into raw array operations. This is what the solver calls inside ```jax.jit``` or ```jax.vmap```.
-
