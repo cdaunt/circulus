@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A Differentiable, Functional Circuit Analyzer for the AI Era.">
+        <meta name="description" content="A Differentiable, Functional Circuit Analyzer based on JAX.">
       
       
       
@@ -22,7 +22,7 @@
     
     
       
-        <title>Netlist - Circulus</title>
+        <title>Netlist - circulax</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#circulus.netlist" class="md-skip">
+        <a href="#circulax.netlist" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Circulus" class="md-header__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href="../.." title="circulax" class="md-header__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="../../images/logo.svg" alt="logo">
 
@@ -107,7 +107,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Circulus
+            circulax
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -216,12 +216,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Circulus" class="md-nav__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href="../.." title="circulax" class="md-nav__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="../../images/logo.svg" alt="logo">
 
     </a>
-    Circulus
+    circulax
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
@@ -624,16 +624,16 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#circulus.netlist.CirculusNetlist" class="md-nav__link">
+  <a href="#circulax.netlist.circulaxNetlist" class="md-nav__link">
     <span class="md-ellipsis">
-      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;CirculusNetlist
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;circulaxNetlist
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#circulus.netlist.build_net_map" class="md-nav__link">
+  <a href="#circulax.netlist.build_net_map" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;build_net_map
     </span>
@@ -642,7 +642,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#circulus.netlist.draw_circuit_graph" class="md-nav__link">
+  <a href="#circulax.netlist.draw_circuit_graph" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;draw_circuit_graph
     </span>
@@ -991,12 +991,12 @@
 
 
 <div class="doc doc-object doc-module">
-<h1 class="doc doc-heading" id="circulus.netlist">
+<h1 class="doc doc-heading" id="circulax.netlist">
 <code class="doc-symbol doc-symbol-heading doc-symbol-module"></code> <span class="doc doc-object-name doc-module-name">netlist</span>
-<a class="headerlink" href="#circulus.netlist" title="Permanent link">¤</a></h1>
+<a class="headerlink" href="#circulax.netlist" title="Permanent link">¤</a></h1>
 <div class="doc doc-contents first">
-<p>Circulus netlists.</p>
-<p>SAX netlists will be used as much as possible in circulus;
+<p>circulax netlists.</p>
+<p>SAX netlists will be used as much as possible in circulax;
 however, connections for node based simulators need to be handled slightly differently.</p>
 <p><span class="doc-section-title">Functions:</span></p>
 <table>
@@ -1008,7 +1008,7 @@ however, connections for node based simulators need to be handled slightly diffe
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.netlist.build_net_map" href="#circulus.netlist.build_net_map">build_net_map</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.netlist.build_net_map" href="#circulax.netlist.build_net_map">build_net_map</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Maps every port (e.g. 'R1,p1') to a generic Node Index (integer).</p>
@@ -1016,7 +1016,7 @@ however, connections for node based simulators need to be handled slightly diffe
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.netlist.draw_circuit_graph" href="#circulus.netlist.draw_circuit_graph">draw_circuit_graph</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.netlist.draw_circuit_graph" href="#circulax.netlist.draw_circuit_graph">draw_circuit_graph</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Visualize a circuit netlist as a connectivity graph.</p>
@@ -1036,7 +1036,7 @@ however, connections for node based simulators need to be handled slightly diffe
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.netlist.CirculusNetlist" href="#circulus.netlist.CirculusNetlist">CirculusNetlist</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.netlist.circulaxNetlist" href="#circulax.netlist.circulaxNetlist">circulaxNetlist</a></code></td>
 <td>
 </td>
 <td>
@@ -1049,20 +1049,20 @@ however, connections for node based simulators need to be handled slightly diffe
 </table>
 <div class="doc doc-children">
 <div class="doc doc-object doc-attribute">
-<h2 class="doc doc-heading" id="circulus.netlist.CirculusNetlist">
-<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code> <span class="doc doc-object-name doc-attribute-name">CirculusNetlist</span>
+<h2 class="doc doc-heading" id="circulax.netlist.circulaxNetlist">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code> <span class="doc doc-object-name doc-attribute-name">circulaxNetlist</span>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
 </span>
-<a class="headerlink" href="#circulus.netlist.CirculusNetlist" title="Permanent link">¤</a></h2>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="n">CirculusNetlist</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Annotated" href="https://docs.python.org/3/library/typing.html#typing.Annotated">Annotated</a></span><span class="p">[</span>
+<a class="headerlink" href="#circulax.netlist.circulaxNetlist" title="Permanent link">¤</a></h2>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="n">circulaxNetlist</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Annotated" href="https://docs.python.org/3/library/typing.html#typing.Annotated">Annotated</a></span><span class="p">[</span>
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a>    <span class="n"><span title="typing_extensions.TypedDict">TypedDict</span></span><span class="p">(</span>
 </span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a>        <span class="s2">"Netlist"</span><span class="p">,</span>
 </span><span id="__span-0-4"><a href="#__codelineno-0-4" id="__codelineno-0-4" name="__codelineno-0-4"></a>        <span class="p">{</span>
-</span><span id="__span-0-5"><a href="#__codelineno-0-5" id="__codelineno-0-5" name="__codelineno-0-5"></a>            <span class="s2">"instances"</span><span class="p">:</span> <span class="n"><span title="circulus.netlist.Instances">Instances</span></span><span class="p">,</span>
-</span><span id="__span-0-6"><a href="#__codelineno-0-6" id="__codelineno-0-6" name="__codelineno-0-6"></a>            <span class="s2">"connections"</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.NotRequired" href="https://docs.python.org/3/library/typing.html#typing.NotRequired">NotRequired</a></span><span class="p">[</span><span class="n"><span title="circulus.netlist.Connections">Connections</span></span><span class="p">],</span>
-</span><span id="__span-0-7"><a href="#__codelineno-0-7" id="__codelineno-0-7" name="__codelineno-0-7"></a>            <span class="s2">"ports"</span><span class="p">:</span> <span class="n"><span title="circulus.netlist.Ports">Ports</span></span><span class="p">,</span>
-</span><span id="__span-0-8"><a href="#__codelineno-0-8" id="__codelineno-0-8" name="__codelineno-0-8"></a>            <span class="s2">"placements"</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.NotRequired" href="https://docs.python.org/3/library/typing.html#typing.NotRequired">NotRequired</a></span><span class="p">[</span><span class="n"><span title="circulus.netlist.Placements">Placements</span></span><span class="p">],</span>
+</span><span id="__span-0-5"><a href="#__codelineno-0-5" id="__codelineno-0-5" name="__codelineno-0-5"></a>            <span class="s2">"instances"</span><span class="p">:</span> <span class="n"><span title="circulax.netlist.Instances">Instances</span></span><span class="p">,</span>
+</span><span id="__span-0-6"><a href="#__codelineno-0-6" id="__codelineno-0-6" name="__codelineno-0-6"></a>            <span class="s2">"connections"</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.NotRequired" href="https://docs.python.org/3/library/typing.html#typing.NotRequired">NotRequired</a></span><span class="p">[</span><span class="n"><span title="circulax.netlist.Connections">Connections</span></span><span class="p">],</span>
+</span><span id="__span-0-7"><a href="#__codelineno-0-7" id="__codelineno-0-7" name="__codelineno-0-7"></a>            <span class="s2">"ports"</span><span class="p">:</span> <span class="n"><span title="circulax.netlist.Ports">Ports</span></span><span class="p">,</span>
+</span><span id="__span-0-8"><a href="#__codelineno-0-8" id="__codelineno-0-8" name="__codelineno-0-8"></a>            <span class="s2">"placements"</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.NotRequired" href="https://docs.python.org/3/library/typing.html#typing.NotRequired">NotRequired</a></span><span class="p">[</span><span class="n"><span title="circulax.netlist.Placements">Placements</span></span><span class="p">],</span>
 </span><span id="__span-0-9"><a href="#__codelineno-0-9" id="__codelineno-0-9" name="__codelineno-0-9"></a>            <span class="s2">"settings"</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.NotRequired" href="https://docs.python.org/3/library/typing.html#typing.NotRequired">NotRequired</a></span><span class="p">[</span><span class="n"><span title="sax.saxtypes.settings.Settings">Settings</span></span><span class="p">],</span>
 </span><span id="__span-0-10"><a href="#__codelineno-0-10" id="__codelineno-0-10" name="__codelineno-0-10"></a>        <span class="p">},</span>
 </span><span id="__span-0-11"><a href="#__codelineno-0-11" id="__codelineno-0-11" name="__codelineno-0-11"></a>    <span class="p">),</span>
@@ -1084,7 +1084,7 @@ connections, external ports, and optional placement/settings.</p>
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code><span title="circulus.netlist.CirculusNetlist.instances">instances</span></code></td>
+<td><code><span title="circulax.netlist.circulaxNetlist.instances">instances</span></code></td>
 <td>
 </td>
 <td>
@@ -1094,7 +1094,7 @@ connections, external ports, and optional placement/settings.</p>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><span title="circulus.netlist.CirculusNetlist.connections">connections</span></code></td>
+<td><code><span title="circulax.netlist.circulaxNetlist.connections">connections</span></code></td>
 <td>
 </td>
 <td>
@@ -1104,7 +1104,7 @@ connections, external ports, and optional placement/settings.</p>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><span title="circulus.netlist.CirculusNetlist.ports">ports</span></code></td>
+<td><code><span title="circulax.netlist.circulaxNetlist.ports">ports</span></code></td>
 <td>
 </td>
 <td>
@@ -1114,7 +1114,7 @@ connections, external ports, and optional placement/settings.</p>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><span title="circulus.netlist.CirculusNetlist.placements">placements</span></code></td>
+<td><code><span title="circulax.netlist.circulaxNetlist.placements">placements</span></code></td>
 <td>
 </td>
 <td>
@@ -1124,7 +1124,7 @@ connections, external ports, and optional placement/settings.</p>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><span title="circulus.netlist.CirculusNetlist.settings">settings</span></code></td>
+<td><code><span title="circulax.netlist.circulaxNetlist.settings">settings</span></code></td>
 <td>
 </td>
 <td>
@@ -1138,9 +1138,9 @@ connections, external ports, and optional placement/settings.</p>
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="circulus.netlist.build_net_map">
+<h2 class="doc doc-heading" id="circulax.netlist.build_net_map">
 <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code> <span class="doc doc-object-name doc-function-name">build_net_map</span>
-<a class="headerlink" href="#circulus.netlist.build_net_map" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.netlist.build_net_map" title="Permanent link">¤</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nf">build_net_map</span><span class="p">(</span><span class="n">netlist</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">],</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span>
 </span></code></pre></div>
 <div class="doc doc-contents">
@@ -1177,7 +1177,7 @@ connections, external ports, and optional placement/settings.</p>
 </tbody>
 </table>
 <details class="quote">
-<summary>Source code in <code>circulus/netlist.py</code></summary>
+<summary>Source code in <code>circulax/netlist.py</code></summary>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-62">62</a></span>
 <span class="normal"><a href="#__codelineno-0-63">63</a></span>
 <span class="normal"><a href="#__codelineno-0-64">64</a></span>
@@ -1252,9 +1252,9 @@ connections, external ports, and optional placement/settings.</p>
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="circulus.netlist.draw_circuit_graph">
+<h2 class="doc doc-heading" id="circulax.netlist.draw_circuit_graph">
 <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code> <span class="doc doc-object-name doc-function-name">draw_circuit_graph</span>
-<a class="headerlink" href="#circulus.netlist.draw_circuit_graph" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.netlist.draw_circuit_graph" title="Permanent link">¤</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nf">draw_circuit_graph</span><span class="p">(</span>
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a>    <span class="n">netlist</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">],</span> <span class="n">layout_attempts</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="matplotlib.figure.Figure" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure">Figure</a></span>
@@ -1374,7 +1374,7 @@ reasonable for larger netlists.</p>
 </tbody>
 </table>
 <details class="quote">
-<summary>Source code in <code>circulus/netlist.py</code></summary>
+<summary>Source code in <code>circulax/netlist.py</code></summary>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-99"> 99</a></span>
 <span class="normal"><a href="#__codelineno-0-100">100</a></span>
 <span class="normal"><a href="#__codelineno-0-101">101</a></span>

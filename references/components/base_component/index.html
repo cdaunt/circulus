@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A Differentiable, Functional Circuit Analyzer for the AI Era.">
+        <meta name="description" content="A Differentiable, Functional Circuit Analyzer based on JAX.">
       
       
       
@@ -22,7 +22,7 @@
     
     
       
-        <title>Base component - Circulus</title>
+        <title>Base component - circulax</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#circulus.components.base_component" class="md-skip">
+        <a href="#circulax.components.base_component" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="Circulus" class="md-header__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href="../../.." title="circulax" class="md-header__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="../../../images/logo.svg" alt="logo">
 
@@ -107,7 +107,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Circulus
+            circulax
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -216,12 +216,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="Circulus" class="md-nav__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href="../../.." title="circulax" class="md-nav__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="../../../images/logo.svg" alt="logo">
 
     </a>
-    Circulus
+    circulax
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
@@ -750,7 +750,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#circulus.components.base_component.CircuitComponent" class="md-nav__link">
+  <a href="#circulax.components.base_component.CircuitComponent" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;CircuitComponent
     </span>
@@ -760,7 +760,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#circulus.components.base_component.CircuitComponent.physics" class="md-nav__link">
+  <a href="#circulax.components.base_component.CircuitComponent.physics" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;physics
     </span>
@@ -769,7 +769,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#circulus.components.base_component.CircuitComponent.solver_call" class="md-nav__link">
+  <a href="#circulax.components.base_component.CircuitComponent.solver_call" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;solver_call
     </span>
@@ -783,7 +783,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#circulus.components.base_component.Signals" class="md-nav__link">
+  <a href="#circulax.components.base_component.Signals" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Signals
     </span>
@@ -792,7 +792,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#circulus.components.base_component.States" class="md-nav__link">
+  <a href="#circulax.components.base_component.States" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;States
     </span>
@@ -801,7 +801,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#circulus.components.base_component.component" class="md-nav__link">
+  <a href="#circulax.components.base_component.component" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;component
     </span>
@@ -810,7 +810,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#circulus.components.base_component.source" class="md-nav__link">
+  <a href="#circulax.components.base_component.source" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;source
     </span>
@@ -1035,9 +1035,9 @@
 
 
 <div class="doc doc-object doc-module">
-<h1 class="doc doc-heading" id="circulus.components.base_component">
+<h1 class="doc doc-heading" id="circulax.components.base_component">
 <code class="doc-symbol doc-symbol-heading doc-symbol-module"></code> <span class="doc doc-object-name doc-module-name">base_component</span>
-<a class="headerlink" href="#circulus.components.base_component" title="Permanent link">¤</a></h1>
+<a class="headerlink" href="#circulax.components.base_component" title="Permanent link">¤</a></h1>
 <div class="doc doc-contents first">
 <p>Base class and decorators for defining JAX-compatible circuit components.</p>
 <p>Circuit components are defined as plain Python functions decorated with
@@ -1070,7 +1070,7 @@ f, q = r(p1=1.0, p2=0.0)
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.components.base_component.CircuitComponent" href="#circulus.components.base_component.CircuitComponent">CircuitComponent</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.components.base_component.CircuitComponent" href="#circulax.components.base_component.CircuitComponent">CircuitComponent</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Base class for all JAX-compatible circuit components.</p>
@@ -1078,7 +1078,7 @@ f, q = r(p1=1.0, p2=0.0)
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.components.base_component.Signals" href="#circulus.components.base_component.Signals">Signals</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.components.base_component.Signals" href="#circulax.components.base_component.Signals">Signals</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Protocol representing the port voltage signals passed to a component's physics function.</p>
@@ -1086,7 +1086,7 @@ f, q = r(p1=1.0, p2=0.0)
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.components.base_component.States" href="#circulus.components.base_component.States">States</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.components.base_component.States" href="#circulax.components.base_component.States">States</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Protocol representing the internal state variables passed to a component's physics function.</p>
@@ -1105,7 +1105,7 @@ f, q = r(p1=1.0, p2=0.0)
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.components.base_component.component" href="#circulus.components.base_component.component">component</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.components.base_component.component" href="#circulax.components.base_component.component">component</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Decorator for defining a time-independent circuit component.</p>
@@ -1113,7 +1113,7 @@ f, q = r(p1=1.0, p2=0.0)
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.components.base_component.source" href="#circulus.components.base_component.source">source</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.components.base_component.source" href="#circulax.components.base_component.source">source</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Decorator for defining a time-dependent circuit component.</p>
@@ -1124,9 +1124,9 @@ f, q = r(p1=1.0, p2=0.0)
 </table>
 <div class="doc doc-children">
 <div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="circulus.components.base_component.CircuitComponent">
+<h2 class="doc doc-heading" id="circulax.components.base_component.CircuitComponent">
 <code class="doc-symbol doc-symbol-heading doc-symbol-class"></code> <span class="doc doc-object-name doc-class-name">CircuitComponent</span>
-<a class="headerlink" href="#circulus.components.base_component.CircuitComponent" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.components.base_component.CircuitComponent" title="Permanent link">¤</a></h2>
 <div class="doc doc-contents">
 <p class="doc doc-class-bases">
               Bases: <code><span title="equinox.Module">Module</span></code></p>
@@ -1162,7 +1162,7 @@ _fast_physics: Static closure over the user-defined physics function,
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.components.base_component.CircuitComponent.physics" href="#circulus.components.base_component.CircuitComponent.physics">physics</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.components.base_component.CircuitComponent.physics" href="#circulax.components.base_component.CircuitComponent.physics">physics</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Raw physics dispatch; overridden by the decorator-generated subclass.</p>
@@ -1170,7 +1170,7 @@ _fast_physics: Static closure over the user-defined physics function,
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.components.base_component.CircuitComponent.solver_call" href="#circulus.components.base_component.CircuitComponent.solver_call">solver_call</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.components.base_component.CircuitComponent.solver_call" href="#circulax.components.base_component.CircuitComponent.solver_call">solver_call</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Evaluate the component physics (solver entry point).</p>
@@ -1181,15 +1181,15 @@ _fast_physics: Static closure over the user-defined physics function,
 </table>
 <div class="doc doc-children">
 <div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="circulus.components.base_component.CircuitComponent.physics">
+<h3 class="doc doc-heading" id="circulax.components.base_component.CircuitComponent.physics">
 <code class="doc-symbol doc-symbol-heading doc-symbol-method"></code> <span class="doc doc-object-name doc-function-name">physics</span>
-<a class="headerlink" href="#circulus.components.base_component.CircuitComponent.physics" title="Permanent link">¤</a></h3>
+<a class="headerlink" href="#circulax.components.base_component.CircuitComponent.physics" title="Permanent link">¤</a></h3>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nf">physics</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">]</span>
 </span></code></pre></div>
 <div class="doc doc-contents">
 <p>Raw physics dispatch; overridden by the decorator-generated subclass.</p>
 <details class="quote">
-<summary>Source code in <code>circulus/components/base_component.py</code></summary>
+<summary>Source code in <code>circulax/components/base_component.py</code></summary>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-196">196</a></span>
 <span class="normal"><a href="#__codelineno-0-197">197</a></span>
 <span class="normal"><a href="#__codelineno-0-198">198</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-196"><a id="__codelineno-0-196" name="__codelineno-0-196"></a><span class="k">def</span><span class="w"> </span><span class="nf">physics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
@@ -1200,12 +1200,12 @@ _fast_physics: Static closure over the user-defined physics function,
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h3 class="doc doc-heading" id="circulus.components.base_component.CircuitComponent.solver_call">
+<h3 class="doc doc-heading" id="circulax.components.base_component.CircuitComponent.solver_call">
 <code class="doc-symbol doc-symbol-heading doc-symbol-method"></code> <span class="doc doc-object-name doc-function-name">solver_call</span>
 <span class="doc doc-labels">
 <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
 </span>
-<a class="headerlink" href="#circulus.components.base_component.CircuitComponent.solver_call" title="Permanent link">¤</a></h3>
+<a class="headerlink" href="#circulax.components.base_component.CircuitComponent.solver_call" title="Permanent link">¤</a></h3>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nf">solver_call</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">]</span>
 </span></code></pre></div>
 <div class="doc doc-contents">
@@ -1321,7 +1321,7 @@ be a raw scalar.</p>
 </tbody>
 </table>
 <details class="quote">
-<summary>Source code in <code>circulus/components/base_component.py</code></summary>
+<summary>Source code in <code>circulax/components/base_component.py</code></summary>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-162">162</a></span>
 <span class="normal"><a href="#__codelineno-0-163">163</a></span>
 <span class="normal"><a href="#__codelineno-0-164">164</a></span>
@@ -1389,9 +1389,9 @@ be a raw scalar.</p>
 </div>
 </div>
 <div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="circulus.components.base_component.Signals">
+<h2 class="doc doc-heading" id="circulax.components.base_component.Signals">
 <code class="doc-symbol doc-symbol-heading doc-symbol-class"></code> <span class="doc doc-object-name doc-class-name">Signals</span>
-<a class="headerlink" href="#circulus.components.base_component.Signals" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.components.base_component.Signals" title="Permanent link">¤</a></h2>
 <div class="doc doc-contents">
 <p class="doc doc-class-bases">
               Bases: <code><a class="autorefs autorefs-external" title="typing.Protocol" href="https://docs.python.org/3/library/typing.html#typing.Protocol">Protocol</a></code></p>
@@ -1403,9 +1403,9 @@ namedtuple constructed from the component's <code>ports</code> declaration.</p>
 </div>
 </div>
 <div class="doc doc-object doc-class">
-<h2 class="doc doc-heading" id="circulus.components.base_component.States">
+<h2 class="doc doc-heading" id="circulax.components.base_component.States">
 <code class="doc-symbol doc-symbol-heading doc-symbol-class"></code> <span class="doc doc-object-name doc-class-name">States</span>
-<a class="headerlink" href="#circulus.components.base_component.States" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.components.base_component.States" title="Permanent link">¤</a></h2>
 <div class="doc doc-contents">
 <p class="doc doc-class-bases">
               Bases: <code><a class="autorefs autorefs-external" title="typing.Protocol" href="https://docs.python.org/3/library/typing.html#typing.Protocol">Protocol</a></code></p>
@@ -1417,9 +1417,9 @@ namedtuple constructed from the component's <code>states</code> declaration.</p>
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="circulus.components.base_component.component">
+<h2 class="doc doc-heading" id="circulax.components.base_component.component">
 <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code> <span class="doc doc-object-name doc-function-name">component</span>
-<a class="headerlink" href="#circulus.components.base_component.component" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.components.base_component.component" title="Permanent link">¤</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nf">component</span><span class="p">(</span><span class="n">ports</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span> <span class="n">states</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">())</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span>
 </span></code></pre></div>
 <div class="doc doc-contents">
@@ -1514,7 +1514,7 @@ def Resistor(signals: Signals, s: States, R: float = 1.0):
     return {"p1": i, "p2": -i}, {}
 </code></pre></div>
 <details class="quote">
-<summary>Source code in <code>circulus/components/base_component.py</code></summary>
+<summary>Source code in <code>circulax/components/base_component.py</code></summary>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-393">393</a></span>
 <span class="normal"><a href="#__codelineno-0-394">394</a></span>
 <span class="normal"><a href="#__codelineno-0-395">395</a></span>
@@ -1581,9 +1581,9 @@ def Resistor(signals: Signals, s: States, R: float = 1.0):
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="circulus.components.base_component.source">
+<h2 class="doc doc-heading" id="circulax.components.base_component.source">
 <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code> <span class="doc doc-object-name doc-function-name">source</span>
-<a class="headerlink" href="#circulus.components.base_component.source" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.components.base_component.source" title="Permanent link">¤</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nf">source</span><span class="p">(</span><span class="n">ports</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span> <span class="n">states</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">())</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span>
 </span></code></pre></div>
 <div class="doc doc-contents">
@@ -1675,7 +1675,7 @@ def VoltageSource(signals: Signals, s: States, t: float, V: float = 1.0):
     return {"p1": s.i_src, "p2": -s.i_src, "i_src": constraint}, {}
 </code></pre></div>
 <details class="quote">
-<summary>Source code in <code>circulus/components/base_component.py</code></summary>
+<summary>Source code in <code>circulax/components/base_component.py</code></summary>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-426">426</a></span>
 <span class="normal"><a href="#__codelineno-0-427">427</a></span>
 <span class="normal"><a href="#__codelineno-0-428">428</a></span>

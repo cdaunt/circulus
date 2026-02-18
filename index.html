@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A Differentiable, Functional Circuit Analyzer for the AI Era.">
+        <meta name="description" content="A Differentiable, Functional Circuit Analyzer based on JAX.">
       
       
       
@@ -20,7 +20,7 @@
     
     
       
-        <title>Circulus</title>
+        <title>circulax</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#circulus" class="md-skip">
+        <a href="#circulax" class="md-skip">
           Skip to content
         </a>
       
@@ -92,7 +92,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="Circulus" class="md-header__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href="." title="circulax" class="md-header__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="images/logo.svg" alt="logo">
 
@@ -105,7 +105,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Circulus
+            circulax
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -214,12 +214,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="Circulus" class="md-nav__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href="." title="circulax" class="md-nav__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="images/logo.svg" alt="logo">
 
     </a>
-    Circulus
+    circulax
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
@@ -1037,22 +1037,22 @@
 
 
 
-<h1 id="circulus"><strong>Circulus</strong><a class="headerlink" href="#circulus" title="Permanent link">¤</a></h1>
+<h1 id="circulax"><strong>circulax</strong><a class="headerlink" href="#circulax" title="Permanent link">¤</a></h1>
 <p><img alt="logo" src="images/logo_white.svg" width="500"/></p>
 <h2 id="a-differentiable-functional-circuit-simulator-based-on-jax"><strong>A Differentiable, Functional Circuit Simulator based on JAX</strong><a class="headerlink" href="#a-differentiable-functional-circuit-simulator-based-on-jax" title="Permanent link">¤</a></h2>
-<p>Circulus is a differentiable circuit simulation framework built on <a href="https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html">JAX</a>, <a href="https://github.com/patrick-kidger/optimistix">Optimistix</a> and <a href="https://docs.kidger.site/diffrax/">Diffrax</a>. It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.</p>
-<p>By using JAX as its backend, Circulus provides:</p>
+<p>circulax is a differentiable circuit simulation framework built on <a href="https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html">JAX</a>, <a href="https://github.com/patrick-kidger/optimistix">Optimistix</a> and <a href="https://docs.kidger.site/diffrax/">Diffrax</a>. It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.</p>
+<p>By using JAX as its backend, circulax provides:</p>
 <p><strong>Native Differentiation</strong>: Full support for forward and reverse-mode automatic differentiation through the solver, enabling gradient-based parameter optimization and inverse design.</p>
 <p><strong>Hardware Acceleration</strong>: Seamless execution on CPU, GPU, and TPU without code changes.</p>
 <p><strong>Mixed-Domain Support</strong>: Native complex-number handling for simultaneous simulation of electronic and photonic components.</p>
 <p><strong>Modular Architecture</strong>: A functional approach to simulation that integrates directly into machine learning and scientific computing workflows.</p>
-<p>Standard tools (SPICE, Spectre, Ngspice) rely on established matrix stamping methods and CPU-bound sparse solvers. Circulus leverages the JAX ecosystem to offer specific advantages in optimization and hardware utilization:</p>
+<p>Standard tools (SPICE, Spectre, Ngspice) rely on established matrix stamping methods and CPU-bound sparse solvers. circulax leverages the JAX ecosystem to offer specific advantages in optimization and hardware utilization:</p>
 <table>
 <thead>
 <tr>
 <th>Feature</th>
 <th>Legacy(SPICE)</th>
-<th>Circulus</th>
+<th>circulax</th>
 </tr>
 </thead>
 <tbody>
@@ -1084,10 +1084,10 @@
 </tbody>
 </table>
 <h2 id="simulator-setup"><strong>Simulator setup</strong><a class="headerlink" href="#simulator-setup" title="Permanent link">¤</a></h2>
-<p>Circulus strictly separates Physics, Topology, and Analysis, enabling the interchange of solvers or models without netlist modification.</p>
+<p>circulax strictly separates Physics, Topology, and Analysis, enabling the interchange of solvers or models without netlist modification.</p>
 <h3 id="physics-layer"><strong>Physics Layer</strong><a class="headerlink" href="#physics-layer" title="Permanent link">¤</a></h3>
 <p>Components are defined as simple Python functions wrapped with the <code>@component</code> decorator. This functional interface abstracts away the boilerplate, allowing users to define physics using simple voltage/current/field/flux relationships.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.base_component</span><span class="w"> </span><span class="kn">import</span> <span class="n">component</span><span class="p">,</span> <span class="n">Signals</span><span class="p">,</span> <span class="n">States</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulax.base_component</span><span class="w"> </span><span class="kn">import</span> <span class="n">component</span><span class="p">,</span> <span class="n">Signals</span><span class="p">,</span> <span class="n">States</span>
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 </span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a>
 </span><span id="__span-0-4"><a href="#__codelineno-0-4" id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="nd">@component</span><span class="p">(</span><span class="n">ports</span><span class="o">=</span><span class="p">(</span><span class="s2">"p1"</span><span class="p">,</span> <span class="s2">"p2"</span><span class="p">))</span>
@@ -1141,16 +1141,16 @@
 </li>
 </ul>
 <h2 id="installation"><strong>Installation</strong><a class="headerlink" href="#installation" title="Permanent link">¤</a></h2>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a href="#__codelineno-2-1" id="__codelineno-2-1" name="__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span>circulus
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a href="#__codelineno-2-1" id="__codelineno-2-1" name="__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span>circulax
 </span></code></pre></div>
 <h2 id="simulation-example"><strong>Simulation Example</strong><a class="headerlink" href="#simulation-example" title="Permanent link">¤</a></h2>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a href="#__codelineno-3-1" id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
 </span><span id="__span-3-2"><a href="#__codelineno-3-2" id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">diffrax</span>
 </span><span id="__span-3-3"><a href="#__codelineno-3-3" id="__codelineno-3-3" name="__codelineno-3-3"></a>
-</span><span id="__span-3-4"><a href="#__codelineno-3-4" id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.components</span><span class="w"> </span><span class="kn">import</span> <span class="n">Resistor</span><span class="p">,</span> <span class="n">Capacitor</span><span class="p">,</span> <span class="n">Inductor</span><span class="p">,</span> <span class="n">VoltageSource</span>
-</span><span id="__span-3-5"><a href="#__codelineno-3-5" id="__codelineno-3-5" name="__codelineno-3-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.compiler</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_netlist</span>
-</span><span id="__span-3-6"><a href="#__codelineno-3-6" id="__codelineno-3-6" name="__codelineno-3-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.solvers.transient</span><span class="w"> </span><span class="kn">import</span> <span class="n">VectorizedTransientSolver</span>
-</span><span id="__span-3-7"><a href="#__codelineno-3-7" id="__codelineno-3-7" name="__codelineno-3-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.solvers.strategies</span><span class="w"> </span><span class="kn">import</span> <span class="n">DenseSolver</span>
+</span><span id="__span-3-4"><a href="#__codelineno-3-4" id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulax.components</span><span class="w"> </span><span class="kn">import</span> <span class="n">Resistor</span><span class="p">,</span> <span class="n">Capacitor</span><span class="p">,</span> <span class="n">Inductor</span><span class="p">,</span> <span class="n">VoltageSource</span>
+</span><span id="__span-3-5"><a href="#__codelineno-3-5" id="__codelineno-3-5" name="__codelineno-3-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulax.compiler</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_netlist</span>
+</span><span id="__span-3-6"><a href="#__codelineno-3-6" id="__codelineno-3-6" name="__codelineno-3-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulax.solvers.transient</span><span class="w"> </span><span class="kn">import</span> <span class="n">VectorizedTransientSolver</span>
+</span><span id="__span-3-7"><a href="#__codelineno-3-7" id="__codelineno-3-7" name="__codelineno-3-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulax.solvers.strategies</span><span class="w"> </span><span class="kn">import</span> <span class="n">DenseSolver</span>
 </span><span id="__span-3-8"><a href="#__codelineno-3-8" id="__codelineno-3-8" name="__codelineno-3-8"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 </span><span id="__span-3-9"><a href="#__codelineno-3-9" id="__codelineno-3-9" name="__codelineno-3-9"></a>
 </span><span id="__span-3-10"><a href="#__codelineno-3-10" id="__codelineno-3-10" name="__codelineno-3-10"></a><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
@@ -1246,7 +1246,7 @@
 </span></code></pre></div>
 <p><img alt="output" src="images/lcr.png"/></p>
 <h2 id="license"><strong>License</strong><a class="headerlink" href="#license" title="Permanent link">¤</a></h2>
-<p>Copyright © 2026, Chris Daunt, <a href="https://github.com/cdaunt/circulus/blob/master/LICENSE">Apache-2.0 License</a></p>
+<p>Copyright © 2026, Chris Daunt, <a href="https://github.com/cdaunt/circulax/blob/master/LICENSE">Apache-2.0 License</a></p>
 
 
 

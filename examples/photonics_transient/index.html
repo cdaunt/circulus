@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A Differentiable, Functional Circuit Analyzer for the AI Era.">
+        <meta name="description" content="A Differentiable, Functional Circuit Analyzer based on JAX.">
       
       
       
@@ -22,7 +22,7 @@
     
     
       
-        <title>Photonics transient - Circulus</title>
+        <title>Photonics transient - circulax</title>
       
     
     
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Circulus" class="md-header__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href="../.." title="circulax" class="md-header__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="../../images/logo.svg" alt="logo">
 
@@ -107,7 +107,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Circulus
+            circulax
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -216,12 +216,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Circulus" class="md-nav__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href="../.." title="circulax" class="md-nav__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="../../images/logo.svg" alt="logo">
 
     </a>
-    Circulus
+    circulax
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
@@ -1702,22 +1702,22 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">circulus.compiler</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_netlist</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">circulus.components.base_component</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhysicsReturn</span><span class="p">,</span> <span class="n">Signals</span><span class="p">,</span> <span class="n">States</span><span class="p">,</span> <span class="n">component</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">circulus.components.electronic</span><span class="w"> </span><span class="kn">import</span> <span class="n">Resistor</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">circulus.components.photonic</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpticalSourcePulse</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">circulus.solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">analyze_circuit</span><span class="p">,</span> <span class="n">setup_transient</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">circulax.compiler</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_netlist</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">circulax.components.base_component</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhysicsReturn</span><span class="p">,</span> <span class="n">Signals</span><span class="p">,</span> <span class="n">States</span><span class="p">,</span> <span class="n">component</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">circulax.components.electronic</span><span class="w"> </span><span class="kn">import</span> <span class="n">Resistor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">circulax.components.photonic</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpticalSourcePulse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">circulax.solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">analyze_circuit</span><span class="p">,</span> <span class="n">setup_transient</span>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-1">import diffrax
 import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 
-from circulus.compiler import compile_netlist
-from circulus.components.base_component import PhysicsReturn, Signals, States, component
-from circulus.components.electronic import Resistor
-from circulus.components.photonic import OpticalSourcePulse
-from circulus.solvers import analyze_circuit, setup_transient
+from circulax.compiler import compile_netlist
+from circulax.components.base_component import PhysicsReturn, Signals, States, component
+from circulax.components.electronic import Resistor
+from circulax.components.photonic import OpticalSourcePulse
+from circulax.solvers import analyze_circuit, setup_transient
 </div>
 </div>
 </div>

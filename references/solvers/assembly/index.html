@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A Differentiable, Functional Circuit Analyzer for the AI Era.">
+        <meta name="description" content="A Differentiable, Functional Circuit Analyzer based on JAX.">
       
       
       
@@ -22,7 +22,7 @@
     
     
       
-        <title>Assembly - Circulus</title>
+        <title>Assembly - circulax</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#circulus.solvers.assembly" class="md-skip">
+        <a href="#circulax.solvers.assembly" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="Circulus" class="md-header__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href="../../.." title="circulax" class="md-header__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="../../../images/logo.svg" alt="logo">
 
@@ -107,7 +107,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Circulus
+            circulax
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -216,12 +216,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="Circulus" class="md-nav__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href="../../.." title="circulax" class="md-nav__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="../../../images/logo.svg" alt="logo">
 
     </a>
-    Circulus
+    circulax
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
@@ -882,7 +882,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#circulus.solvers.assembly.assemble_residual_only_complex" class="md-nav__link">
+  <a href="#circulax.solvers.assembly.assemble_residual_only_complex" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;assemble_residual_only_complex
     </span>
@@ -891,7 +891,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#circulus.solvers.assembly.assemble_residual_only_real" class="md-nav__link">
+  <a href="#circulax.solvers.assembly.assemble_residual_only_real" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;assemble_residual_only_real
     </span>
@@ -900,7 +900,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#circulus.solvers.assembly.assemble_system_complex" class="md-nav__link">
+  <a href="#circulax.solvers.assembly.assemble_system_complex" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;assemble_system_complex
     </span>
@@ -909,7 +909,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#circulus.solvers.assembly.assemble_system_real" class="md-nav__link">
+  <a href="#circulax.solvers.assembly.assemble_system_real" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;assemble_system_real
     </span>
@@ -1002,9 +1002,9 @@
 
 
 <div class="doc doc-object doc-module">
-<h1 class="doc doc-heading" id="circulus.solvers.assembly">
+<h1 class="doc doc-heading" id="circulax.solvers.assembly">
 <code class="doc-symbol doc-symbol-heading doc-symbol-module"></code> <span class="doc doc-object-name doc-module-name">assembly</span>
-<a class="headerlink" href="#circulus.solvers.assembly" title="Permanent link">¤</a></h1>
+<a class="headerlink" href="#circulax.solvers.assembly" title="Permanent link">¤</a></h1>
 <div class="doc doc-contents first">
 <p>Assembly functions for the transient circuit solver.</p>
 <p>Provides functions for evaluating the residual vectors and effective
@@ -1015,7 +1015,7 @@ Functions are provided in two variants:</p>
 <p><strong>Full assembly</strong> (:func:<code>assemble_system_real</code>, :func:<code>assemble_system_complex</code>)
   — evaluates both the residual and the forward-mode Jacobian via
   <code>jax.jacfwd</code>. Used once per timestep to assemble and factor the frozen
-  Jacobian in :class:<code>~circulus.solver.FactorizedTransientSolver</code>.</p>
+  Jacobian in :class:<code>~circulax.solver.FactorizedTransientSolver</code>.</p>
 </li>
 <li>
 <p><strong>Residual only</strong> (:func:<code>assemble_residual_only_real</code>,
@@ -1038,7 +1038,7 @@ algebra kernels.</p>
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.solvers.assembly.assemble_residual_only_complex" href="#circulus.solvers.assembly.assemble_residual_only_complex">assemble_residual_only_complex</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.solvers.assembly.assemble_residual_only_complex" href="#circulax.solvers.assembly.assemble_residual_only_complex">assemble_residual_only_complex</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Assemble the residual vectors for an unrolled complex system, without computing the Jacobian.</p>
@@ -1046,7 +1046,7 @@ algebra kernels.</p>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.solvers.assembly.assemble_residual_only_real" href="#circulus.solvers.assembly.assemble_residual_only_real">assemble_residual_only_real</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.solvers.assembly.assemble_residual_only_real" href="#circulax.solvers.assembly.assemble_residual_only_real">assemble_residual_only_real</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Assemble the residual vectors for a real system, without computing the Jacobian.</p>
@@ -1054,7 +1054,7 @@ algebra kernels.</p>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.solvers.assembly.assemble_system_complex" href="#circulus.solvers.assembly.assemble_system_complex">assemble_system_complex</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.solvers.assembly.assemble_system_complex" href="#circulax.solvers.assembly.assemble_system_complex">assemble_system_complex</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Assemble the residual vectors and effective Jacobian values for an unrolled complex system.</p>
@@ -1062,7 +1062,7 @@ algebra kernels.</p>
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.solvers.assembly.assemble_system_real" href="#circulus.solvers.assembly.assemble_system_real">assemble_system_real</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.solvers.assembly.assemble_system_real" href="#circulax.solvers.assembly.assemble_system_real">assemble_system_real</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Assemble the residual vectors and effective Jacobian values for a real system.</p>
@@ -1073,9 +1073,9 @@ algebra kernels.</p>
 </table>
 <div class="doc doc-children">
 <div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="circulus.solvers.assembly.assemble_residual_only_complex">
+<h2 class="doc doc-heading" id="circulax.solvers.assembly.assemble_residual_only_complex">
 <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code> <span class="doc doc-object-name doc-function-name">assemble_residual_only_complex</span>
-<a class="headerlink" href="#circulus.solvers.assembly.assemble_residual_only_complex" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.solvers.assembly.assemble_residual_only_complex" title="Permanent link">¤</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nf">assemble_residual_only_complex</span><span class="p">(</span>
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a>    <span class="n">y_guess</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">,</span> <span class="n">component_groups</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">,</span> <span class="n">t1</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span>
 </span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">]</span>
@@ -1197,7 +1197,7 @@ interchangeable at call sites.</p>
 </tbody>
 </table>
 <details class="quote">
-<summary>Source code in <code>circulus/solvers/assembly.py</code></summary>
+<summary>Source code in <code>circulax/solvers/assembly.py</code></summary>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-209">209</a></span>
 <span class="normal"><a href="#__codelineno-0-210">210</a></span>
 <span class="normal"><a href="#__codelineno-0-211">211</a></span>
@@ -1304,9 +1304,9 @@ interchangeable at call sites.</p>
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="circulus.solvers.assembly.assemble_residual_only_real">
+<h2 class="doc doc-heading" id="circulax.solvers.assembly.assemble_residual_only_real">
 <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code> <span class="doc doc-object-name doc-function-name">assemble_residual_only_real</span>
-<a class="headerlink" href="#circulus.solvers.assembly.assemble_residual_only_real" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.solvers.assembly.assemble_residual_only_real" title="Permanent link">¤</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nf">assemble_residual_only_real</span><span class="p">(</span>
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a>    <span class="n">y_guess</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">,</span> <span class="n">component_groups</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">,</span> <span class="n">t1</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span>
 </span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">]</span>
@@ -1429,7 +1429,7 @@ interchangeable at call sites.</p>
 </tbody>
 </table>
 <details class="quote">
-<summary>Source code in <code>circulus/solvers/assembly.py</code></summary>
+<summary>Source code in <code>circulax/solvers/assembly.py</code></summary>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-84"> 84</a></span>
 <span class="normal"><a href="#__codelineno-0-85"> 85</a></span>
 <span class="normal"><a href="#__codelineno-0-86"> 86</a></span>
@@ -1522,9 +1522,9 @@ interchangeable at call sites.</p>
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="circulus.solvers.assembly.assemble_system_complex">
+<h2 class="doc doc-heading" id="circulax.solvers.assembly.assemble_system_complex">
 <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code> <span class="doc doc-object-name doc-function-name">assemble_system_complex</span>
-<a class="headerlink" href="#circulus.solvers.assembly.assemble_system_complex" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.solvers.assembly.assemble_system_complex" title="Permanent link">¤</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nf">assemble_system_complex</span><span class="p">(</span>
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a>    <span class="n">y_guess</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">,</span> <span class="n">component_groups</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">,</span> <span class="n">t1</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span>
 </span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">]</span>
@@ -1681,7 +1681,7 @@ Jacobian blocks (RR, RI, IR, II) in group-sorted order.</li>
 </tbody>
 </table>
 <details class="quote">
-<summary>Source code in <code>circulus/solvers/assembly.py</code></summary>
+<summary>Source code in <code>circulax/solvers/assembly.py</code></summary>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-130">130</a></span>
 <span class="normal"><a href="#__codelineno-0-131">131</a></span>
 <span class="normal"><a href="#__codelineno-0-132">132</a></span>
@@ -1840,9 +1840,9 @@ Jacobian blocks (RR, RI, IR, II) in group-sorted order.</li>
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="circulus.solvers.assembly.assemble_system_real">
+<h2 class="doc doc-heading" id="circulax.solvers.assembly.assemble_system_real">
 <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code> <span class="doc doc-object-name doc-function-name">assemble_system_real</span>
-<a class="headerlink" href="#circulus.solvers.assembly.assemble_system_real" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.solvers.assembly.assemble_system_real" title="Permanent link">¤</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nf">assemble_system_real</span><span class="p">(</span>
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a>    <span class="n">y_guess</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">,</span> <span class="n">component_groups</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">,</span> <span class="n">t1</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span>
 </span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="jax.Array" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array">Array</a></span><span class="p">]</span>
@@ -1993,7 +1993,7 @@ in group-sorted order, ready to be passed to the sparse linear solver.</li>
 </tbody>
 </table>
 <details class="quote">
-<summary>Source code in <code>circulus/solvers/assembly.py</code></summary>
+<summary>Source code in <code>circulax/solvers/assembly.py</code></summary>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-28">28</a></span>
 <span class="normal"><a href="#__codelineno-0-29">29</a></span>
 <span class="normal"><a href="#__codelineno-0-30">30</a></span>

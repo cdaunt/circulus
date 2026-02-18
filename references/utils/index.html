@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A Differentiable, Functional Circuit Analyzer for the AI Era.">
+        <meta name="description" content="A Differentiable, Functional Circuit Analyzer based on JAX.">
       
       
       
@@ -22,7 +22,7 @@
     
     
       
-        <title>Utils - Circulus</title>
+        <title>Utils - circulax</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#circulus.utils" class="md-skip">
+        <a href="#circulax.utils" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Circulus" class="md-header__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href="../.." title="circulax" class="md-header__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="../../images/logo.svg" alt="logo">
 
@@ -107,7 +107,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Circulus
+            circulax
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -216,12 +216,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Circulus" class="md-nav__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href="../.." title="circulax" class="md-nav__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="../../images/logo.svg" alt="logo">
 
     </a>
-    Circulus
+    circulax
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
@@ -668,7 +668,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#circulus.utils.update_group_params" class="md-nav__link">
+  <a href="#circulax.utils.update_group_params" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;update_group_params
     </span>
@@ -677,7 +677,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#circulus.utils.update_params_dict" class="md-nav__link">
+  <a href="#circulax.utils.update_params_dict" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;update_params_dict
     </span>
@@ -982,11 +982,11 @@
 
 
 <div class="doc doc-object doc-module">
-<h1 class="doc doc-heading" id="circulus.utils">
+<h1 class="doc doc-heading" id="circulax.utils">
 <code class="doc-symbol doc-symbol-heading doc-symbol-module"></code> <span class="doc doc-object-name doc-module-name">utils</span>
-<a class="headerlink" href="#circulus.utils" title="Permanent link">¤</a></h1>
+<a class="headerlink" href="#circulax.utils" title="Permanent link">¤</a></h1>
 <div class="doc doc-contents first">
-<p>Circulus utilities.</p>
+<p>circulax utilities.</p>
 <p><span class="doc-section-title">Functions:</span></p>
 <table>
 <thead>
@@ -997,7 +997,7 @@
 </thead>
 <tbody>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.utils.update_group_params" href="#circulus.utils.update_group_params">update_group_params</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.utils.update_group_params" href="#circulax.utils.update_group_params">update_group_params</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Updates a parameter for ALL instances in a component group.</p>
@@ -1005,7 +1005,7 @@
 </td>
 </tr>
 <tr class="doc-section-item">
-<td><code><a class="autorefs autorefs-internal" title="circulus.utils.update_params_dict" href="#circulus.utils.update_params_dict">update_params_dict</a></code></td>
+<td><code><a class="autorefs autorefs-internal" title="circulax.utils.update_params_dict" href="#circulax.utils.update_params_dict">update_params_dict</a></code></td>
 <td>
 <div class="doc-md-description">
 <p>Updates a parameter for a specific instance within a component group.</p>
@@ -1016,17 +1016,17 @@
 </table>
 <div class="doc doc-children">
 <div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="circulus.utils.update_group_params">
+<h2 class="doc doc-heading" id="circulax.utils.update_group_params">
 <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code> <span class="doc doc-object-name doc-function-name">update_group_params</span>
-<a class="headerlink" href="#circulus.utils.update_group_params" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.utils.update_group_params" title="Permanent link">¤</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nf">update_group_params</span><span class="p">(</span>
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a>    <span class="n">groups_dict</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">,</span> <span class="n">group_name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">param_key</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">new_value</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span>
-</span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="circulus.compiler.ComponentGroup" href="../compiler/#circulus.compiler.ComponentGroup">ComponentGroup</a></span><span class="p">]</span>
+</span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="circulax.compiler.ComponentGroup" href="../compiler/#circulax.compiler.ComponentGroup">ComponentGroup</a></span><span class="p">]</span>
 </span></code></pre></div>
 <div class="doc doc-contents">
 <p>Updates a parameter for ALL instances in a component group.</p>
 <details class="quote">
-<summary>Source code in <code>circulus/utils.py</code></summary>
+<summary>Source code in <code>circulax/utils.py</code></summary>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-38">38</a></span>
 <span class="normal"><a href="#__codelineno-0-39">39</a></span>
 <span class="normal"><a href="#__codelineno-0-40">40</a></span>
@@ -1067,21 +1067,21 @@
 </div>
 </div>
 <div class="doc doc-object doc-function">
-<h2 class="doc doc-heading" id="circulus.utils.update_params_dict">
+<h2 class="doc doc-heading" id="circulax.utils.update_params_dict">
 <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code> <span class="doc doc-object-name doc-function-name">update_params_dict</span>
-<a class="headerlink" href="#circulus.utils.update_params_dict" title="Permanent link">¤</a></h2>
+<a class="headerlink" href="#circulax.utils.update_params_dict" title="Permanent link">¤</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nf">update_params_dict</span><span class="p">(</span>
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a>    <span class="n">groups_dict</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">,</span>
 </span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a>    <span class="n">group_name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
 </span><span id="__span-0-4"><a href="#__codelineno-0-4" id="__codelineno-0-4" name="__codelineno-0-4"></a>    <span class="n">instance_name</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
 </span><span id="__span-0-5"><a href="#__codelineno-0-5" id="__codelineno-0-5" name="__codelineno-0-5"></a>    <span class="n">param_key</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
 </span><span id="__span-0-6"><a href="#__codelineno-0-6" id="__codelineno-0-6" name="__codelineno-0-6"></a>    <span class="n">new_value</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span><span class="p">,</span>
-</span><span id="__span-0-7"><a href="#__codelineno-0-7" id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="circulus.compiler.ComponentGroup" href="../compiler/#circulus.compiler.ComponentGroup">ComponentGroup</a></span><span class="p">]</span>
+</span><span id="__span-0-7"><a href="#__codelineno-0-7" id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="circulax.compiler.ComponentGroup" href="../compiler/#circulax.compiler.ComponentGroup">ComponentGroup</a></span><span class="p">]</span>
 </span></code></pre></div>
 <div class="doc doc-contents">
 <p>Updates a parameter for a specific instance within a component group.</p>
 <details class="quote">
-<summary>Source code in <code>circulus/utils.py</code></summary>
+<summary>Source code in <code>circulax/utils.py</code></summary>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-12">12</a></span>
 <span class="normal"><a href="#__codelineno-0-13">13</a></span>
 <span class="normal"><a href="#__codelineno-0-14">14</a></span>

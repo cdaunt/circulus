@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A Differentiable, Functional Circuit Analyzer for the AI Era.">
+        <meta name="description" content="A Differentiable, Functional Circuit Analyzer based on JAX.">
       
       
       
@@ -22,7 +22,7 @@
     
     
       
-        <title>Writing Components - Circulus</title>
+        <title>Writing Components - circulax</title>
       
     
     
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Circulus" class="md-header__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href=".." title="circulax" class="md-header__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="../images/logo.svg" alt="logo">
 
@@ -107,7 +107,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Circulus
+            circulax
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -216,12 +216,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Circulus" class="md-nav__button md-logo" aria-label="Circulus" data-md-component="logo">
+    <a href=".." title="circulax" class="md-nav__button md-logo" aria-label="circulax" data-md-component="logo">
       
   <img src="../images/logo.svg" alt="logo">
 
     </a>
-    Circulus
+    circulax
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
@@ -1077,10 +1077,10 @@
   <h1>Writing Components</h1>
 
 <h2 id="writing-components">Writing Components<a class="headerlink" href="#writing-components" title="Permanent link">¤</a></h2>
-<p>Circulus uses a functional, JAX-first approach to component definition. Instead of inheriting from complex base classes, you define components as pure Python functions decorated with specific handlers.</p>
+<p>circulax uses a functional, JAX-first approach to component definition. Instead of inheriting from complex base classes, you define components as pure Python functions decorated with specific handlers.</p>
 <p>This architecture ensures your components are automatically compatible with JIT compilation (jax.jit), vectorization (jax.vmap), and back-propagation (jax.grad).</p>
 <h3 id="the-core-concept">The Core Concept<a class="headerlink" href="#the-core-concept" title="Permanent link">¤</a></h3>
-<p>Every component in Circulus is a function that calculates the instantaneous balance equations for a specific node or state. The function signature generally looks like this:</p>
+<p>Every component in circulax is a function that calculates the instantaneous balance equations for a specific node or state. The function signature generally looks like this:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">MyComponent</span><span class="p">(</span><span class="n">signals</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a>    <span class="c1"># 1. Calculate physics</span>
 </span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a>    <span class="c1"># 2. Return (Flows, Storage)</span>
@@ -1120,7 +1120,7 @@
 <p>Most passive components (Resistors, Transistors, Diodes) do not depend explicitly on time t. For these, use the <code>@component</code> decorator.</p>
 <h4 id="example-a-simple-resistor">Example: A Simple Resistor<a class="headerlink" href="#example-a-simple-resistor" title="Permanent link">¤</a></h4>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
-</span><span id="__span-1-2"><a href="#__codelineno-1-2" id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.base_component</span><span class="w"> </span><span class="kn">import</span> <span class="n">component</span><span class="p">,</span> <span class="n">Signals</span><span class="p">,</span> <span class="n">States</span>
+</span><span id="__span-1-2"><a href="#__codelineno-1-2" id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulax.base_component</span><span class="w"> </span><span class="kn">import</span> <span class="n">component</span><span class="p">,</span> <span class="n">Signals</span><span class="p">,</span> <span class="n">States</span>
 </span><span id="__span-1-3"><a href="#__codelineno-1-3" id="__codelineno-1-3" name="__codelineno-1-3"></a>
 </span><span id="__span-1-4"><a href="#__codelineno-1-4" id="__codelineno-1-4" name="__codelineno-1-4"></a><span class="nd">@component</span><span class="p">(</span><span class="n">ports</span><span class="o">=</span><span class="p">(</span><span class="s2">"p"</span><span class="p">,</span> <span class="s2">"n"</span><span class="p">))</span>
 </span><span id="__span-1-5"><a href="#__codelineno-1-5" id="__codelineno-1-5" name="__codelineno-1-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">Resistor</span><span class="p">(</span><span class="n">signals</span><span class="p">:</span> <span class="n">Signals</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">States</span><span class="p">,</span> <span class="n">R</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e3</span><span class="p">):</span>
@@ -1164,7 +1164,7 @@
 <p>If your component varies with time (e.g., AC source, Pulse generator), use the @source decorator. This injects t as the third argument.</p>
 <p>Example: AC Voltage Source</p>
 <p>Voltage sources require an Internal State variable (i_src) to represent the current flowing through the source. This is because the voltage is fixed, so the current is the unknown variable the solver must find.</p>
-<p>from circulus.base_component import source</p>
+<p>from circulax.base_component import source</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a href="#__codelineno-3-1" id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="nd">@source</span><span class="p">(</span><span class="n">ports</span><span class="o">=</span><span class="p">(</span><span class="s2">"p"</span><span class="p">,</span> <span class="s2">"n"</span><span class="p">),</span> <span class="n">states</span><span class="o">=</span><span class="p">(</span><span class="s2">"i_src"</span><span class="p">,))</span>
 </span><span id="__span-3-2"><a href="#__codelineno-3-2" id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">ACSource</span><span class="p">(</span><span class="n">signals</span><span class="p">:</span> <span class="n">Signals</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">States</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">V</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">freq</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">):</span>
 </span><span id="__span-3-3"><a href="#__codelineno-3-3" id="__codelineno-3-3" name="__codelineno-3-3"></a>    <span class="c1"># 1. Calculate Target Voltage based on time 't'</span>
@@ -1185,9 +1185,9 @@
 </span><span id="__span-3-18"><a href="#__codelineno-3-18" id="__codelineno-3-18" name="__codelineno-3-18"></a>    <span class="p">},</span> <span class="p">{}</span>
 </span></code></pre></div>
 <h2 id="photonic-components-frequency-domain">Photonic Components (Frequency Domain)<a class="headerlink" href="#photonic-components-frequency-domain" title="Permanent link">¤</a></h2>
-<p>Circulus can simulate photonic circuits by treating them as complex-valued resistor networks. You typically start with an S-Matrix, convert it to an Admittance (Y) Matrix, and calculate currents via <span class="arithmatex">\(I = Y \cdot V\)</span>.</p>
+<p>circulax can simulate photonic circuits by treating them as complex-valued resistor networks. You typically start with an S-Matrix, convert it to an Admittance (Y) Matrix, and calculate currents via <span class="arithmatex">\(I = Y \cdot V\)</span>.</p>
 <p>Example: Optical Waveguide</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a href="#__codelineno-4-1" id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.s_transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">s_to_y</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a href="#__codelineno-4-1" id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulax.s_transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">s_to_y</span>
 </span><span id="__span-4-2"><a href="#__codelineno-4-2" id="__codelineno-4-2" name="__codelineno-4-2"></a>
 </span><span id="__span-4-3"><a href="#__codelineno-4-3" id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="nd">@component</span><span class="p">(</span><span class="n">ports</span><span class="o">=</span><span class="p">(</span><span class="s2">"in"</span><span class="p">,</span> <span class="s2">"out"</span><span class="p">))</span>
 </span><span id="__span-4-4"><a href="#__codelineno-4-4" id="__codelineno-4-4" name="__codelineno-4-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">Waveguide</span><span class="p">(</span><span class="n">signals</span><span class="p">:</span> <span class="n">Signals</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">States</span><span class="p">,</span> <span class="n">length_um</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">100.0</span><span class="p">,</span> <span class="n">neff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.4</span><span class="p">,</span> <span class="n">wl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.55</span><span class="p">):</span>
@@ -1218,7 +1218,7 @@
 </span></code></pre></div>
 <h3 id="integration-with-sax">Integration with SAX<a class="headerlink" href="#integration-with-sax" title="Permanent link">¤</a></h3>
 <p>If you have existing models written for SAX, you can reuse them directly without rewriting physics logic using the @sax_component decorator.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a href="#__codelineno-5-1" id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.sax_integration</span><span class="w"> </span><span class="kn">import</span> <span class="n">sax_component</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a href="#__codelineno-5-1" id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulax.sax_integration</span><span class="w"> </span><span class="kn">import</span> <span class="n">sax_component</span>
 </span><span id="__span-5-2"><a href="#__codelineno-5-2" id="__codelineno-5-2" name="__codelineno-5-2"></a>
 </span><span id="__span-5-3"><a href="#__codelineno-5-3" id="__codelineno-5-3" name="__codelineno-5-3"></a><span class="c1"># 1. Define or Import a pure SAX model</span>
 </span><span id="__span-5-4"><a href="#__codelineno-5-4" id="__codelineno-5-4" name="__codelineno-5-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">sax_coupler</span><span class="p">(</span><span class="n">coupling</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
@@ -1231,7 +1231,7 @@
 </span><span id="__span-5-11"><a href="#__codelineno-5-11" id="__codelineno-5-11" name="__codelineno-5-11"></a>        <span class="p">(</span><span class="s2">"in1"</span><span class="p">,</span> <span class="s2">"out1"</span><span class="p">):</span> <span class="n">tau</span>
 </span><span id="__span-5-12"><a href="#__codelineno-5-12" id="__codelineno-5-12" name="__codelineno-5-12"></a>    <span class="p">}</span>
 </span><span id="__span-5-13"><a href="#__codelineno-5-13" id="__codelineno-5-13" name="__codelineno-5-13"></a>
-</span><span id="__span-5-14"><a href="#__codelineno-5-14" id="__codelineno-5-14" name="__codelineno-5-14"></a><span class="c1"># 2. Convert to Circulus Component</span>
+</span><span id="__span-5-14"><a href="#__codelineno-5-14" id="__codelineno-5-14" name="__codelineno-5-14"></a><span class="c1"># 2. Convert to circulax Component</span>
 </span><span id="__span-5-15"><a href="#__codelineno-5-15" id="__codelineno-5-15" name="__codelineno-5-15"></a><span class="c1"># This automatically detects ports ('in0', 'in1', 'out0', 'out1')</span>
 </span><span id="__span-5-16"><a href="#__codelineno-5-16" id="__codelineno-5-16" name="__codelineno-5-16"></a><span class="n">Coupler</span> <span class="o">=</span> <span class="n">sax_component</span><span class="p">(</span><span class="n">sax_coupler</span><span class="p">)</span>
 </span></code></pre></div>
