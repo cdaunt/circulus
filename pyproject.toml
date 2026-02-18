@@ -32,6 +32,8 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest>=8",
+    "papermill",
+    "ipykernel>=6.29.5",   # required by papermill to execute notebooks
 ]
 docs = [
     "ipykernel>=6.29.5",
@@ -46,7 +48,6 @@ docs = [
     "mkdocs-literate-nav",
     "pymdown-extensions",
     "schemdraw",
-    "papermill",
     "mkdocs_matplotlib",
     "mkautodoc>=0.2.0",
     "mkdocs-autorefs>=1.3.0",
