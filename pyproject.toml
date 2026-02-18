@@ -134,7 +134,7 @@ circulus = { path = ".", editable = true, extras = ["dev"] }
 # ---------------------------------------------------------------------------
 
 [tool.pixi.tasks]
-copy_readme      = "cp ReadMe.md docs/index.md"
+copy_readme      = "cp ReadMe.md docs/index.md && sed -i 's|docs/images|images|g' docs/index.md"
 clean_old_docs   = "rm -rf docs/examples/*.ipynb || true"
 copy-examples    = { cmd = ["mkdir", "-p", "docs/examples", "&&", "cp", "-r", "examples/*", "docs/examples/"], depends-on = ["clean_old_docs"] }
 install_ipkernel = "python -m ipykernel install --user --name circulus"
