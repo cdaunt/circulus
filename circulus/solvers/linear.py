@@ -106,6 +106,10 @@ class CircuitLinearSolver(lx.AbstractLinearSolver):
         """
         raise NotImplementedError
 
+    def assume_full_rank(self) -> bool:
+        """Indicate if the solver assumes the operator is full rank."""
+        return False
+
     def solve_dc(
         self, component_groups: dict[str, Any], y_guess: jax.Array
     ) -> jax.Array:
