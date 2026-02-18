@@ -122,9 +122,6 @@ net_dict = {
 jax.config.update("jax_enable_x64", True)
 
 
-jax.config.update("jax_enable_x64", True)
-
-
 models_map = {
     'resistor': Resistor,
     'capacitor': Capacitor,
