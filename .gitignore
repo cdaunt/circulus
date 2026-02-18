@@ -11,3 +11,4 @@ docs/examples/
 docs/references/
 *code-workspace
 site/*
+circulus/_version.py

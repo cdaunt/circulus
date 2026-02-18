@@ -1,6 +1,6 @@
 # **Circulus**
 
-<img src="images/logo.svg" alt="logo" width="500">
+<img src="images/logo_white.svg" alt="logo" width="500">
 
 ## **A Differentiable, Functional Circuit Simulator based on JAX**
 Circulus is a differentiable circuit simulation framework built on [JAX](https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html), [Optimistix](https://github.com/patrick-kidger/optimistix) and [Diffrax](https://docs.kidger.site/diffrax/). It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.
@@ -118,9 +118,6 @@ net_dict = {
         "L1,p2": "C1,p1",
     },
 }
-
-jax.config.update("jax_enable_x64", True)
-
 
 jax.config.update("jax_enable_x64", True)
 

@@ -1740,15 +1740,15 @@ packages:
   requires_python: '>=3.11'
 - pypi: ./
   name: circulus
-  version: 0.1.dev109+ga3eb2e743.d20260218
-  sha256: 39ba7ae5c71ee59cc69f64b847b328f67a7cd092045b720b562bd8be8607d489
+  version: 0.1.dev112+g423906282.d20260218
+  sha256: 656c9fed234c96e5b037432d7633f7093888613a959e697d2a3007936a7f0aaf
   requires_dist:
   - diffrax>=0.7.0,<0.8
   - jax>=0.7.1,<0.8
   - jaxlib>=0.7.1,<0.8
   - lineax
   - matplotlib
-  - numpy<=2.4.0
+  - numpy
   - sax>=0.15.15,<0.16
   - typing-extensions>=4.13.2
   - black ; extra == 'dev'

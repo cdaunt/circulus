@@ -1,6 +1,6 @@
 # **Circulus**
 
-<img src="images/logo.svg" alt="logo" width="500">
+<img src="docs/images/logo_white.svg" alt="logo" width="500">
 
 ## **A Differentiable, Functional Circuit Simulator based on JAX**
 Circulus is a differentiable circuit simulation framework built on [JAX](https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html), [Optimistix](https://github.com/patrick-kidger/optimistix) and [Diffrax](https://docs.kidger.site/diffrax/). It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.
@@ -75,7 +75,7 @@ netlist = [
 ### **Analysis**
 The solver is a generic DAE engine linking Diffrax (Time-stepping) and Optimistix (Root-finding).
 
-* Transient: Solves $F(y) + \frac{d}{dt}Q(y) = 0$ using Implicit Backward Euler.
+* Transient: Solves $F(y) + \frac{d}{dt}Q(y) = 0$ using Implicit Backward Euler (or any other solver compatible with Diffrax).
 
 * DC Operating Point: Solves $F(y) = 0$ (automatically ignoring $Q$).
 
@@ -191,7 +191,7 @@ plt.grid(True)
 plt.show()
 ```
 
-![output](images/lcr.png)
+![output](docs/images/lcr.png)
 
 ## **License**
 
