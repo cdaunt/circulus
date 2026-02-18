@@ -45,7 +45,7 @@ jobs:
         with:
           pixi-version: latest
           environments: ${{ matrix.env }}
-          cache: true
+          cache: false
 
       - name: Run tests
         run: pixi run -e ${{ matrix.env }} pytest_run
