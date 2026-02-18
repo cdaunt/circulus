@@ -147,7 +147,7 @@ clean_old_docs   = "rm -rf docs/examples/*.ipynb || true"
 copy-examples    = { cmd = ["mkdir", "-p", "docs/examples", "&&", "cp", "-r", "examples/*", "docs/examples/"], depends-on = ["clean_old_docs"] }
 install_ipkernel = "python -m ipykernel install --user --name circulus"
 docs-serve       = { cmd = ["mkdocs", "serve", "-w", "docs"], depends-on = ["copy_readme", "copy-examples", "install_ipkernel"] }
-pytest_run       = "pytest tests"
+pytest_run       = { cmd = ["pytest", "tests",], depends-on = ["install_ipkernel"] }
 lint_format      = "ruff format"
 lint_check       = "ruff -v check"
 build            = { cmd = "uv build", description = "Build sdist and wheel into dist/" }

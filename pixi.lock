@@ -2161,8 +2161,8 @@ packages:
   requires_python: '>=3.7'
 - pypi: ./
   name: circulus
-  version: 0.1.dev125+gc1c574ec1
-  sha256: 31699fc5c7e15c17b6926ba71dc9e1b2437e898ca1749117a44321c949b29748
+  version: 0.1.dev127+g2b75f6afc.d20260218
+  sha256: 713c26fb44977246b14fb13cfb3db361bf932917a641d88940f75a8c7d06a0d8
   requires_dist:
   - diffrax>=0.7.0,<0.8
   - jax>=0.7.1,<0.8
