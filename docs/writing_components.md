@@ -29,23 +29,23 @@ def MyComponent(signals, s, [t], **params):
 
 The function must return a tuple of two dictionaries: ```(f_dict, q_dict)```.
 
-    * ```f_dict``` (The Flow/Balance Vector):
+* ```f_dict``` (The Flow/Balance Vector):
 
-        * For Ports: Represents the "Flow" (Current) entering the node.
+    * For Ports: Represents the "Flow" (Current) entering the node.
 
-        * For States: Represents the algebraic constraint (should sum to 0).
+    * For States: Represents the algebraic constraint (should sum to 0).
 
-    * ```q_dict``` (The Storage Vector):
+* ```q_dict``` (The Storage Vector):
 
-        * Represents the time-dependent quantity (Charge, Flux) stored in a variable.
+    * Represents the time-dependent quantity (Charge, Flux) stored in a variable.
 
-        * The solver computes $\frac{d}{dt}(q\_dict)$.
+    * The solver computes $\frac{d}{dt}(q\_dict)$.
 
-1. Electronic Components (Time-Invariant)
+### Electronic Components (Time-Invariant)
 
-Most passive components (Resistors, Transistors, Diodes) do not depend explicitly on time t. For these, use the @component decorator.
+Most passive components (Resistors, Transistors, Diodes) do not depend explicitly on time t. For these, use the ```@component``` decorator.
 
-Example: A Simple Resistor
+#### Example: A Simple Resistor
 
 ```python
 import jax.numpy as jnp
@@ -74,7 +74,7 @@ def Resistor(signals: Signals, s: States, R: float = 1e3):
 ```
 
 
-Example: A Capacitor (Time-Derivative)
+#### Example: A Capacitor (Time-Derivative)
 
 For reactive components, use the second return dictionary (q_dict) to define what is being differentiated.
 
@@ -96,7 +96,7 @@ def Capacitor(signals: Signals, s: States, C: float = 1e-6):
 ```
 
 
-2. Time-Dependent Sources
+### Time-Dependent Sources
 
 If your component varies with time (e.g., AC source, Pulse generator), use the @source decorator. This injects t as the third argument.
 
@@ -128,7 +128,7 @@ def ACSource(signals: Signals, s: States, t: float, V: float = 1.0, freq: float 
 ```
 
 
-3. Photonic Components (Frequency Domain)
+## Photonic Components (Frequency Domain)
 
 Circulus can simulate photonic circuits by treating them as complex-valued resistor networks. You typically start with an S-Matrix, convert it to an Admittance (Y) Matrix, and calculate currents via $I = Y \cdot V$.
 
@@ -166,7 +166,7 @@ def Waveguide(signals: Signals, s: States, length_um: float = 100.0, neff: float
 ```
 
 
-4. Integration with SAX
+### Integration with SAX
 
 If you have existing models written for SAX, you can reuse them directly without rewriting physics logic using the @sax_component decorator.
 
@@ -189,7 +189,7 @@ def sax_coupler(coupling=0.5):
 Coupler = sax_component(sax_coupler)
 ```
 
-5. Advanced: Under the Hood
+## Advanced: Under the Hood
 
 For advanced users familiar with JAX and Equinox, it is helpful to understand what the @component decorator actually does.
 
@@ -212,5 +212,5 @@ Class Generation: It constructs a new eqx.Module class named MyResistor.
 
 Field Registration: The parameters (R) become fields of this class. This allows JAX to differentiate with respect to R automatically.
 
-Static Optimization: It creates a static _fast_physics method that unrolls dictionary lookups into raw array operations. This is what the solver calls inside jax.jit or jax.vmap.
+Static Optimization: It creates a static _fast_physics method that unrolls dictionary lookups into raw array operations. This is what the solver calls inside ```jax.jit``` or ```jax.vmap```.
 

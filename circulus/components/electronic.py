@@ -474,8 +474,8 @@ def BJT_NPN_Dynamic(
 
         - **f** — DC current dict ``{"c": i_c, "b": i_b, "e": i_e}``.
         - **q** — Junction charge dict ``{"c": Q_collector, "b": Q_base, "e": Q_emitter}``,
-          where ``Q_base = Q_be_total + Q_bc_total``, ``Q_collector = -Q_bc_total``,
-          and ``Q_emitter = -Q_be_total``.
+            where ``Q_base = Q_be_total + Q_bc_total``, ``Q_collector = -Q_bc_total``,
+            and ``Q_emitter = -Q_be_total``.
 
     """
     vbe = signals.b - signals.e

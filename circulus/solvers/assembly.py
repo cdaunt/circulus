@@ -55,7 +55,7 @@ def assemble_system_real(
         - **total_f** — assembled resistive residual, shape ``(sys_size,)``.
         - **total_q** — assembled reactive residual, shape ``(sys_size,)``.
         - **jac_vals** — concatenated non-zero values of the effective Jacobian
-          in group-sorted order, ready to be passed to the sparse linear solver.
+            in group-sorted order, ready to be passed to the sparse linear solver.
 
     """
     sys_size = y_guess.shape[0]
@@ -159,11 +159,11 @@ def assemble_system_complex(
         A three-tuple ``(total_f, total_q, jac_vals)`` where:
 
         - **total_f** — assembled resistive residual in unrolled format,
-          shape ``(2 * num_vars,)``.
+            shape ``(2 * num_vars,)``.
         - **total_q** — assembled reactive residual in unrolled format,
-          shape ``(2 * num_vars,)``.
+            shape ``(2 * num_vars,)``.
         - **jac_vals** — concatenated non-zero values of the four effective
-          Jacobian blocks (RR, RI, IR, II) in group-sorted order.
+            Jacobian blocks (RR, RI, IR, II) in group-sorted order.
 
     """
     sys_size = y_guess.shape[0]

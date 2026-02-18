@@ -25,7 +25,7 @@ def ensure_time_signature(model_func: callable) -> callable:
 
     # Wrapper for static models
     @wraps(model_func)
-    def time_aware_wrapper(signal_states: Signals, params: dict, t: float|None =None) -> PhysicsReturn:  # noqa: ARG001
+    def time_aware_wrapper(signal_states: Signals, params: dict, t: float | None = None) -> PhysicsReturn:  # noqa: ARG001
         return model_func(signal_states, params)
 
     return time_aware_wrapper
@@ -201,19 +201,19 @@ def compile_netlist(netlist: dict, models_map: dict) -> tuple[dict, int, dict]: 
         A three-tuple ``(compiled_groups, sys_size, port_to_node_map)`` where:
 
         - **compiled_groups** (``dict[str, ComponentGroup]``) — maps group name
-          to a fully vectorized :class:`ComponentGroup`. If all instances of a
-          type share the same tree structure there is one group per type, named
-          after the type (e.g. ``"Resistor"``). When a type is split across
-          multiple structures the groups are numbered (``"Resistor_0"``,
-          ``"Resistor_1"``, …).
+            to a fully vectorized :class:`ComponentGroup`. If all instances of a
+            type share the same tree structure there is one group per type, named
+            after the type (e.g. ``"Resistor"``). When a type is split across
+            multiple structures the groups are numbered (``"Resistor_0"``,
+            ``"Resistor_1"``, …).
         - **sys_size** (``int``) — total number of scalar unknowns in the system
-          vector ``y``, equal to the number of nets plus the total number of
-          state variables across all instances. This is the length of the array
-          passed to the solver.
+            vector ``y``, equal to the number of nets plus the total number of
+            state variables across all instances. This is the length of the array
+            passed to the solver.
         - **port_to_node_map** (``dict[str, int]``) — the raw ``"Instance,Port"``
-          → node index map produced by ``build_net_map``, returned for use by
-          callers that need to extract specific node voltages from the solution
-          vector.
+            → node index map produced by ``build_net_map``, returned for use by
+            callers that need to extract specific node voltages from the solution
+            vector.
 
     Raises:
         ValueError: If a component type listed in the netlist is not present in

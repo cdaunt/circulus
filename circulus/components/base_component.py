@@ -176,7 +176,7 @@ class CircuitComponent(eqx.Module):
         Args:
             t: Current simulation time.
             y: Flat state vector of shape ``(n_ports + n_states,)`` containing
-               port voltages followed by state variable values.
+                port voltages followed by state variable values.
             args: Parameter container for this instance. May be a dict
                 ``{"R": 100.0}`` or an object (e.g. the component instance
                 itself) whose attributes match the parameter names. Must not
