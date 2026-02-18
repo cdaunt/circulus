@@ -6,15 +6,9 @@ import pytest
 
 from circulus.compiler import compile_netlist
 from circulus.netlist import Netlist
-from circulus.solvers import linear as st
+from circulus.solvers.linear import backends
 
-solvers = [
-    st.KLUSolver,
-    st.SparseSolver,
-    st.DenseSolver,
-    st.KLUSplitSolver,
-    st.KlursSplitSolver,
-]
+solvers = set(backends.values())
 
 
 # assemble_total_f is local to this module and uses jax

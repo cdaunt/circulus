@@ -9,7 +9,7 @@ import jax.numpy as jnp
 import optimistix as optx
 from diffrax import AbstractSolver, ConstantStepSize
 from jax.typing import ArrayLike
-from klujax import free_numeric
+#from klujax import free_numeric
 
 from circulus.solvers.assembly import (
     assemble_residual_only_complex,
@@ -147,110 +147,110 @@ class VectorizedTransientSolver(AbstractSolver):
         return terms.vf(t0, y0, args)
 
 
-class FactorizedTransientSolver(VectorizedTransientSolver):
-    """Transient solver using a Modified Newton (frozen-Jacobian) scheme.
+# class FactorizedTransientSolver(VectorizedTransientSolver):
+#     """Transient solver using a Modified Newton (frozen-Jacobian) scheme.
 
-    At each timestep the system Jacobian is assembled and factored once at a
-    predicted state, then reused across all Newton iterations. Compared to a
-    full Newton-Raphson solver this trades quadratic convergence for a much
-    cheaper per-iteration cost — one triangular solve instead of a full
-    factorisation — making it efficient for circuits where the Jacobian varies
-    slowly between steps.
+#     At each timestep the system Jacobian is assembled and factored once at a
+#     predicted state, then reused across all Newton iterations. Compared to a
+#     full Newton-Raphson solver this trades quadratic convergence for a much
+#     cheaper per-iteration cost — one triangular solve instead of a full
+#     factorisation — making it efficient for circuits where the Jacobian varies
+#     slowly between steps.
 
-    Convergence is linear rather than quadratic, so ``newton_max_steps`` is set
-    higher than a standard Newton solver would require. Adaptive damping
-    ``min(1, 0.5 / max|δy|)`` is applied at each iteration to stabilise
-    convergence in stiff or strongly nonlinear regions.
+#     Convergence is linear rather than quadratic, so ``newton_max_steps`` is set
+#     higher than a standard Newton solver would require. Adaptive damping
+#     ``min(1, 0.5 / max|δy|)`` is applied at each iteration to stabilise
+#     convergence in stiff or strongly nonlinear regions.
 
-    Both real and complex assembly paths are supported; the complex path
-    concatenates real and imaginary parts into a single real-valued vector,
-    allowing purely real linear algebra kernels to be reused for
-    frequency-domain-style analyses.
-    """
+#     Both real and complex assembly paths are supported; the complex path
+#     concatenates real and imaginary parts into a single real-valued vector,
+#     allowing purely real linear algebra kernels to be reused for
+#     frequency-domain-style analyses.
+#     """
 
-    newton_max_steps: int = 100
+#     newton_max_steps: int = 100
 
-    def step(self, terms, t0, t1, y0, args, solver_state, options):  # noqa: ANN201
-        component_groups, num_vars = args
-        dt = t1 - t0
-        y_prev_step, dt_prev = solver_state
+#     def step(self, terms, t0, t1, y0, args, solver_state, options):  # noqa: ANN201
+#         component_groups, num_vars = args
+#         dt = t1 - t0
+#         y_prev_step, dt_prev = solver_state
 
-        is_complex = getattr(self.linear_solver, "is_complex", False)
+#         is_complex = getattr(self.linear_solver, "is_complex", False)
 
-        # 1. Predictor
-        rate = (y0 - y_prev_step) / (dt_prev + 1e-30)
-        y_pred = y0 + rate * dt
+#         # 1. Predictor
+#         rate = (y0 - y_prev_step) / (dt_prev + 1e-30)
+#         y_pred = y0 + rate * dt
 
-        # 2. Compute History
-        y_c = y0[:num_vars] + 1j * y0[num_vars:] if is_complex else y0
+#         # 2. Compute History
+#         y_c = y0[:num_vars] + 1j * y0[num_vars:] if is_complex else y0
 
-        q_prev = _compute_history(component_groups, y_c, t0, num_vars)
+#         q_prev = _compute_history(component_groups, y_c, t0, num_vars)
 
-        # 3. Assemble and Factor ONCE
-        if is_complex:
-            _, _, frozen_jac_vals = assemble_system_complex(
-                y_pred, component_groups, t1, dt
-            )
-            ground_indices = [0, num_vars]
-        else:
-            _, _, frozen_jac_vals = assemble_system_real(
-                y_pred, component_groups, t1, dt
-            )
-            ground_indices = [0]
+#         # 3. Assemble and Factor ONCE
+#         if is_complex:
+#             _, _, frozen_jac_vals = assemble_system_complex(
+#                 y_pred, component_groups, t1, dt
+#             )
+#             ground_indices = [0, num_vars]
+#         else:
+#             _, _, frozen_jac_vals = assemble_system_real(
+#                 y_pred, component_groups, t1, dt
+#             )
+#             ground_indices = [0]
 
-        # Factor ONCE
-        numeric_handle = self.linear_solver.factor_jacobian(frozen_jac_vals)
+#         # Factor ONCE
+#         numeric_handle = self.linear_solver.factor_jacobian(frozen_jac_vals)
 
-        # 4. Newton iterations with frozen Jacobian
-        def newton_update_step(y, _) -> float:
-            if is_complex:
-                total_f, total_q = assemble_residual_only_complex(
-                    y, component_groups, t1, dt
-                )
-            else:
-                total_f, total_q = assemble_residual_only_real(
-                    y, component_groups, t1, dt
-                )
+#         # 4. Newton iterations with frozen Jacobian
+#         def newton_update_step(y, _) -> float:
+#             if is_complex:
+#                 total_f, total_q = assemble_residual_only_complex(
+#                     y, component_groups, t1, dt
+#                 )
+#             else:
+#                 total_f, total_q = assemble_residual_only_real(
+#                     y, component_groups, t1, dt
+#                 )
 
-            residual = total_f + (total_q - q_prev) / dt
+#             residual = total_f + (total_q - q_prev) / dt
 
-            for idx in ground_indices:
-                residual = residual.at[idx].add(1e9 * y[idx])
+#             for idx in ground_indices:
+#                 residual = residual.at[idx].add(1e9 * y[idx])
 
-            sol = self.linear_solver.solve_with_frozen_jacobian(
-                -residual, numeric_handle
-            )
-            delta = sol.value
+#             sol = self.linear_solver.solve_with_frozen_jacobian(
+#                 -residual, numeric_handle
+#             )
+#             delta = sol.value
 
-            max_change = jnp.max(jnp.abs(delta))
-            damping = jnp.minimum(1.0, 0.5 / (max_change + 1e-9))
+#             max_change = jnp.max(jnp.abs(delta))
+#             damping = jnp.minimum(1.0, 0.5 / (max_change + 1e-9))
 
-            return y + delta * damping
+#             return y + delta * damping
 
-        # 5. Run Newton Loop
-        solver = optx.FixedPointIteration(rtol=1e-5, atol=1e-5)
-        sol = optx.fixed_point(
-            newton_update_step,
-            solver,
-            y_pred,
-            max_steps=self.newton_max_steps,
-            throw=False,
-        )
+#         # 5. Run Newton Loop
+#         solver = optx.FixedPointIteration(rtol=1e-5, atol=1e-5)
+#         sol = optx.fixed_point(
+#             newton_update_step,
+#             solver,
+#             y_pred,
+#             max_steps=self.newton_max_steps,
+#             throw=False,
+#         )
 
-        # 6. Free the numeric handle (now returns int32, can be traced!)
-        _ = free_numeric(numeric_handle)
+#         # 6. Free the numeric handle (now returns int32, can be traced!)
+#         _ = free_numeric(numeric_handle)
 
-        y_next = sol.value
-        y_error = y_next - y_pred
+#         y_next = sol.value
+#         y_error = y_next - y_pred
 
-        result = jax.lax.cond(
-            sol.result == optx.RESULTS.successful,
-            lambda _: diffrax.RESULTS.successful,
-            lambda _: diffrax.RESULTS.nonlinear_divergence,
-            None,
-        )
+#         result = jax.lax.cond(
+#             sol.result == optx.RESULTS.successful,
+#             lambda _: diffrax.RESULTS.successful,
+#             lambda _: diffrax.RESULTS.nonlinear_divergence,
+#             None,
+#         )
 
-        return y_next, y_error, {"y0": y0, "y1": y_next}, (y0, dt), result
+#         return y_next, y_error, {"y0": y0, "y1": y_next}, (y0, dt), result
 
 
 def setup_transient(

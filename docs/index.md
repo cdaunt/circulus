@@ -75,7 +75,7 @@ netlist = [
 ### **Analysis**
 The solver is a generic DAE engine linking Diffrax (Time-stepping) and Optimistix (Root-finding).
 
-* Transient: Solves $F(y) + \frac{d}{dt}Q(y) = 0$ using Implicit Backward Euler.
+* Transient: Solves $F(y) + \frac{d}{dt}Q(y) = 0$ using Implicit Backward Euler (or any other solver compatible with Diffrax).
 
 * DC Operating Point: Solves $F(y) = 0$ (automatically ignoring $Q$).
 

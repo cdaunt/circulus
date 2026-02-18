@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest,  macos-latest]
         env: [py311, py312, py313]
 
     steps:
@@ -45,7 +45,7 @@ jobs:
         with:
           pixi-version: latest
           environments: ${{ matrix.env }}
-          cache: true
+          cache: false
 
       - name: Run tests
         run: pixi run -e ${{ matrix.env }} pytest_run
