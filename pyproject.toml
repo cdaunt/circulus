@@ -1,5 +1,5 @@
 [project]
-name = "circulus"
+name = "circulax"
 dynamic = ["version"]
 description = "Differentiable circuit simulator based on JAX"
 authors = [
@@ -58,7 +58,7 @@ docs = [
     "mkdocstrings[python]>=0.27.0",
 ]
 dev = [
-    "circulus[test,docs]",
+    "circulax[test,docs]",
     "black",
     "ruff",
     "mypy",
@@ -66,10 +66,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/cdaunt/circulus"
-Repository = "https://github.com/cdaunt/circulus"
-Documentation = "https://cdaunt.github.io/circulus"
-Issues = "https://github.com/cdaunt/circulus/issues"
+Homepage = "https://github.com/cdaunt/circulax"
+Repository = "https://github.com/cdaunt/circulax"
+Documentation = "https://cdaunt.github.io/circulax"
+Issues = "https://github.com/cdaunt/circulax/issues"
 
 # ---------------------------------------------------------------------------
 # Build system (PyPI / hatch)
@@ -83,10 +83,10 @@ build-backend = "hatchling.build"
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "circulus/_version.py"
+version-file = "circulax/_version.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["circulus"]
+packages = ["circulax"]
 
 # ---------------------------------------------------------------------------
 # Pixi workspace
@@ -100,7 +100,7 @@ preview = ["pixi-build"]
 
 # Shared editable install for all environments
 [tool.pixi.pypi-dependencies]
-circulus = { path = ".", editable = true }
+circulax = { path = ".", editable = true }
 
 # ---------------------------------------------------------------------------
 # Conda package build (pixi build)
@@ -108,7 +108,7 @@ circulus = { path = ".", editable = true }
 # ---------------------------------------------------------------------------
 
 [tool.pixi.package]
-name = "circulus"
+name = "circulax"
 
 [tool.pixi.package.build]
 backend = { name = "pixi-build-python", version = "*" }
@@ -129,7 +129,7 @@ tqdm = ">=4.67.1,<5"
 
 # Test feature — used by CI environments
 [tool.pixi.feature.test.pypi-dependencies]
-circulus = { path = ".", editable = true, extras = ["test"] }
+circulax = { path = ".", editable = true, extras = ["test"] }
 
 # Dev tooling feature
 [tool.pixi.feature.dev.dependencies]
@@ -145,7 +145,7 @@ uv = ">=0.6"
 copy_readme      = "cp ReadMe.md docs/index.md && sed -i 's|docs/images|images|g' docs/index.md"
 clean_old_docs   = "rm -rf docs/examples/*.ipynb || true"
 copy-examples    = { cmd = ["mkdir", "-p", "docs/examples", "&&", "cp", "-r", "examples/*", "docs/examples/"], depends-on = ["clean_old_docs"] }
-install_ipkernel = "python -m ipykernel install --user --name circulus"
+install_ipkernel = "python -m ipykernel install --user --name circulax"
 docs-serve       = { cmd = ["mkdocs", "serve", "-w", "docs"], depends-on = ["copy_readme", "copy-examples", "install_ipkernel"] }
 pytest_run       = { cmd = ["pytest", "tests",], depends-on = ["install_ipkernel"] }
 lint_format      = "ruff format"
@@ -256,7 +256,7 @@ select = ["ALL"]
     "S101",     # assert
     "T201",     # print
 ]
-"circulus/components/*.py" = [
+"circulax/components/*.py" = [
     "N802",
     "ARG001",
 ]

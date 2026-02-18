@@ -1,4 +1,4 @@
-from circulus.compiler import compile_netlist
+from circulax.compiler import compile_netlist
 
 
 def test_compile_netlist_basic(simple_lrc_netlist):

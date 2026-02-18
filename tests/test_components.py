@@ -1,10 +1,10 @@
 import jax
 import jax.numpy as jnp
 
-from circulus.components.base_component import CircuitComponent, PhysicsReturn, Signals, States
+from circulax.components.base_component import CircuitComponent, PhysicsReturn, Signals, States
 
 # Import components to be tested
-from circulus.components.electronic import (
+from circulax.components.electronic import (
     CCCS,
     CCVS,
     VCCS,

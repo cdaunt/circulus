@@ -1,11 +1,11 @@
-# **Circulus**
+# **circulax**
 
 <img src="docs/images/logo_white.svg" alt="logo" width="500">
 
 ## **A Differentiable, Functional Circuit Simulator based on JAX**
-Circulus is a differentiable circuit simulation framework built on [JAX](https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html), [Optimistix](https://github.com/patrick-kidger/optimistix) and [Diffrax](https://docs.kidger.site/diffrax/). It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.
+circulax is a differentiable circuit simulation framework built on [JAX](https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html), [Optimistix](https://github.com/patrick-kidger/optimistix) and [Diffrax](https://docs.kidger.site/diffrax/). It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.
 
-By using JAX as its backend, Circulus provides:
+By using JAX as its backend, circulax provides:
 
 **Native Differentiation**: Full support for forward and reverse-mode automatic differentiation through the solver, enabling gradient-based parameter optimization and inverse design.
 
@@ -15,9 +15,9 @@ By using JAX as its backend, Circulus provides:
 
 **Modular Architecture**: A functional approach to simulation that integrates directly into machine learning and scientific computing workflows.
 
-Standard tools (SPICE, Spectre, Ngspice) rely on established matrix stamping methods and CPU-bound sparse solvers. Circulus leverages the JAX ecosystem to offer specific advantages in optimization and hardware utilization:
+Standard tools (SPICE, Spectre, Ngspice) rely on established matrix stamping methods and CPU-bound sparse solvers. circulax leverages the JAX ecosystem to offer specific advantages in optimization and hardware utilization:
 
-| Feature | Legacy(SPICE) | Circulus |
+| Feature | Legacy(SPICE) | circulax |
 | ----------- | ----------- | ----------- |
 | Model Definition    | Hardcoded C++ / Verilog-A | Simple python functions |
 | Derivatives   | Hardcoded (C) or Compiler-Generated (Verilog-A) | Automatic Differentiation (AD)|
@@ -27,13 +27,13 @@ Standard tools (SPICE, Spectre, Ngspice) rely on established matrix stamping met
 
 
 ## **Simulator setup**
-Circulus strictly separates Physics, Topology, and Analysis, enabling the interchange of solvers or models without netlist modification.
+circulax strictly separates Physics, Topology, and Analysis, enabling the interchange of solvers or models without netlist modification.
 
 ### **Physics Layer**
 Components are defined as simple Python functions wrapped with the ```@component``` decorator. This functional interface abstracts away the boilerplate, allowing users to define physics using simple voltage/current/field/flux relationships.
 
 ```python
-from circulus.base_component import component, Signals, States
+from circulax.base_component import component, Signals, States
 import jax.numpy as jnp
 
 @component(ports=("p1", "p2"))
@@ -84,7 +84,7 @@ The solver is a generic DAE engine linking Diffrax (Time-stepping) and Optimisti
 ##  **Installation**
 
 ```sh
-pip install circulus
+pip install circulax
 ```
 
 ## **Simulation Example**
@@ -93,10 +93,10 @@ pip install circulus
 import jax
 import diffrax
 
-from circulus.components import Resistor, Capacitor, Inductor, VoltageSource
-from circulus.compiler import compile_netlist
-from circulus.solvers.transient import VectorizedTransientSolver
-from circulus.solvers.strategies import DenseSolver
+from circulax.components import Resistor, Capacitor, Inductor, VoltageSource
+from circulax.compiler import compile_netlist
+from circulax.solvers.transient import VectorizedTransientSolver
+from circulax.solvers.strategies import DenseSolver
 import jax.numpy as jnp
 
 import matplotlib.pyplot as plt
@@ -195,4 +195,4 @@ plt.show()
 
 ## **License**
 
-Copyright © 2026, Chris Daunt, [Apache-2.0 License](https://github.com/cdaunt/circulus/blob/master/LICENSE)
+Copyright © 2026, Chris Daunt, [Apache-2.0 License](https://github.com/cdaunt/circulax/blob/master/LICENSE)

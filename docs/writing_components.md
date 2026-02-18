@@ -1,12 +1,12 @@
 ## Writing Components
 
-Circulus uses a functional, JAX-first approach to component definition. Instead of inheriting from complex base classes, you define components as pure Python functions decorated with specific handlers.
+circulax uses a functional, JAX-first approach to component definition. Instead of inheriting from complex base classes, you define components as pure Python functions decorated with specific handlers.
 
 This architecture ensures your components are automatically compatible with JIT compilation (jax.jit), vectorization (jax.vmap), and back-propagation (jax.grad).
 
 ### The Core Concept
 
-Every component in Circulus is a function that calculates the instantaneous balance equations for a specific node or state. The function signature generally looks like this:
+Every component in circulax is a function that calculates the instantaneous balance equations for a specific node or state. The function signature generally looks like this:
 
 ```python
 def MyComponent(signals, s, [t], **params):
@@ -49,7 +49,7 @@ Most passive components (Resistors, Transistors, Diodes) do not depend explicitl
 
 ```python
 import jax.numpy as jnp
-from circulus.base_component import component, Signals, States
+from circulax.base_component import component, Signals, States
 
 @component(ports=("p", "n"))
 def Resistor(signals: Signals, s: States, R: float = 1e3):
@@ -104,7 +104,7 @@ Example: AC Voltage Source
 
 Voltage sources require an Internal State variable (i_src) to represent the current flowing through the source. This is because the voltage is fixed, so the current is the unknown variable the solver must find.
 
-from circulus.base_component import source
+from circulax.base_component import source
 
 ```python
 @source(ports=("p", "n"), states=("i_src",))
@@ -130,12 +130,12 @@ def ACSource(signals: Signals, s: States, t: float, V: float = 1.0, freq: float 
 
 ## Photonic Components (Frequency Domain)
 
-Circulus can simulate photonic circuits by treating them as complex-valued resistor networks. You typically start with an S-Matrix, convert it to an Admittance (Y) Matrix, and calculate currents via $I = Y \cdot V$.
+circulax can simulate photonic circuits by treating them as complex-valued resistor networks. You typically start with an S-Matrix, convert it to an Admittance (Y) Matrix, and calculate currents via $I = Y \cdot V$.
 
 Example: Optical Waveguide
 
 ```python
-from circulus.s_transforms import s_to_y
+from circulax.s_transforms import s_to_y
 
 @component(ports=("in", "out"))
 def Waveguide(signals: Signals, s: States, length_um: float = 100.0, neff: float = 2.4, wl: float = 1.55):
@@ -171,7 +171,7 @@ def Waveguide(signals: Signals, s: States, length_um: float = 100.0, neff: float
 If you have existing models written for SAX, you can reuse them directly without rewriting physics logic using the @sax_component decorator.
 
 ```python
-from circulus.sax_integration import sax_component
+from circulax.sax_integration import sax_component
 
 # 1. Define or Import a pure SAX model
 def sax_coupler(coupling=0.5):
@@ -184,7 +184,7 @@ def sax_coupler(coupling=0.5):
         ("in1", "out1"): tau
     }
 
-# 2. Convert to Circulus Component
+# 2. Convert to circulax Component
 # This automatically detects ports ('in0', 'in1', 'out0', 'out1')
 Coupler = sax_component(sax_coupler)
 ```

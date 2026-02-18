@@ -1,6 +1,6 @@
-"""Circulus netlists.
+"""circulax netlists.
 
-SAX netlists will be used as much as possible in circulus;
+SAX netlists will be used as much as possible in circulax;
 however, connections for node based simulators need to be handled slightly differently.
 """
 
@@ -26,7 +26,7 @@ Connections: TypeAlias = dict[
     InstancePort, InstancePort | tuple[InstancePort, ...]
 ]
 
-CirculusNetlist = Annotated[
+circulaxNetlist = Annotated[
     TypedDict(
         "Netlist",
         {
@@ -52,11 +52,11 @@ Attributes:
     settings: Global circuit settings.
 """
 
-Netlist = CirculusNetlist
+Netlist = circulaxNetlist
 
-# Monkeypatch sax.Netlist to be CirculusNetlist so that all functions using sax.Netlist
+# Monkeypatch sax.Netlist to be circulaxNetlist so that all functions using sax.Netlist
 # May need to make this explicit in the future
-sax_netlist.Netlist = CirculusNetlist  # type: ignore[assignment]
+sax_netlist.Netlist = circulaxNetlist  # type: ignore[assignment]
 
 
 def build_net_map(netlist: dict) -> tuple[dict[str, int], int]:

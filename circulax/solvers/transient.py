@@ -11,13 +11,13 @@ from diffrax import AbstractSolver, ConstantStepSize
 from jax.typing import ArrayLike
 #from klujax import free_numeric
 
-from circulus.solvers.assembly import (
+from circulax.solvers.assembly import (
     assemble_residual_only_complex,
     assemble_residual_only_real,
     assemble_system_complex,
     assemble_system_real,
 )
-from circulus.solvers.linear import CircuitLinearSolver
+from circulax.solvers.linear import CircuitLinearSolver
 
 
 def _compute_history(component_groups, y_c, t, num_vars) -> ArrayLike:

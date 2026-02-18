@@ -9,8 +9,8 @@ import equinox as eqx
 import jax
 import jax.numpy as jnp
 
-from circulus.components.base_component import PhysicsReturn, Signals
-from circulus.netlist import build_net_map
+from circulax.components.base_component import PhysicsReturn, Signals
+from circulax.netlist import build_net_map
 
 
 def ensure_time_signature(model_func: callable) -> callable:
@@ -194,7 +194,7 @@ def compile_netlist(netlist: dict, models_map: dict) -> tuple[dict, int, dict]: 
             constructor). A ``"GND"`` instance with ``component="ground"`` is
             recognised and skipped.
         models_map: Mapping from model name strings to
-            :class:`~circulus.components.base_component.CircuitComponent`
+            :class:`~circulax.components.base_component.CircuitComponent`
             subclasses, e.g. ``{"Resistor": Resistor, "Capacitor": Capacitor}``.
 
     Returns:

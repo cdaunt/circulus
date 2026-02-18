@@ -7,7 +7,7 @@ Functions are provided in two variants:
 - **Full assembly** (:func:`assemble_system_real`, :func:`assemble_system_complex`)
   — evaluates both the residual and the forward-mode Jacobian via
   ``jax.jacfwd``. Used once per timestep to assemble and factor the frozen
-  Jacobian in :class:`~circulus.solver.FactorizedTransientSolver`.
+  Jacobian in :class:`~circulax.solver.FactorizedTransientSolver`.
 
 - **Residual only** (:func:`assemble_residual_only_real`,
   :func:`assemble_residual_only_complex`) — evaluates only the primal

@@ -5,7 +5,7 @@ import mkdocs_gen_files
 
 this_dir = Path(__file__).parent
 
-src_root = (this_dir / "../circulus").resolve()
+src_root = (this_dir / "../circulax").resolve()
 
 for path in src_root.rglob("*.py"):
     rel_path = path.relative_to(src_root)
@@ -20,7 +20,7 @@ for path in src_root.rglob("*.py"):
     else:
         doc_path = rel_path.with_suffix(".md")
 
-    full_parts = ("circulus",) + parts
+    full_parts = ("circulax",) + parts
     identifier = ".".join(full_parts)
 
     output_filename = Path("references") / doc_path

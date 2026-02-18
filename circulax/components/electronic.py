@@ -3,7 +3,7 @@
 import jax.nn as jnn
 import jax.numpy as jnp
 
-from circulus.components.base_component import (
+from circulax.components.base_component import (
     PhysicsReturn,
     Signals,
     States,
