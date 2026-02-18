@@ -1,9 +1,9 @@
-# **circulax**
+# **Circulax**
 
 <img src="docs/images/logo_white.svg" alt="logo" width="500">
 
 ## **A Differentiable, Functional Circuit Simulator based on JAX**
-circulax is a differentiable circuit simulation framework built on [JAX](https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html), [Optimistix](https://github.com/patrick-kidger/optimistix) and [Diffrax](https://docs.kidger.site/diffrax/). It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.
+Circulax is a differentiable circuit simulation framework built on [JAX](https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html), [Optimistix](https://github.com/patrick-kidger/optimistix) and [Diffrax](https://docs.kidger.site/diffrax/). It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.
 
 By using JAX as its backend, circulax provides:
 
@@ -91,14 +91,9 @@ pip install circulax
 
 ```python
 import jax
-import diffrax
-
+import jax.numpy as jnp
 from circulax.components import Resistor, Capacitor, Inductor, VoltageSource
 from circulax.compiler import compile_netlist
-from circulax.solvers.transient import VectorizedTransientSolver
-from circulax.solvers.strategies import DenseSolver
-import jax.numpy as jnp
-
 import matplotlib.pyplot as plt
 
 jax.config.update("jax_enable_x64", True)
@@ -119,9 +114,6 @@ net_dict = {
     },
 }
 
-jax.config.update("jax_enable_x64", True)
-
-
 models_map = {
     'resistor': Resistor,
     'capacitor': Capacitor,
@@ -130,32 +122,21 @@ models_map = {
     'ground': lambda: 0
 }
 
-print("Compiling...")
+# Analyze Circuit
 groups, sys_size, port_map = compile_netlist(net_dict, models_map)
-
-print(port_map)
-
-print(f"Total System Size: {sys_size}")
-for g_name, g in groups.items():
-    print(f"Group: {g_name}")
-    print(f"  Count: {g.var_indices.shape[0]}")
-    print(f"  Var Indices Shape: {g.var_indices.shape}")
-    print(f"  Sample Var Indices:{g.var_indices}")
-    print(f"  Jacobian Rows Length: {len(g.jac_rows)}")
-
-print("2. Solving DC Operating Point...")
 linear_strat = analyze_circuit(groups, sys_size, is_complex=False)
 
+# Solve DC
 y_guess = jnp.zeros(sys_size)
 y_op = linear_strat.solve_dc(groups,y_guess)
 
+# Setup Sim
 transient_sim = setup_transient(groups=groups, linear_strategy=linear_strat)
 term = diffrax.ODETerm(lambda t, y, args: jnp.zeros_like(y))
 
-
+# Run simulation
 t_max = 3E-9
 saveat = diffrax.SaveAt(ts=jnp.linspace(0, t_max, 500))
-print("3. Running Simulation...")
 sol = transient_sim(
     t0=0.0, t1=t_max, dt0=1e-3*t_max,
     y0=y_op,
@@ -163,12 +144,12 @@ sol = transient_sim(
     progress_meter=diffrax.TqdmProgressMeter(refresh_steps=100)
 )
 
+# Post processing and plotting
 ts = sol.ts
 v_src = sol.ys[:, port_map["V1,p1"]]
 v_cap = sol.ys[:, port_map["C1,p1"]]
 i_ind = sol.ys[:, 5]
 
-print("4. Plotting...")
 fig, ax1 = plt.subplots(figsize=(8, 5))
 ax1.plot(ts, v_src, 'k--', label='Source V')
 ax1.plot(ts, v_cap, 'b-', label='Capacitor V')
