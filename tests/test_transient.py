@@ -4,9 +4,10 @@ import pytest
 
 from circulus.compiler import compile_netlist
 from circulus.solvers import linear as st
+from circulus.solvers.linear import backends
 from circulus.solvers.transient import VectorizedTransientSolver
 
-solvers = [st.KLUSolver, st.SparseSolver, st.DenseSolver, st.KLUSplitSolver]
+solvers = list(backends.values())
 
 
 @pytest.mark.parametrize("solver", solvers, ids=lambda x: x.__name__)

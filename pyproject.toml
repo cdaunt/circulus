@@ -101,7 +101,6 @@ preview = ["pixi-build"]
 # Shared editable install for all environments
 [tool.pixi.pypi-dependencies]
 circulus = { path = ".", editable = true }
-klujax = { git = "https://github.com/cdaunt/klujax", branch = "main" }
 
 # ---------------------------------------------------------------------------
 # Conda package build (pixi build)
@@ -137,8 +136,6 @@ circulus = { path = ".", editable = true, extras = ["test"] }
 tqdm = ">=4.67.1,<5"
 uv = ">=0.6"
 
-[tool.pixi.feature.dev.pypi-dependencies]
-circulus = { path = ".", editable = true, extras = ["dev"] }
 
 # ---------------------------------------------------------------------------
 # Tasks
