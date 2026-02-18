@@ -1,0 +1,1322 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A Differentiable, Functional Circuit Analyzer for the AI Era.">
+      
+      
+      
+      
+      
+        <link rel="next" href="writing_components/">
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+    
+    
+      
+        <title>Circulus</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.8608ea7d.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="stylesheets/extra.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#circulus" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="Circulus" class="md-header__button md-logo" aria-label="Circulus" data-md-component="logo">
+      
+  <img src="images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Circulus
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="white" data-md-color-primary="white" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="Circulus" class="md-nav__button md-logo" aria-label="Circulus" data-md-component="logo">
+      
+  <img src="images/logo.svg" alt="logo">
+
+    </a>
+    Circulus
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#a-differentiable-functional-circuit-simulator-based-on-jax" class="md-nav__link">
+    <span class="md-ellipsis">
+      A Differentiable, Functional Circuit Simulator based on JAX
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simulator-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simulator setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Simulator setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#physics-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Physics Layer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      Topology
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Analysis
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simulation-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simulation Example
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      License
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="writing_components/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Writing Components
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/LCR/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LCR
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/LC_ladder/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LC ladder
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/diode_clipper/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Diode clipper
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/mos_diff_pair/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mos diff pair
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/mzm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mzm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/photonics_transient/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photonics transient
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/resistor_ladder/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Resistor ladder
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Index
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/_version/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+     version
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/compiler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Compiler
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/netlist/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Netlist
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/s_transforms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    S transforms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/utils/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Utils
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_7" id="__nav_4_7_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Components
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_7">
+            <span class="md-nav__icon md-icon"></span>
+            Components
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/components/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Index
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/components/base_component/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Base component
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/components/electronic/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Electronic
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/components/photonic/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photonic
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_8" id="__nav_4_8_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Solvers
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_8">
+            <span class="md-nav__icon md-icon"></span>
+            Solvers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/solvers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Index
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/solvers/assembly/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Assembly
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/solvers/linear/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Linear
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="references/solvers/transient/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Transient
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="circulus"><strong>Circulus</strong><a class="headerlink" href="#circulus" title="Permanent link">¤</a></h1>
+<p><img alt="logo" src="images/logo_white.svg" width="500"/></p>
+<h2 id="a-differentiable-functional-circuit-simulator-based-on-jax"><strong>A Differentiable, Functional Circuit Simulator based on JAX</strong><a class="headerlink" href="#a-differentiable-functional-circuit-simulator-based-on-jax" title="Permanent link">¤</a></h2>
+<p>Circulus is a differentiable circuit simulation framework built on <a href="https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html">JAX</a>, <a href="https://github.com/patrick-kidger/optimistix">Optimistix</a> and <a href="https://docs.kidger.site/diffrax/">Diffrax</a>. It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.</p>
+<p>By using JAX as its backend, Circulus provides:</p>
+<p><strong>Native Differentiation</strong>: Full support for forward and reverse-mode automatic differentiation through the solver, enabling gradient-based parameter optimization and inverse design.</p>
+<p><strong>Hardware Acceleration</strong>: Seamless execution on CPU, GPU, and TPU without code changes.</p>
+<p><strong>Mixed-Domain Support</strong>: Native complex-number handling for simultaneous simulation of electronic and photonic components.</p>
+<p><strong>Modular Architecture</strong>: A functional approach to simulation that integrates directly into machine learning and scientific computing workflows.</p>
+<p>Standard tools (SPICE, Spectre, Ngspice) rely on established matrix stamping methods and CPU-bound sparse solvers. Circulus leverages the JAX ecosystem to offer specific advantages in optimization and hardware utilization:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Legacy(SPICE)</th>
+<th>Circulus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Model Definition</td>
+<td>Hardcoded C++ / Verilog-A</td>
+<td>Simple python functions</td>
+</tr>
+<tr>
+<td>Derivatives</td>
+<td>Hardcoded (C) or Compiler-Generated (Verilog-A)</td>
+<td>Automatic Differentiation (AD)</td>
+</tr>
+<tr>
+<td>Solver Logic</td>
+<td>Fixed-step or heuristic-based</td>
+<td>Adaptive ODE stepping via Diffrax</td>
+</tr>
+<tr>
+<td>Matrix Solver</td>
+<td>Monolithic CPU Sparse (KLU)</td>
+<td>Pluggable (<a href="https://github.com/flaport/klujax">KLUJAX</a>, Dense, or Custom)</td>
+</tr>
+<tr>
+<td>Hardware Target</td>
+<td>CPU-bound</td>
+<td>Agnostic (CPU/GPU/TPU)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="simulator-setup"><strong>Simulator setup</strong><a class="headerlink" href="#simulator-setup" title="Permanent link">¤</a></h2>
+<p>Circulus strictly separates Physics, Topology, and Analysis, enabling the interchange of solvers or models without netlist modification.</p>
+<h3 id="physics-layer"><strong>Physics Layer</strong><a class="headerlink" href="#physics-layer" title="Permanent link">¤</a></h3>
+<p>Components are defined as simple Python functions wrapped with the <code>@component</code> decorator. This functional interface abstracts away the boilerplate, allowing users to define physics using simple voltage/current/field/flux relationships.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.base_component</span><span class="w"> </span><span class="kn">import</span> <span class="n">component</span><span class="p">,</span> <span class="n">Signals</span><span class="p">,</span> <span class="n">States</span>
+</span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+</span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a href="#__codelineno-0-4" id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="nd">@component</span><span class="p">(</span><span class="n">ports</span><span class="o">=</span><span class="p">(</span><span class="s2">"p1"</span><span class="p">,</span> <span class="s2">"p2"</span><span class="p">))</span>
+</span><span id="__span-0-5"><a href="#__codelineno-0-5" id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">Resistor</span><span class="p">(</span><span class="n">signals</span><span class="p">:</span> <span class="n">Signals</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">States</span><span class="p">,</span> <span class="n">R</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e3</span><span class="p">):</span>
+</span><span id="__span-0-6"><a href="#__codelineno-0-6" id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="w">    </span><span class="sd">"""Ohm's Law: I = V/R"""</span>
+</span><span id="__span-0-7"><a href="#__codelineno-0-7" id="__codelineno-0-7" name="__codelineno-0-7"></a>    <span class="c1"># signals.p1, signals.p2 are the nodal voltages</span>
+</span><span id="__span-0-8"><a href="#__codelineno-0-8" id="__codelineno-0-8" name="__codelineno-0-8"></a>    <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">signals</span><span class="o">.</span><span class="n">p1</span> <span class="o">-</span> <span class="n">signals</span><span class="o">.</span><span class="n">p2</span><span class="p">)</span> <span class="o">/</span> <span class="n">R</span>
+</span><span id="__span-0-9"><a href="#__codelineno-0-9" id="__codelineno-0-9" name="__codelineno-0-9"></a>    <span class="c1"># Return (Currents, Charges)</span>
+</span><span id="__span-0-10"><a href="#__codelineno-0-10" id="__codelineno-0-10" name="__codelineno-0-10"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">"p1"</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span> <span class="s2">"p2"</span><span class="p">:</span> <span class="o">-</span><span class="n">i</span><span class="p">},</span> <span class="p">{}</span>
+</span><span id="__span-0-11"><a href="#__codelineno-0-11" id="__codelineno-0-11" name="__codelineno-0-11"></a>
+</span><span id="__span-0-12"><a href="#__codelineno-0-12" id="__codelineno-0-12" name="__codelineno-0-12"></a><span class="nd">@component</span><span class="p">(</span><span class="n">ports</span><span class="o">=</span><span class="p">(</span><span class="s2">"p1"</span><span class="p">,</span> <span class="s2">"p2"</span><span class="p">))</span>
+</span><span id="__span-0-13"><a href="#__codelineno-0-13" id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="k">def</span><span class="w"> </span><span class="nf">Capacitor</span><span class="p">(</span><span class="n">signals</span><span class="p">:</span> <span class="n">Signals</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">States</span><span class="p">,</span> <span class="n">C</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-12</span><span class="p">):</span>
+</span><span id="__span-0-14"><a href="#__codelineno-0-14" id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="__span-0-15"><a href="#__codelineno-0-15" id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="sd">    Q = C * V.</span>
+</span><span id="__span-0-16"><a href="#__codelineno-0-16" id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="sd">    Returns Charge (q) so the solver computes I = dq/dt.</span>
+</span><span id="__span-0-17"><a href="#__codelineno-0-17" id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="sd">    """</span>
+</span><span id="__span-0-18"><a href="#__codelineno-0-18" id="__codelineno-0-18" name="__codelineno-0-18"></a>    <span class="n">v_drop</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">p1</span> <span class="o">-</span> <span class="n">signals</span><span class="o">.</span><span class="n">p2</span>
+</span><span id="__span-0-19"><a href="#__codelineno-0-19" id="__codelineno-0-19" name="__codelineno-0-19"></a>    <span class="n">q_val</span> <span class="o">=</span> <span class="n">C</span> <span class="o">*</span> <span class="n">v_drop</span>
+</span><span id="__span-0-20"><a href="#__codelineno-0-20" id="__codelineno-0-20" name="__codelineno-0-20"></a>    <span class="k">return</span> <span class="p">{},</span> <span class="p">{</span><span class="s2">"p1"</span><span class="p">:</span> <span class="n">q_val</span><span class="p">,</span> <span class="s2">"p2"</span><span class="p">:</span> <span class="o">-</span><span class="n">q_val</span><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="topology"><strong>Topology</strong><a class="headerlink" href="#topology" title="Permanent link">¤</a></h3>
+<p>The compiler inspects your netlist and your model signatures. It automatically:</p>
+<ol>
+<li>
+<p>Introspects models to determine how many internal variables (currents) they need.</p>
+</li>
+<li>
+<p>Allocates indices in the global state vector.</p>
+</li>
+<li>
+<p>Pre-calculates the Sparse Matrix indices (BCOO format) for batched/parallel assembly.</p>
+</li>
+</ol>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="n">netlist</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-1-2"><a href="#__codelineno-1-2" id="__codelineno-1-2" name="__codelineno-1-2"></a>    <span class="n">Instance</span><span class="p">(</span><span class="s2">"V1"</span><span class="p">,</span> <span class="n">voltage_source</span><span class="p">,</span> <span class="n">connections</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">"V"</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">}),</span>
+</span><span id="__span-1-3"><a href="#__codelineno-1-3" id="__codelineno-1-3" name="__codelineno-1-3"></a>    <span class="n">Instance</span><span class="p">(</span><span class="s2">"R1"</span><span class="p">,</span> <span class="n">resistor</span><span class="p">,</span>       <span class="n">connections</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">"R"</span><span class="p">:</span> <span class="mf">100.0</span><span class="p">}),</span>
+</span><span id="__span-1-4"><a href="#__codelineno-1-4" id="__codelineno-1-4" name="__codelineno-1-4"></a><span class="p">]</span>
+</span><span id="__span-1-5"><a href="#__codelineno-1-5" id="__codelineno-1-5" name="__codelineno-1-5"></a><span class="c1"># Compiler auto-detects that V1 needs an extra internal variable!</span>
+</span></code></pre></div>
+<h3 id="analysis"><strong>Analysis</strong><a class="headerlink" href="#analysis" title="Permanent link">¤</a></h3>
+<p>The solver is a generic DAE engine linking Diffrax (Time-stepping) and Optimistix (Root-finding).</p>
+<ul>
+<li>
+<p>Transient: Solves <span class="arithmatex">\(F(y) + \frac{d}{dt}Q(y) = 0\)</span> using Implicit Backward Euler (or any other solver compatible with Diffrax).</p>
+</li>
+<li>
+<p>DC Operating Point: Solves <span class="arithmatex">\(F(y) = 0\)</span> (automatically ignoring <span class="arithmatex">\(Q\)</span>).</p>
+</li>
+<li>
+<p>Jacobian-Free: The solver builds the system Jacobian on-the-fly using <code>jax.jacfwd</code> allowing for the simulation of arbitrary user-defined non-linearities without manual derivative derivation.The approach results in a more exact and stable simulation.</p>
+</li>
+</ul>
+<h2 id="installation"><strong>Installation</strong><a class="headerlink" href="#installation" title="Permanent link">¤</a></h2>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a href="#__codelineno-2-1" id="__codelineno-2-1" name="__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span>circulus
+</span></code></pre></div>
+<h2 id="simulation-example"><strong>Simulation Example</strong><a class="headerlink" href="#simulation-example" title="Permanent link">¤</a></h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a href="#__codelineno-3-1" id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+</span><span id="__span-3-2"><a href="#__codelineno-3-2" id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">diffrax</span>
+</span><span id="__span-3-3"><a href="#__codelineno-3-3" id="__codelineno-3-3" name="__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a href="#__codelineno-3-4" id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.components</span><span class="w"> </span><span class="kn">import</span> <span class="n">Resistor</span><span class="p">,</span> <span class="n">Capacitor</span><span class="p">,</span> <span class="n">Inductor</span><span class="p">,</span> <span class="n">VoltageSource</span>
+</span><span id="__span-3-5"><a href="#__codelineno-3-5" id="__codelineno-3-5" name="__codelineno-3-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.compiler</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_netlist</span>
+</span><span id="__span-3-6"><a href="#__codelineno-3-6" id="__codelineno-3-6" name="__codelineno-3-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.solvers.transient</span><span class="w"> </span><span class="kn">import</span> <span class="n">VectorizedTransientSolver</span>
+</span><span id="__span-3-7"><a href="#__codelineno-3-7" id="__codelineno-3-7" name="__codelineno-3-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulus.solvers.strategies</span><span class="w"> </span><span class="kn">import</span> <span class="n">DenseSolver</span>
+</span><span id="__span-3-8"><a href="#__codelineno-3-8" id="__codelineno-3-8" name="__codelineno-3-8"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+</span><span id="__span-3-9"><a href="#__codelineno-3-9" id="__codelineno-3-9" name="__codelineno-3-9"></a>
+</span><span id="__span-3-10"><a href="#__codelineno-3-10" id="__codelineno-3-10" name="__codelineno-3-10"></a><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+</span><span id="__span-3-11"><a href="#__codelineno-3-11" id="__codelineno-3-11" name="__codelineno-3-11"></a>
+</span><span id="__span-3-12"><a href="#__codelineno-3-12" id="__codelineno-3-12" name="__codelineno-3-12"></a><span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">"jax_enable_x64"</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-3-13"><a href="#__codelineno-3-13" id="__codelineno-3-13" name="__codelineno-3-13"></a>
+</span><span id="__span-3-14"><a href="#__codelineno-3-14" id="__codelineno-3-14" name="__codelineno-3-14"></a><span class="n">net_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-3-15"><a href="#__codelineno-3-15" id="__codelineno-3-15" name="__codelineno-3-15"></a>    <span class="s2">"instances"</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="__span-3-16"><a href="#__codelineno-3-16" id="__codelineno-3-16" name="__codelineno-3-16"></a>        <span class="s2">"GND"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"component"</span><span class="p">:</span><span class="s2">"ground"</span><span class="p">},</span>
+</span><span id="__span-3-17"><a href="#__codelineno-3-17" id="__codelineno-3-17" name="__codelineno-3-17"></a>        <span class="s2">"V1"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"component"</span><span class="p">:</span><span class="s2">"source_voltage"</span><span class="p">,</span> <span class="s2">"settings"</span><span class="p">:{</span><span class="s2">"V"</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span><span class="s2">"delay"</span><span class="p">:</span><span class="mf">0.25E-9</span><span class="p">}},</span>
+</span><span id="__span-3-18"><a href="#__codelineno-3-18" id="__codelineno-3-18" name="__codelineno-3-18"></a>        <span class="s2">"R1"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"component"</span><span class="p">:</span><span class="s2">"resistor"</span><span class="p">,</span> <span class="s2">"settings"</span><span class="p">:{</span><span class="s2">"R"</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">}},</span>
+</span><span id="__span-3-19"><a href="#__codelineno-3-19" id="__codelineno-3-19" name="__codelineno-3-19"></a>        <span class="s2">"C1"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"component"</span><span class="p">:</span><span class="s2">"capacitor"</span><span class="p">,</span> <span class="s2">"settings"</span><span class="p">:{</span><span class="s2">"C"</span><span class="p">:</span> <span class="mf">1e-11</span><span class="p">}},</span>
+</span><span id="__span-3-20"><a href="#__codelineno-3-20" id="__codelineno-3-20" name="__codelineno-3-20"></a>        <span class="s2">"L1"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"component"</span><span class="p">:</span><span class="s2">"inductor"</span><span class="p">,</span> <span class="s2">"settings"</span><span class="p">:{</span><span class="s2">"L"</span><span class="p">:</span> <span class="mf">5e-9</span><span class="p">}},</span>
+</span><span id="__span-3-21"><a href="#__codelineno-3-21" id="__codelineno-3-21" name="__codelineno-3-21"></a>    <span class="p">},</span>
+</span><span id="__span-3-22"><a href="#__codelineno-3-22" id="__codelineno-3-22" name="__codelineno-3-22"></a>    <span class="s2">"connections"</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="__span-3-23"><a href="#__codelineno-3-23" id="__codelineno-3-23" name="__codelineno-3-23"></a>        <span class="s2">"GND,p1"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"V1,p2"</span><span class="p">,</span> <span class="s2">"C1,p2"</span><span class="p">),</span>
+</span><span id="__span-3-24"><a href="#__codelineno-3-24" id="__codelineno-3-24" name="__codelineno-3-24"></a>        <span class="s2">"V1,p1"</span><span class="p">:</span> <span class="s2">"R1,p1"</span><span class="p">,</span>
+</span><span id="__span-3-25"><a href="#__codelineno-3-25" id="__codelineno-3-25" name="__codelineno-3-25"></a>        <span class="s2">"R1,p2"</span><span class="p">:</span> <span class="s2">"L1,p1"</span><span class="p">,</span>
+</span><span id="__span-3-26"><a href="#__codelineno-3-26" id="__codelineno-3-26" name="__codelineno-3-26"></a>        <span class="s2">"L1,p2"</span><span class="p">:</span> <span class="s2">"C1,p1"</span><span class="p">,</span>
+</span><span id="__span-3-27"><a href="#__codelineno-3-27" id="__codelineno-3-27" name="__codelineno-3-27"></a>    <span class="p">},</span>
+</span><span id="__span-3-28"><a href="#__codelineno-3-28" id="__codelineno-3-28" name="__codelineno-3-28"></a><span class="p">}</span>
+</span><span id="__span-3-29"><a href="#__codelineno-3-29" id="__codelineno-3-29" name="__codelineno-3-29"></a>
+</span><span id="__span-3-30"><a href="#__codelineno-3-30" id="__codelineno-3-30" name="__codelineno-3-30"></a><span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">"jax_enable_x64"</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-3-31"><a href="#__codelineno-3-31" id="__codelineno-3-31" name="__codelineno-3-31"></a>
+</span><span id="__span-3-32"><a href="#__codelineno-3-32" id="__codelineno-3-32" name="__codelineno-3-32"></a>
+</span><span id="__span-3-33"><a href="#__codelineno-3-33" id="__codelineno-3-33" name="__codelineno-3-33"></a><span class="n">models_map</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-3-34"><a href="#__codelineno-3-34" id="__codelineno-3-34" name="__codelineno-3-34"></a>    <span class="s1">'resistor'</span><span class="p">:</span> <span class="n">Resistor</span><span class="p">,</span>
+</span><span id="__span-3-35"><a href="#__codelineno-3-35" id="__codelineno-3-35" name="__codelineno-3-35"></a>    <span class="s1">'capacitor'</span><span class="p">:</span> <span class="n">Capacitor</span><span class="p">,</span>
+</span><span id="__span-3-36"><a href="#__codelineno-3-36" id="__codelineno-3-36" name="__codelineno-3-36"></a>    <span class="s1">'inductor'</span><span class="p">:</span> <span class="n">Inductor</span><span class="p">,</span>
+</span><span id="__span-3-37"><a href="#__codelineno-3-37" id="__codelineno-3-37" name="__codelineno-3-37"></a>    <span class="s1">'source_voltage'</span><span class="p">:</span> <span class="n">VoltageSource</span><span class="p">,</span>
+</span><span id="__span-3-38"><a href="#__codelineno-3-38" id="__codelineno-3-38" name="__codelineno-3-38"></a>    <span class="s1">'ground'</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="mi">0</span>
+</span><span id="__span-3-39"><a href="#__codelineno-3-39" id="__codelineno-3-39" name="__codelineno-3-39"></a><span class="p">}</span>
+</span><span id="__span-3-40"><a href="#__codelineno-3-40" id="__codelineno-3-40" name="__codelineno-3-40"></a>
+</span><span id="__span-3-41"><a href="#__codelineno-3-41" id="__codelineno-3-41" name="__codelineno-3-41"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"Compiling..."</span><span class="p">)</span>
+</span><span id="__span-3-42"><a href="#__codelineno-3-42" id="__codelineno-3-42" name="__codelineno-3-42"></a><span class="n">groups</span><span class="p">,</span> <span class="n">sys_size</span><span class="p">,</span> <span class="n">port_map</span> <span class="o">=</span> <span class="n">compile_netlist</span><span class="p">(</span><span class="n">net_dict</span><span class="p">,</span> <span class="n">models_map</span><span class="p">)</span>
+</span><span id="__span-3-43"><a href="#__codelineno-3-43" id="__codelineno-3-43" name="__codelineno-3-43"></a>
+</span><span id="__span-3-44"><a href="#__codelineno-3-44" id="__codelineno-3-44" name="__codelineno-3-44"></a><span class="nb">print</span><span class="p">(</span><span class="n">port_map</span><span class="p">)</span>
+</span><span id="__span-3-45"><a href="#__codelineno-3-45" id="__codelineno-3-45" name="__codelineno-3-45"></a>
+</span><span id="__span-3-46"><a href="#__codelineno-3-46" id="__codelineno-3-46" name="__codelineno-3-46"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Total System Size: </span><span class="si">{</span><span class="n">sys_size</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-3-47"><a href="#__codelineno-3-47" id="__codelineno-3-47" name="__codelineno-3-47"></a><span class="k">for</span> <span class="n">g_name</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">groups</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="__span-3-48"><a href="#__codelineno-3-48" id="__codelineno-3-48" name="__codelineno-3-48"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Group: </span><span class="si">{</span><span class="n">g_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-3-49"><a href="#__codelineno-3-49" id="__codelineno-3-49" name="__codelineno-3-49"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Count: </span><span class="si">{</span><span class="n">g</span><span class="o">.</span><span class="n">var_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-3-50"><a href="#__codelineno-3-50" id="__codelineno-3-50" name="__codelineno-3-50"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Var Indices Shape: </span><span class="si">{</span><span class="n">g</span><span class="o">.</span><span class="n">var_indices</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-3-51"><a href="#__codelineno-3-51" id="__codelineno-3-51" name="__codelineno-3-51"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Sample Var Indices:</span><span class="si">{</span><span class="n">g</span><span class="o">.</span><span class="n">var_indices</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-3-52"><a href="#__codelineno-3-52" id="__codelineno-3-52" name="__codelineno-3-52"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Jacobian Rows Length: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">jac_rows</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-3-53"><a href="#__codelineno-3-53" id="__codelineno-3-53" name="__codelineno-3-53"></a>
+</span><span id="__span-3-54"><a href="#__codelineno-3-54" id="__codelineno-3-54" name="__codelineno-3-54"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"2. Solving DC Operating Point..."</span><span class="p">)</span>
+</span><span id="__span-3-55"><a href="#__codelineno-3-55" id="__codelineno-3-55" name="__codelineno-3-55"></a><span class="n">linear_strat</span> <span class="o">=</span> <span class="n">analyze_circuit</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">sys_size</span><span class="p">,</span> <span class="n">is_complex</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-3-56"><a href="#__codelineno-3-56" id="__codelineno-3-56" name="__codelineno-3-56"></a>
+</span><span id="__span-3-57"><a href="#__codelineno-3-57" id="__codelineno-3-57" name="__codelineno-3-57"></a><span class="n">y_guess</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">sys_size</span><span class="p">)</span>
+</span><span id="__span-3-58"><a href="#__codelineno-3-58" id="__codelineno-3-58" name="__codelineno-3-58"></a><span class="n">y_op</span> <span class="o">=</span> <span class="n">linear_strat</span><span class="o">.</span><span class="n">solve_dc</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span><span class="n">y_guess</span><span class="p">)</span>
+</span><span id="__span-3-59"><a href="#__codelineno-3-59" id="__codelineno-3-59" name="__codelineno-3-59"></a>
+</span><span id="__span-3-60"><a href="#__codelineno-3-60" id="__codelineno-3-60" name="__codelineno-3-60"></a><span class="n">transient_sim</span> <span class="o">=</span> <span class="n">setup_transient</span><span class="p">(</span><span class="n">groups</span><span class="o">=</span><span class="n">groups</span><span class="p">,</span> <span class="n">linear_strategy</span><span class="o">=</span><span class="n">linear_strat</span><span class="p">)</span>
+</span><span id="__span-3-61"><a href="#__codelineno-3-61" id="__codelineno-3-61" name="__codelineno-3-61"></a><span class="n">term</span> <span class="o">=</span> <span class="n">diffrax</span><span class="o">.</span><span class="n">ODETerm</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+</span><span id="__span-3-62"><a href="#__codelineno-3-62" id="__codelineno-3-62" name="__codelineno-3-62"></a>
+</span><span id="__span-3-63"><a href="#__codelineno-3-63" id="__codelineno-3-63" name="__codelineno-3-63"></a>
+</span><span id="__span-3-64"><a href="#__codelineno-3-64" id="__codelineno-3-64" name="__codelineno-3-64"></a><span class="n">t_max</span> <span class="o">=</span> <span class="mf">3E-9</span>
+</span><span id="__span-3-65"><a href="#__codelineno-3-65" id="__codelineno-3-65" name="__codelineno-3-65"></a><span class="n">saveat</span> <span class="o">=</span> <span class="n">diffrax</span><span class="o">.</span><span class="n">SaveAt</span><span class="p">(</span><span class="n">ts</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">t_max</span><span class="p">,</span> <span class="mi">500</span><span class="p">))</span>
+</span><span id="__span-3-66"><a href="#__codelineno-3-66" id="__codelineno-3-66" name="__codelineno-3-66"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"3. Running Simulation..."</span><span class="p">)</span>
+</span><span id="__span-3-67"><a href="#__codelineno-3-67" id="__codelineno-3-67" name="__codelineno-3-67"></a><span class="n">sol</span> <span class="o">=</span> <span class="n">transient_sim</span><span class="p">(</span>
+</span><span id="__span-3-68"><a href="#__codelineno-3-68" id="__codelineno-3-68" name="__codelineno-3-68"></a>    <span class="n">t0</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">t1</span><span class="o">=</span><span class="n">t_max</span><span class="p">,</span> <span class="n">dt0</span><span class="o">=</span><span class="mf">1e-3</span><span class="o">*</span><span class="n">t_max</span><span class="p">,</span>
+</span><span id="__span-3-69"><a href="#__codelineno-3-69" id="__codelineno-3-69" name="__codelineno-3-69"></a>    <span class="n">y0</span><span class="o">=</span><span class="n">y_op</span><span class="p">,</span>
+</span><span id="__span-3-70"><a href="#__codelineno-3-70" id="__codelineno-3-70" name="__codelineno-3-70"></a>    <span class="n">saveat</span><span class="o">=</span><span class="n">saveat</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
+</span><span id="__span-3-71"><a href="#__codelineno-3-71" id="__codelineno-3-71" name="__codelineno-3-71"></a>    <span class="n">progress_meter</span><span class="o">=</span><span class="n">diffrax</span><span class="o">.</span><span class="n">TqdmProgressMeter</span><span class="p">(</span><span class="n">refresh_steps</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</span><span id="__span-3-72"><a href="#__codelineno-3-72" id="__codelineno-3-72" name="__codelineno-3-72"></a><span class="p">)</span>
+</span><span id="__span-3-73"><a href="#__codelineno-3-73" id="__codelineno-3-73" name="__codelineno-3-73"></a>
+</span><span id="__span-3-74"><a href="#__codelineno-3-74" id="__codelineno-3-74" name="__codelineno-3-74"></a><span class="n">ts</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">ts</span>
+</span><span id="__span-3-75"><a href="#__codelineno-3-75" id="__codelineno-3-75" name="__codelineno-3-75"></a><span class="n">v_src</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">ys</span><span class="p">[:,</span> <span class="n">port_map</span><span class="p">[</span><span class="s2">"V1,p1"</span><span class="p">]]</span>
+</span><span id="__span-3-76"><a href="#__codelineno-3-76" id="__codelineno-3-76" name="__codelineno-3-76"></a><span class="n">v_cap</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">ys</span><span class="p">[:,</span> <span class="n">port_map</span><span class="p">[</span><span class="s2">"C1,p1"</span><span class="p">]]</span>
+</span><span id="__span-3-77"><a href="#__codelineno-3-77" id="__codelineno-3-77" name="__codelineno-3-77"></a><span class="n">i_ind</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">ys</span><span class="p">[:,</span> <span class="mi">5</span><span class="p">]</span>
+</span><span id="__span-3-78"><a href="#__codelineno-3-78" id="__codelineno-3-78" name="__codelineno-3-78"></a>
+</span><span id="__span-3-79"><a href="#__codelineno-3-79" id="__codelineno-3-79" name="__codelineno-3-79"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"4. Plotting..."</span><span class="p">)</span>
+</span><span id="__span-3-80"><a href="#__codelineno-3-80" id="__codelineno-3-80" name="__codelineno-3-80"></a><span class="n">fig</span><span class="p">,</span> <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+</span><span id="__span-3-81"><a href="#__codelineno-3-81" id="__codelineno-3-81" name="__codelineno-3-81"></a><span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">v_src</span><span class="p">,</span> <span class="s1">'k--'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Source V'</span><span class="p">)</span>
+</span><span id="__span-3-82"><a href="#__codelineno-3-82" id="__codelineno-3-82" name="__codelineno-3-82"></a><span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">v_cap</span><span class="p">,</span> <span class="s1">'b-'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Capacitor V'</span><span class="p">)</span>
+</span><span id="__span-3-83"><a href="#__codelineno-3-83" id="__codelineno-3-83" name="__codelineno-3-83"></a><span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'Time (s)'</span><span class="p">)</span>
+</span><span id="__span-3-84"><a href="#__codelineno-3-84" id="__codelineno-3-84" name="__codelineno-3-84"></a><span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Voltage (V)'</span><span class="p">)</span>
+</span><span id="__span-3-85"><a href="#__codelineno-3-85" id="__codelineno-3-85" name="__codelineno-3-85"></a><span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">'upper left'</span><span class="p">)</span>
+</span><span id="__span-3-86"><a href="#__codelineno-3-86" id="__codelineno-3-86" name="__codelineno-3-86"></a>
+</span><span id="__span-3-87"><a href="#__codelineno-3-87" id="__codelineno-3-87" name="__codelineno-3-87"></a><span class="n">ax2</span> <span class="o">=</span> <span class="n">ax1</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+</span><span id="__span-3-88"><a href="#__codelineno-3-88" id="__codelineno-3-88" name="__codelineno-3-88"></a><span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">i_ind</span><span class="p">,</span> <span class="s1">'r:'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Inductor I'</span><span class="p">)</span>
+</span><span id="__span-3-89"><a href="#__codelineno-3-89" id="__codelineno-3-89" name="__codelineno-3-89"></a><span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Current (A)'</span><span class="p">)</span>
+</span><span id="__span-3-90"><a href="#__codelineno-3-90" id="__codelineno-3-90" name="__codelineno-3-90"></a><span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">'upper right'</span><span class="p">)</span>
+</span><span id="__span-3-91"><a href="#__codelineno-3-91" id="__codelineno-3-91" name="__codelineno-3-91"></a>
+</span><span id="__span-3-92"><a href="#__codelineno-3-92" id="__codelineno-3-92" name="__codelineno-3-92"></a><span class="n">ax2_ticks</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">get_yticks</span><span class="p">()</span>
+</span><span id="__span-3-93"><a href="#__codelineno-3-93" id="__codelineno-3-93" name="__codelineno-3-93"></a><span class="n">ax1_ticks</span> <span class="o">=</span> <span class="n">ax1</span><span class="o">.</span><span class="n">get_yticks</span><span class="p">()</span>
+</span><span id="__span-3-94"><a href="#__codelineno-3-94" id="__codelineno-3-94" name="__codelineno-3-94"></a><span class="n">ax2</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">ax2_ticks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax2_ticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">ax1_ticks</span><span class="p">)))</span>
+</span><span id="__span-3-95"><a href="#__codelineno-3-95" id="__codelineno-3-95" name="__codelineno-3-95"></a><span class="n">ax1</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">ax1_ticks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax1_ticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">ax1_ticks</span><span class="p">)))</span>
+</span><span id="__span-3-96"><a href="#__codelineno-3-96" id="__codelineno-3-96" name="__codelineno-3-96"></a>
+</span><span id="__span-3-97"><a href="#__codelineno-3-97" id="__codelineno-3-97" name="__codelineno-3-97"></a><span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"Impulse Response of LCR circuit"</span><span class="p">)</span>
+</span><span id="__span-3-98"><a href="#__codelineno-3-98" id="__codelineno-3-98" name="__codelineno-3-98"></a><span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-3-99"><a href="#__codelineno-3-99" id="__codelineno-3-99" name="__codelineno-3-99"></a><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</span></code></pre></div>
+<p><img alt="output" src="images/lcr.png"/></p>
+<h2 id="license"><strong>License</strong><a class="headerlink" href="#license" title="Permanent link">¤</a></h2>
+<p>Copyright © 2026, Chris Daunt, <a href="https://github.com/cdaunt/circulus/blob/master/LICENSE">Apache-2.0 License</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/cdaunt" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": ".", "features": ["toc.integrate", "header.autohide"], "search": "assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="_static/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
