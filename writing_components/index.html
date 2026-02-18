@@ -1077,7 +1077,7 @@
   <h1>Writing Components</h1>
 
 <h2 id="writing-components">Writing Components<a class="headerlink" href="#writing-components" title="Permanent link">¤</a></h2>
-<p>circulax uses a functional, JAX-first approach to component definition. Instead of inheriting from complex base classes, you define components as pure Python functions decorated with specific handlers.</p>
+<p>Circulax uses a functional, JAX-first approach to component definition. Instead of inheriting from complex base classes, you define components as pure Python functions decorated with specific handlers.</p>
 <p>This architecture ensures your components are automatically compatible with JIT compilation (jax.jit), vectorization (jax.vmap), and back-propagation (jax.grad).</p>
 <h3 id="the-core-concept">The Core Concept<a class="headerlink" href="#the-core-concept" title="Permanent link">¤</a></h3>
 <p>Every component in circulax is a function that calculates the instantaneous balance equations for a specific node or state. The function signature generally looks like this:</p>
@@ -1185,7 +1185,7 @@
 </span><span id="__span-3-18"><a href="#__codelineno-3-18" id="__codelineno-3-18" name="__codelineno-3-18"></a>    <span class="p">},</span> <span class="p">{}</span>
 </span></code></pre></div>
 <h2 id="photonic-components-frequency-domain">Photonic Components (Frequency Domain)<a class="headerlink" href="#photonic-components-frequency-domain" title="Permanent link">¤</a></h2>
-<p>circulax can simulate photonic circuits by treating them as complex-valued resistor networks. You typically start with an S-Matrix, convert it to an Admittance (Y) Matrix, and calculate currents via <span class="arithmatex">\(I = Y \cdot V\)</span>.</p>
+<p>Circulax can simulate photonic circuits by treating them as complex-valued resistor networks. You typically start with an S-Matrix, convert it to an Admittance (Y) Matrix, and calculate currents via <span class="arithmatex">\(I = Y \cdot V\)</span>.</p>
 <p>Example: Optical Waveguide</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a href="#__codelineno-4-1" id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">circulax.s_transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">s_to_y</span>
 </span><span id="__span-4-2"><a href="#__codelineno-4-2" id="__codelineno-4-2" name="__codelineno-4-2"></a>
