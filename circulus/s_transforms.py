@@ -34,7 +34,7 @@ def s_to_y(S: jax.Array, z0: float = 1.0) -> jax.Array:
     return (1.0 / z0) * (eye - S) @ jnp.linalg.inv(eye + S)
 
 
-def sax_component(fn) -> Callable:  # noqa: ANN001, ANN201
+def sax_component(fn: callable) -> callable:
     """Decorator to convert a SAX model function into a Circulus component.
 
     Inspects ``fn`` at decoration time to discover its port interface via a
