@@ -26,25 +26,25 @@ import klujax
 import lineax as lx
 import numpy as np
 import optimistix as optx
-from klujax import KLUHandleManager
 
-try:
-    import klujax_cpp
-except ImportError:
-    klujax_cpp = None
-
-try:
-    import klujax_rs as klurs
-    from klujax_rs import KLUHandleManager as KLURSHandleManager
-except ImportError:
-    # Silently falling back to klujax until package is ready
-    klurs = klujax
-    from klujax import KLUHandleManager as KLURSHandleManager
-
-
-# Import physics assembly kernels (lazy import handled in methods if needed)
 from circulus.solvers.assembly import assemble_system_complex, assemble_system_real
 
+# Check if split solver available — KLUHandleManager was added in a later version of klujax.
+split_solver_available = True
+try:
+    from klujax import KLUHandleManager
+    try:
+        import klujax_rs as klurs
+        from klujax_rs import KLUHandleManager as KLURSHandleManager
+    except ImportError:
+        # Silently falling back to klujax until package is ready
+        klurs = klujax
+        from klujax import KLUHandleManager as KLURSHandleManager
+except ImportError:
+    split_solver_available = False
+    # Provide dummy sentinels so the eqx.field annotations below don't cause NameErrors
+    KLUHandleManager = object  # type: ignore[assignment,misc]
+    KLURSHandleManager = object  # type: ignore[assignment,misc]
 
 class CircuitLinearSolver(lx.AbstractLinearSolver):
     """Abstract Base Class for all circuit linear solvers.
@@ -766,13 +766,20 @@ class SparseSolver(CircuitLinearSolver):
         )
 
 
-backends = {
+backends: dict[str, type[CircuitLinearSolver]] = {
     "default": KLUSolver,
     "klu": KLUSolver,
-    "klu_split": KLUSplitSolver,
     "dense": DenseSolver,
     "sparse": SparseSolver,
 }
+
+if split_solver_available:
+    backends["klu_split"] = KLUSplitSolver
+    backends["klu_rs_split"] = KlursSplitSolver
+else:
+    # Silently fall back to KLUSolver when KLUHandleManager is not available
+    backends["klu_split"] = KLUSolver
+    backends["klu_rs_split"] = KLUSolver
 
 
 def analyze_circuit(
