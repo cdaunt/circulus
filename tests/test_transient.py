@@ -7,7 +7,7 @@ from circulus.solvers import linear as st
 from circulus.solvers.linear import backends
 from circulus.solvers.transient import VectorizedTransientSolver
 
-solvers = list(backends.values())
+solvers = set(backends.values())
 
 
 @pytest.mark.parametrize("solver", solvers, ids=lambda x: x.__name__)
