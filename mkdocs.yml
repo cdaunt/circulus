@@ -23,7 +23,7 @@ theme:
     #custom_dir: "docs/_overrides"  # Overriding part of the HTML
 
 site_name: Circulus
-site_description: A Differentiable, Functional Circuit Analyzer for the AI Era.
+site_description: A Differentiable, Functional Circuit Analyzer based on JAX.
 
 edit_uri: ""
 
