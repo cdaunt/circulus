@@ -2161,12 +2161,13 @@ packages:
   requires_python: '>=3.7'
 - pypi: ./
   name: circulus
-  version: 0.1.dev119+g9b2e717ba.d20260218
-  sha256: 52e7218c9877623e9364328559c43c18bb034f93a95538f61ec045549dccc7fa
+  version: 0.1.dev121+ge058ec95a
+  sha256: df18b29be72ab5442481618d22571a1d331d2cd73048d159426f9841e7dbbb61
   requires_dist:
   - diffrax>=0.7.0,<0.8
   - jax>=0.7.1,<0.8
   - jaxlib>=0.7.1,<0.8
+  - klujax>=0.4.8
   - lineax
   - matplotlib
   - numpy
