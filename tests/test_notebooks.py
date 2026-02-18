@@ -32,7 +32,7 @@ def test_nbs(path: Path | str) -> None:
     nb = papermill_engines.execute_notebook_with_engine(
         engine_name=None,
         nb=nb,
-        kernel_name="circulus",
+        kernel_name="circulax",
         input_path=str(path),
         output_path=None,
     )

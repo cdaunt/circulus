@@ -1,7 +1,7 @@
 """Utilities for converting between S-parameters.
 
 Utilities for converting between S-parameter and admittance representations,
-and for wrapping SAX model functions as Circulus components.
+and for wrapping SAX model functions as circulax components.
 """
 
 import inspect
@@ -10,7 +10,7 @@ import jax
 import jax.numpy as jnp
 from sax import get_ports, sdense
 
-from circulus.components.base_component import Signals, States, component
+from circulax.components.base_component import Signals, States, component
 
 
 @jax.jit
@@ -35,11 +35,11 @@ def s_to_y(S: jax.Array, z0: float = 1.0) -> jax.Array:
 
 
 def sax_component(fn: callable) -> callable:
-    """Decorator to convert a SAX model function into a Circulus component.
+    """Decorator to convert a SAX model function into a circulax component.
 
     Inspects ``fn`` at decoration time to discover its port interface via a
     dry run, then wraps its S-matrix output in an admittance-based physics
-    function compatible with the Circulus nodal solver.
+    function compatible with the circulax nodal solver.
 
     The conversion proceeds in three stages:
 
@@ -51,8 +51,8 @@ def sax_component(fn: callable) -> callable:
        it to an admittance matrix via :func:`s_to_y`, and returns
        ``I = Y @ V`` as a port current dict.
     3. **Component registration** — the wrapper is passed to
-       :func:`~circulus.components.base_component.component` with the
-       discovered ports, producing a :class:`~circulus.components.base_component.CircuitComponent`
+       :func:`~circulax.components.base_component.component` with the
+       discovered ports, producing a :class:`~circulax.components.base_component.CircuitComponent`
        subclass.
 
     Args:
@@ -62,7 +62,7 @@ def sax_component(fn: callable) -> callable:
             ``1.0`` during the dry run.
 
     Returns:
-        A :class:`~circulus.components.base_component.CircuitComponent`
+        A :class:`~circulax.components.base_component.CircuitComponent`
         subclass named after ``fn``.
 
     Raises:

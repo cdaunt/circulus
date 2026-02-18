@@ -1,4 +1,4 @@
-"""Circulus utilities."""
+"""circulax utilities."""
 
 from typing import TYPE_CHECKING
 
@@ -6,7 +6,7 @@ import equinox as eqx
 import jax.numpy as jnp
 
 if TYPE_CHECKING:
-    from circulus.compiler import ComponentGroup
+    from circulax.compiler import ComponentGroup
 
 
 def update_params_dict(

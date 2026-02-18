@@ -1,6 +1,6 @@
 from matplotlib.figure import Figure
 
-from circulus.netlist import draw_circuit_graph
+from circulax.netlist import draw_circuit_graph
 
 
 def test_draw_circuit_graph_returns_figure(simple_lrc_netlist):

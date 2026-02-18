@@ -6,8 +6,8 @@ All wavelength parameters are in nanometres and power in watts.
 import jax.nn as jnn
 import jax.numpy as jnp
 
-from circulus.components.base_component import PhysicsReturn, Signals, States, component, source
-from circulus.s_transforms import s_to_y
+from circulax.components.base_component import PhysicsReturn, Signals, States, component, source
+from circulax.s_transforms import s_to_y
 
 # ===========================================================================
 # Passive Optical Components (S-Matrix based)

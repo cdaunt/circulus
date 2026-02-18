@@ -27,7 +27,7 @@ import lineax as lx
 import numpy as np
 import optimistix as optx
 
-from circulus.solvers.assembly import assemble_system_complex, assemble_system_real
+from circulax.solvers.assembly import assemble_system_complex, assemble_system_real
 
 # Check if split solver available — KLUHandleManager was added in a later version of klujax.
 split_solver_available = True

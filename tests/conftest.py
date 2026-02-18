@@ -16,7 +16,7 @@ jax.config.update("jax_enable_x64", True)
 @pytest.fixture
 def simple_lrc_netlist():
     """Returns (net_dict, models_map) for a small LRC example."""
-    from circulus.components.electronic import (
+    from circulax.components.electronic import (
         Capacitor,
         Inductor,
         Resistor,
@@ -55,8 +55,8 @@ def simple_lrc_netlist():
 
 @pytest.fixture
 def simple_optical_netlist():
-    from circulus.components.electronic import Resistor
-    from circulus.components.photonic import OpticalSourcePulse, OpticalWaveguide
+    from circulax.components.electronic import Resistor
+    from circulax.components.photonic import OpticalSourcePulse, OpticalWaveguide
 
     models_map = {
         "waveguide": OpticalWaveguide,
@@ -75,7 +75,7 @@ def simple_optical_netlist():
             "R1": {
                 "component": "resistor",
                 "settings": {"R": 1.0},
-            },  # circulus.components.Resistor defaults to 1k, we set 1.0
+            },  # circulax.components.Resistor defaults to 1k, we set 1.0
         },
         "connections": {
             "GND,p1": ("I1,p2", "R1,p2"),

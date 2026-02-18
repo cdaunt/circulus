@@ -22,7 +22,7 @@ theme:
 
     #custom_dir: "docs/_overrides"  # Overriding part of the HTML
 
-site_name: Circulus
+site_name: circulax
 site_description: A Differentiable, Functional Circuit Analyzer based on JAX.
 
 edit_uri: ""
@@ -64,7 +64,7 @@ plugins:
     - mkdocstrings:
         handlers:
             python:
-                paths: [circulus]
+                paths: [circulax]
                 inventories:
                     - https://docs.jax.dev/en/latest/objects.inv
                     - https://docs.kidger.site/jaxtyping/objects.inv

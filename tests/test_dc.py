@@ -4,9 +4,9 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from circulus.compiler import compile_netlist
-from circulus.netlist import Netlist
-from circulus.solvers.linear import backends
+from circulax.compiler import compile_netlist
+from circulax.netlist import Netlist
+from circulax.solvers.linear import backends
 
 solvers = set(backends.values())
 
