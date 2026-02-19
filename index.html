@@ -288,6 +288,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#why-use-jax" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why use JAX?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#simulator-setup" class="md-nav__link">
     <span class="md-ellipsis">
       Simulator setup
@@ -1038,9 +1047,11 @@
 
 
 <h1 id="circulax"><strong>Circulax</strong><a class="headerlink" href="#circulax" title="Permanent link">¤</a></h1>
-<p><img alt="logo" src="images/logo_white.svg" width="500"/></p>
+<p><img alt="logo" src="images/logo_white.svg" width="350"/></p>
 <h2 id="a-differentiable-functional-circuit-simulator-based-on-jax"><strong>A Differentiable, Functional Circuit Simulator based on JAX</strong><a class="headerlink" href="#a-differentiable-functional-circuit-simulator-based-on-jax" title="Permanent link">¤</a></h2>
 <p>Circulax is a differentiable circuit simulation framework built on <a href="https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html">JAX</a>, <a href="https://github.com/patrick-kidger/optimistix">Optimistix</a> and <a href="https://docs.kidger.site/diffrax/">Diffrax</a>. It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.</p>
+<p>The documentation can be found <a href="https://cdaunt.github.io/circulax/">here</a></p>
+<h2 id="why-use-jax">Why use JAX?<a class="headerlink" href="#why-use-jax" title="Permanent link">¤</a></h2>
 <p>By using JAX as its backend, circulax provides:</p>
 <p><strong>Native Differentiation</strong>: Full support for forward and reverse-mode automatic differentiation through the solver, enabling gradient-based parameter optimization and inverse design.</p>
 <p><strong>Hardware Acceleration</strong>: Seamless execution on CPU, GPU, and TPU without code changes.</p>
