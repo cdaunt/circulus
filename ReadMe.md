@@ -1,10 +1,13 @@
 # **Circulax**
 
-<img src="docs/images/logo_white.svg" alt="logo" width="500">
+<img src="docs/images/logo_white.svg" alt="logo" width="350">
 
 ## **A Differentiable, Functional Circuit Simulator based on JAX**
 Circulax is a differentiable circuit simulation framework built on [JAX](https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html), [Optimistix](https://github.com/patrick-kidger/optimistix) and [Diffrax](https://docs.kidger.site/diffrax/). It treats circuit netlists as systems of Ordinary Differential Equations (ODEs), leveraging Diffrax's suite of numerical solvers for transient analysis.
 
+The documentation can be found [here](https://cdaunt.github.io/circulax/)
+
+## Why use JAX?
 By using JAX as its backend, circulax provides:
 
 **Native Differentiation**: Full support for forward and reverse-mode automatic differentiation through the solver, enabling gradient-based parameter optimization and inverse design.
